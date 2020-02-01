@@ -1,0 +1,5 @@
+out/
+build/
+bin/
+
+.vs/
