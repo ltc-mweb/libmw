@@ -1,15 +1,15 @@
 #pragma once
 
-#include <mw/core/models/block/Header.h>
+#include <mw/core/models/block/IHeader.h>
 
 class Header : public IHeader
 {
 public:
+    using CPtr = std::shared_ptr<const Header>;
+
     Header(
-        const uint16_t version,
         const uint64_t height,
         Hash&& previousHash,
-        Hash&& previousRoot,
         Hash&& outputRoot,
         Hash&& rangeProofRoot,
         Hash&& kernelRoot,
@@ -18,10 +18,8 @@ public:
         const uint64_t kernelMMRSize
     )
         : IHeader(
-            version,
             height,
             std::move(previousHash),
-            std::move(previousRoot),
             std::move(outputRoot),
             std::move(rangeProofRoot),
             std::move(kernelRoot),
@@ -35,13 +33,11 @@ public:
     //
     // Serialization/Deserialization
     //
-    virtual Serializer& Serialize(Serializer& serializer) const override final
+    Serializer& Serialize(Serializer& serializer) const noexcept final
     {
         return serializer
-            .Append<uint16_t>(m_version)
             .Append<uint64_t>(m_height)
             .Append(m_previousHash)
-            .Append(m_previousRoot)
             .Append(m_outputRoot)
             .Append(m_rangeProofRoot)
             .Append(m_kernelRoot)
@@ -50,23 +46,20 @@ public:
             .Append<uint64_t>(m_kernelMMRSize);
     }
 
-    static IHeader::CPtr Deserialize(ByteBuffer& byteBuffer)
+    static Header::CPtr Deserialize(Deserializer& deserializer)
     {
-        uint16_t version = byteBuffer.ReadU16();
-        uint64_t height = byteBuffer.ReadU64();
-        Hash previousHash = Hash::Deserialize(byteBuffer);
-        Hash previousRoot = Hash::Deserialize(byteBuffer);
-        Hash outputRoot = Hash::Deserialize(byteBuffer);
-        Hash proofRoot = Hash::Deserialize(byteBuffer);
-        Hash kernelRoot = Hash::Deserialize(byteBuffer);
-        BlindingFactor offset = BlindingFactor::Deserialize(byteBuffer);
-        uint64_t outputMMRSize = byteBuffer.ReadU64();
-        uint64_t kernelMMRSize = byteBuffer.ReadU64();
+        uint64_t height = deserializer.Read<uint64_t>();
+        Hash previousHash = Hash::Deserialize(deserializer);
+        Hash outputRoot = Hash::Deserialize(deserializer);
+        Hash proofRoot = Hash::Deserialize(deserializer);
+        Hash kernelRoot = Hash::Deserialize(deserializer);
+        BlindingFactor offset = BlindingFactor::Deserialize(deserializer);
+        uint64_t outputMMRSize = deserializer.Read<uint64_t>();
+        uint64_t kernelMMRSize = deserializer.Read<uint64_t>();
+
         return std::make_shared<Header>(
-            version,
             height,
             std::move(previousHash),
-            std::move(previousRoot),
             std::move(outputRoot),
             std::move(proofRoot),
             std::move(kernelRoot),
@@ -76,7 +69,19 @@ public:
         );
     }
 
-    virtual void Validate(const NodeContext& context) const override final
+    json ToJSON() const noexcept final
+    {
+        // TODO: Implement
+        return json();
+    }
+
+    static Header::CPtr FromJSON(const Json& json)
+    {
+        // TODO: Implement
+        return nullptr;
+    }
+
+    void Validate(const Context& context) const final
     {
 
     }

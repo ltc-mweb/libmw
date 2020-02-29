@@ -26,9 +26,11 @@ include_directories(
 # Dependencies
 include(${MW_CORE_ROOT}/deps/dependencies.cmake)
 
-add_definitions(-DUNICODE)
-add_definitions(-DNOMINMAX)
-add_definitions(-D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
+#add_definitions(-DUNICODE)
+#add_definitions(-DNOMINMAX)
+#add_definitions(-D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
+
+include(${MW_CORE_ROOT}/src/core.cmake)
 
 option(GRINPP_TESTS "Build tests" true)
 if(GRINPP_TESTS AND NOT LINUX)

@@ -1,4 +1,4 @@
-include_directories(${PROJECT_SOURCE_DIR}/deps/Catch2)
+include_directories(${MW_CORE_ROOT}/deps/Catch2)
 
 string(REGEX REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
