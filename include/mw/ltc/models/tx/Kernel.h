@@ -289,6 +289,15 @@ public:
         );
     }
 
+    void Validate() final
+    {
+        Crypto::VerifyAggregateSignature(
+            m_signature,
+            Crypto::ToPublicKey(m_excess),
+            GetSignatureMessage()
+        );
+    }
+
 private:
     uint64_t m_amount;
     std::vector<uint8_t> m_extraData;
