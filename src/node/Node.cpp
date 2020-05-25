@@ -15,7 +15,7 @@ mw::ltc::INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_map<s
 }
 
 void Node::ValidateBlock(
-    const Block::CPtr& pBlock,
+    const Block::Ptr& pBlock,
     const std::vector<PegInCoin>& pegInCoins,
     const std::vector<PegOutCoin>& pegOutCoins) const
 {
@@ -24,7 +24,7 @@ void Node::ValidateBlock(
     BlockValidator(m_pContext).Validate(pBlock, pegInCoins, pegOutCoins);
 }
 
-void Node::ConnectBlock(const Block::CPtr& pBlock)
+void Node::ConnectBlock(const Block::Ptr& pBlock)
 {
     auto pBatch = m_pChainState.BatchWrite();
     pBatch->ConnectBlock(pBlock);

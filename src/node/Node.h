@@ -11,12 +11,12 @@ public:
         : m_pConfig(pConfig), m_pContext(pContext), m_pChainState(pChainState), m_pDatabase(database) { }
 
     void ValidateBlock(
-        const Block::CPtr& pBlock,
+        const Block::Ptr& pBlock,
         const std::vector<PegInCoin>& pegInCoins,
         const std::vector<PegOutCoin>& pegOutCoins
     ) const final;
 
-    void ConnectBlock(const Block::CPtr& pBlock) final;
+    void ConnectBlock(const Block::Ptr& pBlock) final;
 
     ChainStatus::CPtr GetStatus() const noexcept final;
     Header::CPtr GetHeader(const Hash& hash) const final;

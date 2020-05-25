@@ -26,7 +26,7 @@ public:
     // Adds the block to the orphan pool.
     //
     virtual void ValidateBlock(
-        const Block::CPtr& pBlock,
+        const Block::Ptr& pBlock,
         const std::vector<PegInCoin>& pegInCoins,
         const std::vector<PegOutCoin>& pegOutCoins
     ) const = 0;
@@ -35,7 +35,7 @@ public:
     // Contextual validation of the block and application of the block to the active chain.
     // Consumer is required to call ValidateBlock first.
     //
-    virtual void ConnectBlock(const Block::CPtr& pBlock) = 0;
+    virtual void ConnectBlock(const Block::Ptr& pBlock) = 0;
 
     virtual ChainStatus::CPtr GetStatus() const noexcept = 0;
     virtual Header::CPtr GetHeader(const Hash& hash) const = 0;

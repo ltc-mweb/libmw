@@ -3,14 +3,20 @@
 #include <unordered_map>
 
 void BlockValidator::Validate(
-    const Block::CPtr& pBlock,
+    const Block::Ptr& pBlock,
     const std::vector<PegInCoin>& pegInCoins,
     const std::vector<PegOutCoin>& pegOutCoins)
 {
+    if (pBlock->WasValidated()) {
+        return;
+    }
+
     pBlock->Validate(m_pContext);
 
     ValidatePegInCoins(pBlock, pegInCoins);
     ValidatePegOutCoins(pBlock, pegOutCoins);
+
+    pBlock->MarkAsValidated();
 }
 
 void BlockValidator::ValidatePegInCoins(
@@ -26,16 +32,13 @@ void BlockValidator::ValidatePegInCoins(
     );
 
     auto pegInKernels = pBlock->GetPegInKernels();
-    if (pegInKernels.size() != pegInAmounts.size())
-    {
+    if (pegInKernels.size() != pegInAmounts.size()) {
         ThrowValidation(EConsensusError::PEGIN_MISMATCH);
     }
 
-    for (auto pKernel : pegInKernels)
-    {
+    for (auto pKernel : pegInKernels) {
         auto pIter = pegInAmounts.find(pKernel->GetCommitment());
-        if (pKernel->GetAmount() != pIter->second)
-        {
+        if (pKernel->GetAmount() != pIter->second) {
             ThrowValidation(EConsensusError::PEGIN_MISMATCH);
         }
     }
@@ -54,16 +57,13 @@ void BlockValidator::ValidatePegOutCoins(
     );
 
     auto pegOutKernels = pBlock->GetPegOutKernels();
-    if (pegOutKernels.size() != pegOutAmounts.size())
-    {
+    if (pegOutKernels.size() != pegOutAmounts.size()) {
         ThrowValidation(EConsensusError::PEGOUT_MISMATCH);
     }
 
-    for (auto pKernel : pegOutKernels)
-    {
+    for (auto pKernel : pegOutKernels) {
         auto pIter = pegOutAmounts.find(pKernel->GetAddress().value());
-        if (pKernel->GetAmount() != pIter->second)
-        {
+        if (pKernel->GetAmount() != pIter->second) {
             ThrowValidation(EConsensusError::PEGOUT_MISMATCH);
         }
     }

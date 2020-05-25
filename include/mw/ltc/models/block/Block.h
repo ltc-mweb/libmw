@@ -10,13 +10,14 @@
 class Block : public IBlock
 {
 public:
+    using Ptr = std::shared_ptr<Block>;
     using CPtr = std::shared_ptr<const Block>;
 
     //
     // Constructors
     //
     Block(const Header::CPtr& pHeader, TxBody&& body)
-        : IBlock(pHeader, std::move(body)) { }
+        : IBlock(pHeader, std::move(body)), m_validated(false) { }
     Block(const Block& other) = default;
     Block(Block&& other) noexcept = default;
     Block() = default;
@@ -66,7 +67,7 @@ public:
 
     std::vector<Kernel::CPtr> GetPegOutKernels() const noexcept
     {
-        const auto& kernels = GetAllKernels();
+        const auto kernels = GetAllKernels();
 
         std::vector<Kernel::CPtr> peggedOut;
         std::copy_if(
@@ -91,4 +92,10 @@ public:
     {
 
     }
+
+    bool WasValidated() const noexcept { return m_validated; }
+    void MarkAsValidated() noexcept { m_validated = true; }
+
+private:
+    bool m_validated;
 };
