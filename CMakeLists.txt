@@ -15,6 +15,14 @@ include(${MW_CORE_ROOT}/cmake/SetOutputDir.cmake)
 include(${MW_CORE_ROOT}/cmake/SetOptimizations.cmake)
 include(${MW_CORE_ROOT}/cmake/SetCpp17.cmake)
 
+set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL MinSizeRel Release)
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release)
+#set_property(GLOBAL PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+if(MSVC)
+    string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+    string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+endif(MSVC)
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(WITH_GFLAGS OFF)
 
@@ -24,32 +32,13 @@ include_directories(
 )
 
 # Dependencies
+include(${MW_CORE_ROOT}/deps/vcpkg_deps.cmake)
 include(${MW_CORE_ROOT}/deps/dependencies.cmake)
-
-#add_definitions(-DUNICODE)
-#add_definitions(-DNOMINMAX)
-#add_definitions(-D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
-
 include(${MW_CORE_ROOT}/src/core.cmake)
+
+add_subdirectory(src)
 
 option(GRINPP_TESTS "Build tests" true)
 if(GRINPP_TESTS AND NOT LINUX)
 	add_subdirectory(tests)
 endif(GRINPP_TESTS AND NOT LINUX)
-
-
-#set(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
-
-#include(ExternalProject)
-#ExternalProject_Add(libmw-core
-#	PREFIX 		${PARENT_DIR}/libmw-core
-#	INSTALL_DIR	${PARENT_DIR}
-#	CMAKE_ARGS
-#		-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-#		-DCMAKE_PROJECT_geGL_INCLUDE:PATH=${PARENT_DIR}/include.cmake
-#		-DROOT_DIR:PATH=${PARENT_DIR}
-#		-DBUILD_SHARED_LIBS=ON
-#
-#	#GIT_REPOSITORY	https://github.com/GrinPlusPlus/libmw-core.git
-#	#GIT_TAG			master # working
-#)

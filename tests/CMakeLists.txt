@@ -10,8 +10,21 @@ if (MSVC)
 	 endif()
 endif (MSVC)
 
-add_subdirectory(models)
+set(Models_Tests
+	"src/models/block/Test_Block.cpp"
+	"src/models/block/Test_Header.cpp"
+	"src/models/tx/Test_Kernel.cpp"
+)
 
-add_executable(Tests TestMain.cpp)
-add_dependencies(Tests fmt)
-target_link_libraries(Tests reproc++ fmt)
+set(Chain_Tests
+	"src/chain/Test_ChainState.cpp"
+)
+
+set(Node_Tests
+    "src/node/validation/Test_BlockValidator.cpp"
+)
+
+add_executable(Tests TestMain.cpp ${Models_Tests} ${Chain_Tests} ${Node_Tests})
+add_dependencies(Tests fmt::fmt)
+target_link_libraries(Tests reproc++ fmt::fmt Core::Common Core::Crypto LTC::Node)
+target_include_directories(Tests PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include)

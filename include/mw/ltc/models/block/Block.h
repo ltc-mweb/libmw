@@ -3,6 +3,8 @@
 #include <mw/core/models/block/IBlock.h>
 #include <mw/ltc/models/block/Header.h>
 #include <mw/ltc/models/tx/Kernel.h>
+#include <mw/ltc/models/tx/PegInCoin.h>
+#include <mw/ltc/models/tx/PegOutCoin.h>
 #include <algorithm>
 
 class Block : public IBlock
@@ -39,19 +41,19 @@ public:
         return transformed;
     }
 
-    //std::vector<Kernel::CPtr> GetPegInKernels() const noexcept
-    //{
-    //    const auto& kernels = GetAllKernels();
+    std::vector<Kernel::CPtr> GetPegInKernels() const noexcept
+    {
+        const auto& kernels = GetAllKernels();
 
-    //    std::vector<Kernel::CPtr> peggedIn;
-    //    std::copy_if(
-    //        kernels.cbegin(), kernels.cend(),
-    //        std::back_inserter(peggedIn),
-    //        [](const auto& pKernel) -> bool { return pKernel->IsPegIn(); }
-    //    );
+        std::vector<Kernel::CPtr> peggedIn;
+        std::copy_if(
+            kernels.cbegin(), kernels.cend(),
+            std::back_inserter(peggedIn),
+            [](const auto& pKernel) -> bool { return pKernel->IsPegIn(); }
+        );
 
-    //    return peggedIn;
-    //}
+        return peggedIn;
+    }
 
     uint64_t GetPegInAmount() const noexcept
     {
@@ -62,19 +64,19 @@ public:
         );
     }
 
-    //std::vector<Kernel::CPtr> GetPegOutKernels() const noexcept
-    //{
-    //    const auto& kernels = GetAllKernels();
+    std::vector<Kernel::CPtr> GetPegOutKernels() const noexcept
+    {
+        const auto& kernels = GetAllKernels();
 
-    //    std::vector<Kernel::CPtr> peggedOut;
-    //    std::copy_if(
-    //        kernels.cbegin(), kernels.cend(),
-    //        std::back_inserter(peggedOut),
-    //        [](const auto& pKernel) -> bool { return pKernel->IsPegOut(); }
-    //    );
+        std::vector<Kernel::CPtr> peggedOut;
+        std::copy_if(
+            kernels.cbegin(), kernels.cend(),
+            std::back_inserter(peggedOut),
+            [](const auto& pKernel) -> bool { return pKernel->IsPegOut(); }
+        );
 
-    //    return peggedOut;
-    //}
+        return peggedOut;
+    }
 
     uint64_t GetTotalFee() const noexcept
     {

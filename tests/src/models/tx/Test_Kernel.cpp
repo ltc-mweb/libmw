@@ -3,7 +3,7 @@
 #include <mw/core/crypto/Crypto.h>
 #include <mw/core/crypto/Random.h>
 #include <mw/ltc/models/tx/Kernel.h>
-#include <mw/ltc/Context.h>
+#include <mw/ltc/node/Context.h>
 
 TEST_CASE("Plain Kernel")
 {
@@ -141,21 +141,23 @@ TEST_CASE("Peg-Out Kernel")
 {
     uint64_t amount = 50;
     uint64_t fee = 1000;
+    Bech32Address address = Bech32Address::FromString("bc1qc7slrfxkknqcq2jevvvkdgvrt8080852dfjewde450xdlk4ugp7szw5tk9");
     Commitment excess(Random::CSPRNG<33>().GetBigInt());
     Signature signature(Random::CSPRNG<64>().GetBigInt());
-    Kernel::CPtr pKernel = Kernel::CreatePegOut(amount, fee, Commitment(excess), Signature(signature));
+    Kernel::CPtr pKernel = Kernel::CreatePegOut(amount, fee, Bech32Address(address), Commitment(excess), Signature(signature));
 
     //
     // Serialization
     //
     {
         std::vector<uint8_t> serialized = pKernel->Serialized();
-        REQUIRE(serialized.size() == 114);
+        REQUIRE(serialized.size() == 168);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint8_t>() == 2);
         REQUIRE(deserializer.Read<uint64_t>() == fee);
         REQUIRE(deserializer.Read<uint64_t>() == amount);
+        REQUIRE(Bech32Address::Deserialize(deserializer) == address);
         REQUIRE(Commitment::Deserialize(deserializer) == excess);
         REQUIRE(Signature::Deserialize(deserializer) == signature);
 
@@ -168,9 +170,10 @@ TEST_CASE("Peg-Out Kernel")
     //
     {
         Json json(pKernel->ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "amount", "excess", "fee", "signature", "type" }));
+        REQUIRE(json.GetKeys() == std::vector<std::string>({ "address", "amount", "excess", "fee", "signature", "type" }));
         REQUIRE(json.GetRequired<uint64_t>("amount") == amount);
         REQUIRE(json.GetRequired<uint64_t>("fee") == fee);
+        REQUIRE(json.GetRequired<Bech32Address>("address") == address);
         REQUIRE(json.GetRequired<Commitment>("excess") == excess);
         REQUIRE(json.GetRequired<Signature>("signature") == signature);
         REQUIRE(json.GetRequired<std::string>("type") == "PEGOUT");
@@ -188,6 +191,7 @@ TEST_CASE("Peg-Out Kernel")
             .Append<uint8_t>(2)
             .Append<uint64_t>(fee)
             .Append<uint64_t>(amount)
+            .Append(address)
             .vec();
         REQUIRE(hashed == Crypto::Blake2b(message));
     }
