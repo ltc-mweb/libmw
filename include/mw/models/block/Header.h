@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <memory>
 
+// TODO: Add UTXO commitment
 class Header final :
     public Traits::IPrintable,
     public Traits::ISerializable,
@@ -42,23 +43,6 @@ public:
         m_rangeProofRoot(std::move(rangeProofRoot)),
         m_kernelRoot(std::move(kernelRoot)),
         m_offset(std::move(offset)),
-        m_outputMMRSize(outputMMRSize),
-        m_kernelMMRSize(kernelMMRSize) { }
-
-    Header(
-        const uint64_t height,
-        const Hash& outputRoot,
-        const Hash& rangeProofRoot,
-        const Hash& kernelRoot,
-        const BlindingFactor& offset,
-        const uint64_t outputMMRSize,
-        const uint64_t kernelMMRSize
-    )
-        : m_height(height),
-        m_outputRoot(outputRoot),
-        m_rangeProofRoot(rangeProofRoot),
-        m_kernelRoot(kernelRoot),
-        m_offset(offset),
         m_outputMMRSize(outputMMRSize),
         m_kernelMMRSize(kernelMMRSize) { }
 

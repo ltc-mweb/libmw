@@ -5,7 +5,7 @@
 
 TEST_CASE("BlockValidator")
 {
-    test::Node::Ptr pNode = std::make_shared<test::Node>();
+    test::Node::Ptr pNode = test::Node::Create();
     test::TestChain chain(pNode);
 
     BlockValidator validator;

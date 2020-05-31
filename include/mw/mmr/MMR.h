@@ -4,6 +4,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/models/crypto/Hash.h>
 #include <mw/traits/Batchable.h>
 #include <mw/mmr/Backend.h>
@@ -11,8 +12,8 @@
 #include <mw/mmr/Leaf.h>
 #include <mw/mmr/Node.h>
 
-namespace mmr
-{
+MMR_NAMESPACE
+
 class MMR : public Traits::IBatchable
 {
 public:
@@ -41,4 +42,5 @@ public:
 private:
     IBackend::Ptr m_pBackend;
 };
-}
+
+END_NAMESPACE

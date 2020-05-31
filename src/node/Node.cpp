@@ -4,6 +4,8 @@
 #include <mw/common/Logger.h>
 #include <unordered_map>
 
+MW_NAMESPACE
+
 mw::INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_map<std::string, std::string>&& options)
 {
     auto pConfig = NodeConfig::Create(datadir, std::move(options));
@@ -12,6 +14,8 @@ mw::INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_map<std::s
 
     return std::shared_ptr<mw::INode>(new Node(pConfig, pChainState, database));
 }
+
+END_NAMESPACE
 
 void Node::ValidateBlock(
     const Block::Ptr& pBlock,
@@ -25,9 +29,18 @@ void Node::ValidateBlock(
 
 void Node::ConnectBlock(const Block::Ptr& pBlock)
 {
+    LOG_TRACE_F("Connecting block {}", pBlock);
+
     auto pBatch = m_pChainState.BatchWrite();
     pBatch->ConnectBlock(pBlock);
     pBatch->Commit();
+}
+
+void Node::DisconnectBlock(const Block::CPtr& pBlock)
+{
+    LOG_TRACE_F("Disconnecting block {}", pBlock);
+
+    // TODO: Implement
 }
 
 ChainStatus::CPtr Node::GetStatus() const noexcept

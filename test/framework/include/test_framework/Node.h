@@ -10,6 +10,8 @@ class Node : public mw::INode
 public:
     using Ptr = std::shared_ptr<Node>;
 
+    static Node::Ptr Create();
+
     void ValidateBlock(
         const Block::Ptr& pBlock,
         const std::vector<PegInCoin>& pegInCoins,
@@ -27,6 +29,12 @@ public:
     ChainStatus::CPtr GetStatus() const noexcept final;
     Header::CPtr GetHeader(const Hash& hash) const final;
     Block::CPtr GetBlock(const Hash& hash) const final;
+
+private:
+    Node(const mw::INode::Ptr& pNode)
+        : m_pNode(pNode) { }
+
+    mw::INode::Ptr m_pNode;
 };
 
 END_NAMESPACE

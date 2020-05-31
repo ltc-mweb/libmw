@@ -4,12 +4,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/mmr/LeafIndex.h>
 #include <mw/models/crypto/Hash.h>
 #include <mw/crypto/Crypto.h>
 
-namespace mmr
-{
+MMR_NAMESPACE
+
 class Leaf
 {
 public:
@@ -41,4 +42,5 @@ private:
     Hash m_hash;
     std::vector<uint8_t> m_data;
 };
-}
+
+END_NAMESPACE

@@ -4,10 +4,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/mmr/Index.h>
 
-namespace mmr
-{
+MMR_NAMESPACE
+
 class LeafIndex
 {
 public:
@@ -29,4 +30,5 @@ private:
     uint64_t m_leafIndex;
     Index m_nodeIndex;
 };
-}
+
+END_NAMESPACE

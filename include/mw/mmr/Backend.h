@@ -4,6 +4,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/models/crypto/Hash.h>
 #include <mw/traits/Batchable.h>
 #include <mw/mmr/Index.h>
@@ -11,8 +12,8 @@
 #include <mw/mmr/Leaf.h>
 #include <memory>
 
-namespace mmr
-{
+MMR_NAMESPACE
+
 class IBackend : public Traits::IBatchable
 {
 public:
@@ -31,4 +32,5 @@ public:
 
     virtual LeafIndex GetNextLeaf() const noexcept { return LeafIndex::At(GetNumLeaves()); }
 };
-}
+
+END_NAMESPACE

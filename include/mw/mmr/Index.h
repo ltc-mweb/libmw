@@ -4,13 +4,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/util/BitUtil.h>
 #include <cstdint>
 #include <cassert>
 #include <memory>
 
-namespace mmr
-{
+MMR_NAMESPACE
 
 class Index
 {
@@ -55,4 +55,5 @@ protected:
     uint64_t m_position;
     uint64_t m_height;
 };
-}
+
+END_NAMESPACE

@@ -4,13 +4,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/mmr/Backend.h>
 #include <mw/mmr/Node.h>
 #include <cassert>
 #include <vector>
 
-namespace mmr
-{
+MMR_NAMESPACE
+
 class VectorBackend : public IBackend
 {
 public:
@@ -54,4 +55,5 @@ private:
     std::vector<Leaf> m_leaves;
     std::vector<Hash> m_nodes;
 };
-}
+
+END_NAMESPACE

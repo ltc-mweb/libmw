@@ -4,14 +4,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/mmr/Backend.h>
 #include <mw/mmr/Node.h>
 #include <mw/file/FilePath.h>
 #include <mw/file/AppendOnlyFile.h>
 #include <cassert>
 
-namespace mmr
-{
+MMR_NAMESPACE
+
 // TODO: Add pruning support
 // TODO: Just use pmmr_hash, and rely on database for storing the data
 class FileBackend : public IBackend
@@ -164,4 +165,5 @@ private:
 
     uint16_t m_fixedLength;
 };
-}
+
+END_NAMESPACE

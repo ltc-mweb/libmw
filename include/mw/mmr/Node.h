@@ -4,12 +4,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/mmr/Index.h>
 #include <mw/models/crypto/Hash.h>
 #include <mw/crypto/Crypto.h>
 
-namespace mmr
-{
+MMR_NAMESPACE
+
 class Node
 {
 public:
@@ -35,4 +36,5 @@ private:
     Index m_index;
     Hash m_hash;
 };
-}
+
+END_NAMESPACE

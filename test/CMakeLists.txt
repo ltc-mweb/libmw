@@ -1,5 +1,3 @@
-include_directories(${MW_CORE_ROOT}/deps/Catch2)
-
 string(REGEX REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 if (MSVC)
@@ -25,5 +23,6 @@ add_subdirectory(tests/serialization)
 add_subdirectory(tests/util)
 
 add_executable(Tests ${test_sources})
-add_dependencies(Tests fmt::fmt)
-target_link_libraries(Tests reproc++ MW_TEST::Framework MW::Common MW::Crypto MW::File MW::MMR MW::Node)
+add_dependencies(Tests fmt::fmt MW_TEST::Framework MW::Node)
+target_link_libraries(Tests reproc++ MW_TEST::Framework MW::Node)
+target_include_directories(Tests PRIVATE ${MW_CORE_ROOT}/deps/Catch2)
