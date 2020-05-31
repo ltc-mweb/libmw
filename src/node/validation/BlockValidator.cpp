@@ -1,5 +1,5 @@
-#include <mw/ltc/node/validation/BlockValidator.h>
-#include <mw/core/exceptions/ValidationException.h>
+#include <mw/node/validation/BlockValidator.h>
+#include <mw/exceptions/ValidationException.h>
 #include <unordered_map>
 
 void BlockValidator::Validate(
@@ -11,7 +11,7 @@ void BlockValidator::Validate(
         return;
     }
 
-    pBlock->Validate(m_pContext);
+    pBlock->Validate();
 
     ValidatePegInCoins(pBlock, pegInCoins);
     ValidatePegOutCoins(pBlock, pegOutCoins);
@@ -36,9 +36,9 @@ void BlockValidator::ValidatePegInCoins(
         ThrowValidation(EConsensusError::PEGIN_MISMATCH);
     }
 
-    for (auto pKernel : pegInKernels) {
-        auto pIter = pegInAmounts.find(pKernel->GetCommitment());
-        if (pKernel->GetAmount() != pIter->second) {
+    for (const auto& kernel : pegInKernels) {
+        auto pIter = pegInAmounts.find(kernel.GetCommitment());
+        if (kernel.GetAmount() != pIter->second) {
             ThrowValidation(EConsensusError::PEGIN_MISMATCH);
         }
     }
@@ -61,9 +61,9 @@ void BlockValidator::ValidatePegOutCoins(
         ThrowValidation(EConsensusError::PEGOUT_MISMATCH);
     }
 
-    for (auto pKernel : pegOutKernels) {
-        auto pIter = pegOutAmounts.find(pKernel->GetAddress().value());
-        if (pKernel->GetAmount() != pIter->second) {
+    for (const auto& kernel : pegOutKernels) {
+        auto pIter = pegOutAmounts.find(kernel.GetAddress().value());
+        if (kernel.GetAmount() != pIter->second) {
             ThrowValidation(EConsensusError::PEGOUT_MISMATCH);
         }
     }

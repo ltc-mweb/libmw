@@ -1,0 +1,29 @@
+include_directories(${MW_CORE_ROOT}/deps/Catch2)
+
+string(REGEX REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
+if (MSVC)
+	if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+		string(REGEX REPLACE "/W[0-4]" "/W2" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	else()
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W2")
+	 endif()
+endif (MSVC)
+
+add_subdirectory(framework)
+
+set(test_sources "TestMain.cpp")
+add_subdirectory(tests/common)
+add_subdirectory(tests/crypto)
+add_subdirectory(tests/chain)
+add_subdirectory(tests/db)
+add_subdirectory(tests/file)
+add_subdirectory(tests/mmr)
+add_subdirectory(tests/models)
+add_subdirectory(tests/node)
+add_subdirectory(tests/serialization)
+add_subdirectory(tests/util)
+
+add_executable(Tests ${test_sources})
+add_dependencies(Tests fmt::fmt)
+target_link_libraries(Tests reproc++ MW_TEST::Framework MW::Common MW::Crypto MW::File MW::MMR MW::Node)

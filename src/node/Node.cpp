@@ -1,17 +1,16 @@
 #include "Node.h"
 
-#include <mw/ltc/node/validation/BlockValidator.h>
-#include <mw/core/common/Logger.h>
+#include <mw/node/validation/BlockValidator.h>
+#include <mw/common/Logger.h>
 #include <unordered_map>
 
-mw::ltc::INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_map<std::string, std::string>&& options)
+mw::INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_map<std::string, std::string>&& options)
 {
-    auto pContext = Context::Create();
     auto pConfig = NodeConfig::Create(datadir, std::move(options));
-    auto database = BlockDBFactory::Open(pContext, pConfig->GetChainDir());
-    auto pChainState = ChainState::Initialize(pConfig->GetDataDir(), pContext, database);
+    auto database = BlockDBFactory::Open(pConfig->GetChainDir());
+    auto pChainState = ChainState::Initialize(pConfig->GetDataDir(), pConfig, database);
 
-    return std::shared_ptr<mw::ltc::INode>(new Node(pConfig, pContext, pChainState, database));
+    return std::shared_ptr<mw::INode>(new Node(pConfig, pChainState, database));
 }
 
 void Node::ValidateBlock(
@@ -21,7 +20,7 @@ void Node::ValidateBlock(
 {
     LOG_TRACE_F("Validating block {}", pBlock);
 
-    BlockValidator(m_pContext).Validate(pBlock, pegInCoins, pegOutCoins);
+    BlockValidator().Validate(pBlock, pegInCoins, pegOutCoins);
 }
 
 void Node::ConnectBlock(const Block::Ptr& pBlock)
@@ -38,14 +37,10 @@ ChainStatus::CPtr Node::GetStatus() const noexcept
 
 Header::CPtr Node::GetHeader(const Hash& hash) const
 {
-    return std::dynamic_pointer_cast<const Header, const IHeader>(
-        m_pDatabase.Read()->GetHeaderByHash(hash)
-    );
+    return m_pDatabase.Read()->GetHeaderByHash(hash);
 }
 
 Block::CPtr Node::GetBlock(const Hash& hash) const
 {
-    return std::dynamic_pointer_cast<const Block, const IBlock>(
-        m_pDatabase.Read()->GetBlockByHash(hash)
-    );
+    return m_pDatabase.Read()->GetBlockByHash(hash);
 }
