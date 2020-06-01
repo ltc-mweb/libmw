@@ -7,7 +7,6 @@
 #include <mw/mmr/MMR.h>
 #include <mw/mmr/backends/VectorBackend.h>
 
-#include <test_framework/Node.h>
 #include <test_framework/models/MinedBlock.h>
 #include <test_framework/models/Tx.h>
 
@@ -15,25 +14,10 @@
 
 TEST_NAMESPACE
 
-class TestChain
+class Miner
 {
 public:
-    TestChain(const Node::Ptr& pNode)
-        : m_pNode(pNode) { }
-
-    std::vector<MinedBlock> MineChain(const uint64_t totalHeight)
-    {
-        for (size_t i = 1; i <= totalHeight; i++)
-        {
-            MinedBlock block = AddNextBlock({ });
-
-            m_pNode->ConnectBlock(block.GetBlock());
-        }
-
-        return m_blocks;
-    }
-
-    MinedBlock AddNextBlock(const std::vector<Tx>& txs, const uint64_t additionalDifficulty = 0)
+    MinedBlock MineBlock(const uint64_t height, const std::vector<Tx>& txs)
     {
         Transaction::CPtr pTransaction = std::make_shared<const Transaction>();
         if (!txs.empty()) {
@@ -46,17 +30,21 @@ public:
             pTransaction = Aggregation::Aggregate(transactions);
         }
 
-        auto pPrevHeader = m_blocks.back().GetHeader();
+        auto offset = pTransaction->GetOffset();
+        if (!m_blocks.empty()) {
+            offset = Crypto::AddBlindingFactors({ offset, m_blocks.back().GetHeader()->GetOffset() });
+        }
+
         auto kernelMMR = GetKernelMMR(pTransaction->GetKernels());
         auto outputMMR = GetOutputMMR(pTransaction->GetOutputs());
         auto rangeProofMMR = GetRangeProofMMR(pTransaction->GetOutputs());
 
         auto pHeader = std::make_shared<Header>(
-            pPrevHeader->GetHeight() + 1,
+            height,
             outputMMR.Root(),
             rangeProofMMR.Root(),
             kernelMMR.Root(),
-            Crypto::AddBlindingFactors({ pPrevHeader->GetOffset(), pTransaction->GetOffset() }),
+            std::move(offset),
             outputMMR.GetNumNodes(),
             kernelMMR.GetNumNodes()
         );
@@ -132,7 +120,6 @@ private:
         return mmr;
     }
 
-    Node::Ptr m_pNode;
     std::vector<MinedBlock> m_blocks;
 };
 

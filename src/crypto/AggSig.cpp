@@ -27,7 +27,7 @@ SecretKey AggSig::GenerateSecureNonce() const
     return nonce;
 }
 
-CompactSignature AggSig::SignMessage(
+Signature AggSig::SignMessage(
     const SecretKey& secretKey,
     const PublicKey& publicKey,
     const Hash& message)
@@ -54,7 +54,7 @@ CompactSignature AggSig::SignMessage(
         ThrowCrypto("Failed to sign message.");
     }
 
-    return ConversionUtil(m_context).ToCompact(signature);
+    return Signature(signature.data);
 }
 
 bool AggSig::VerifyMessageSignature(

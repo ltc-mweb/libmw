@@ -30,10 +30,9 @@ public:
     // Constructors
     //
     TxBody(std::vector<Input>&& inputs, std::vector<Output>&& outputs, std::vector<Kernel>&& kernels)
-        : m_inputs(std::move(inputs)), m_outputs(std::move(outputs)), m_kernels(std::move(kernels))
-    {
-
-    }
+        : m_inputs(std::move(inputs)), m_outputs(std::move(outputs)), m_kernels(std::move(kernels)) { }
+    TxBody(const std::vector<Input>& inputs, const std::vector<Output>& outputs, const std::vector<Kernel>& kernels)
+        : m_inputs(inputs), m_outputs(outputs), m_kernels(kernels) { }
     TxBody(const TxBody& other) = default;
     TxBody(TxBody&& other) noexcept = default;
     TxBody() = default;

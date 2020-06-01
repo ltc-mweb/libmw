@@ -201,7 +201,7 @@ SecretKey Crypto::AddPrivateKeys(const SecretKey& secretKey1, const SecretKey& s
     ThrowCrypto("secp256k1_ec_privkey_tweak_add failed");
 }
 
-RangeProof Crypto::GenerateRangeProof(
+RangeProof::CPtr Crypto::GenerateRangeProof(
     const uint64_t amount,
     const SecretKey& key,
     const SecretKey& privateNonce,
@@ -337,11 +337,25 @@ CompactSignature Crypto::SignMessage(
     const Hash messageHash = Crypto::Blake2b(
         std::vector<uint8_t>(message.cbegin(), message.cend())
     );
-    return AggSig(SECP256K1_CONTEXT).SignMessage(
+    Signature signature = AggSig(SECP256K1_CONTEXT).SignMessage(
         secretKey,
         publicKey,
         messageHash
     );
+
+    return ConversionUtil(SECP256K1_CONTEXT).ToCompact(signature);
+}
+
+Signature Crypto::BuildSignature(
+    const SecretKey& secretKey,
+    const Commitment& commitment,
+    const Hash& messageHash)
+{
+    return AggSig(SECP256K1_CONTEXT).SignMessage(
+        secretKey,
+        ConversionUtil(SECP256K1_CONTEXT).ToPublicKey(commitment),
+        messageHash
+    );    
 }
 
 bool Crypto::VerifyMessageSignature(

@@ -21,7 +21,7 @@ public:
     //
     // Signs the message hash with the given key.
     //
-    CompactSignature SignMessage(
+    Signature SignMessage(
         const SecretKey& secretKey,
         const PublicKey& publicKey,
         const Hash& message

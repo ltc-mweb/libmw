@@ -4,6 +4,14 @@
 #include <mw/consensus/CutThrough.h>
 #include <cassert>
 
+static struct
+{
+    bool operator()(const Traits::IHashable& a, const Traits::IHashable& b) const
+    {
+        return a.GetHash() < b.GetHash();
+    }
+} SortByHash;
+
 class Aggregation
 {
 public:
@@ -63,13 +71,4 @@ public:
             TxBody{ std::move(inputs), std::move(outputs), std::move(kernels) }
         );
     }
-
-private:
-    static struct
-    {
-        bool operator()(const Traits::IHashable& a, const Traits::IHashable& b) const
-        {
-            return a.GetHash() < b.GetHash();
-        }
-    } SortByHash;
 };

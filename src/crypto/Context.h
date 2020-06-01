@@ -12,10 +12,12 @@ public:
     Context()
     {
         m_pContext = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
+        m_pGenerators = secp256k1_bulletproof_generators_create(m_pContext, &secp256k1_generator_const_g, 256);
     }
 
     ~Context()
     {
+        secp256k1_bulletproof_generators_destroy(m_pContext, m_pGenerators);
         secp256k1_context_destroy(m_pContext);
     }
 
@@ -31,9 +33,12 @@ public:
         return m_pContext;
     }
 
-    secp256k1_context* Get() { return m_pContext; }
-    const secp256k1_context* Get() const { return m_pContext; }
+    secp256k1_context* Get() noexcept { return m_pContext; }
+    const secp256k1_context* Get() const noexcept { return m_pContext; }
+
+    const secp256k1_bulletproof_generators* GetGenerators() const noexcept { return m_pGenerators; }
 
 private:
     secp256k1_context* m_pContext;
+    secp256k1_bulletproof_generators* m_pGenerators;
 };

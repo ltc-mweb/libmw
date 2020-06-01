@@ -106,7 +106,7 @@ public:
     //
     //
     //
-    static RangeProof GenerateRangeProof(
+    static RangeProof::CPtr GenerateRangeProof(
         const uint64_t amount,
         const SecretKey& key,
         const SecretKey& privateNonce,
@@ -200,6 +200,12 @@ public:
         const SecretKey& secretKey,
         const PublicKey& publicKey,
         const std::string& message
+    );
+
+    static Signature BuildSignature(
+        const SecretKey& secretKey,
+        const Commitment& commitment,
+        const Hash& messageHash
     );
 
     //

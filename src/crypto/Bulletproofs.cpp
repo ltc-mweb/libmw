@@ -7,7 +7,6 @@
 
 const uint64_t MAX_WIDTH = 1 << 20;
 const size_t SCRATCH_SPACE_SIZE = 256 * MAX_WIDTH;
-const size_t MAX_GENERATORS = 256;
 
 bool Bulletproofs::VerifyBulletproofs(const std::vector<std::pair<Commitment, RangeProof::CPtr>>& rangeProofs) const
 {
@@ -51,7 +50,7 @@ bool Bulletproofs::VerifyBulletproofs(const std::vector<std::pair<Commitment, Ra
     const int result = secp256k1_bulletproof_rangeproof_verify_multi(
         m_context.Read()->Get(),
         pScratchSpace,
-        m_pGenerators,
+        m_context.Read()->GetGenerators(),
         bulletproofPointers.data(),
         commitments.size(),
         proofLength,
@@ -76,7 +75,7 @@ bool Bulletproofs::VerifyBulletproofs(const std::vector<std::pair<Commitment, Ra
     return result == 1;
 }
 
-RangeProof Bulletproofs::GenerateRangeProof(
+RangeProof::CPtr Bulletproofs::GenerateRangeProof(
     const uint64_t amount,
     const SecretKey& key,
     const SecretKey& privateNonce,
@@ -95,7 +94,7 @@ RangeProof Bulletproofs::GenerateRangeProof(
     int result = secp256k1_bulletproof_rangeproof_prove(
         pContext,
         pScratchSpace,
-        m_pGenerators,
+        contextWriter->GetGenerators(),
         &proofBytes[0],
         &proofLen,
         NULL,
@@ -119,7 +118,7 @@ RangeProof Bulletproofs::GenerateRangeProof(
     if (result == 1)
     {
         proofBytes.resize(proofLen);
-        return RangeProof(std::move(proofBytes));
+        return std::make_shared<RangeProof>(std::move(proofBytes));
     }
 
     ThrowCrypto_F("secp256k1_bulletproof_rangeproof_prove failed with error: {}", result);

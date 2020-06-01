@@ -38,7 +38,7 @@ void BlockValidator::ValidatePegInCoins(
 
     for (const auto& kernel : pegInKernels) {
         auto pIter = pegInAmounts.find(kernel.GetCommitment());
-        if (kernel.GetAmount() != pIter->second) {
+        if (pIter == pegInAmounts.end() || kernel.GetAmount() != pIter->second) {
             ThrowValidation(EConsensusError::PEGIN_MISMATCH);
         }
     }

@@ -14,6 +14,7 @@ public:
     PublicKey ToPublicKey(const Commitment& commitment) const;
     PublicKey ToPublicKey(const secp256k1_pubkey& pubkey) const;
     Commitment ToCommitment(const secp256k1_pedersen_commitment& commitment) const;
+    CompactSignature ToCompact(const Signature& signature) const;
     CompactSignature ToCompact(const secp256k1_ecdsa_signature& signature) const;
 
     secp256k1_pubkey ToSecp256k1(const PublicKey& publicKey) const;

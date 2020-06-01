@@ -40,9 +40,9 @@ public:
         m_extraData(std::move(extraData))
     { }
 
-    static Kernel::CPtr CreatePlain(const uint64_t fee, Commitment&& excess, Signature&& signature)
+    static Kernel CreatePlain(const uint64_t fee, Commitment&& excess, Signature&& signature)
     {
-        return std::make_shared<Kernel>(
+        return Kernel(
             KernelType::PLAIN_KERNEL,
             fee,
             0,
@@ -54,9 +54,9 @@ public:
         );
     }
 
-    static Kernel::CPtr CreatePegIn(const uint64_t amount, Commitment&& excess, Signature&& signature)
+    static Kernel CreatePegIn(const uint64_t amount, Commitment&& excess, Signature&& signature)
     {
-        return std::make_shared<Kernel>(
+        return Kernel(
             KernelType::PEGIN_KERNEL,
             0,
             0, // TODO: Can peg-in kernels have lock-heights?
@@ -68,9 +68,9 @@ public:
         );
     }
 
-    static Kernel::CPtr CreatePegOut(const uint64_t amount, const uint64_t fee, Bech32Address&& address, Commitment&& excess, Signature&& signature)
+    static Kernel CreatePegOut(const uint64_t amount, const uint64_t fee, Bech32Address&& address, Commitment&& excess, Signature&& signature)
     {
-        return std::make_shared<Kernel>(
+        return Kernel(
             KernelType::PEGOUT_KERNEL,
             fee,
             0, // TODO: Can peg-out kernels have lock-heights?
@@ -82,9 +82,9 @@ public:
         );
     }
 
-    static Kernel::CPtr CreateHeightLocked(const uint64_t fee, const uint64_t lockHeight, Commitment&& excess, Signature&& signature)
+    static Kernel CreateHeightLocked(const uint64_t fee, const uint64_t lockHeight, Commitment&& excess, Signature&& signature)
     {
-        return std::make_shared<Kernel>(
+        return Kernel(
             KernelType::HEIGHT_LOCKED,
             fee,
             lockHeight,

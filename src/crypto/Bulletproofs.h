@@ -19,7 +19,7 @@ public:
         const std::vector<std::pair<Commitment, RangeProof::CPtr>>& rangeProofs
     ) const;
 
-    RangeProof GenerateRangeProof(
+    RangeProof::CPtr GenerateRangeProof(
         const uint64_t amount,
         const SecretKey& key,
         const SecretKey& privateNonce,

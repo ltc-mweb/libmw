@@ -173,6 +173,13 @@ std::vector<secp256k1_schnorrsig> ConversionUtil::ToSecp256k1(const std::vector<
     return out;
 }
 
+CompactSignature ConversionUtil::ToCompact(const Signature& signature) const
+{
+    secp256k1_ecdsa_signature sig;
+    memcpy(sig.data, signature.data(), sizeof(sig.data));
+    return ToCompact(sig);
+}
+
 CompactSignature ConversionUtil::ToCompact(const secp256k1_ecdsa_signature& signature) const
 {
     CompactSignature sig64;
