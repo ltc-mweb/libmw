@@ -30,7 +30,7 @@ public:
         return GenerateRandomBytes(NUM_BYTES);
     }
 
-    static uint64_t FastRandom(const uint64_t minimum, const uint64_t maximum)
+    static uint64_t FastRandom(const uint64_t minimum = 0, const uint64_t maximum = UINT64_MAX)
     {
         std::random_device seeder;
         std::mt19937 engine(seeder());
