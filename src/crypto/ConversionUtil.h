@@ -28,6 +28,7 @@ public:
 
     secp256k1_schnorrsig ToSecp256k1(const Signature& signature) const;
     std::vector<secp256k1_schnorrsig> ToSecp256k1(const std::vector<const Signature*>& signatures) const;
+    Signature ToSignature(const secp256k1_schnorrsig& signature) const;
 
 private:
     Locked<Context> m_context;

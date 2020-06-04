@@ -306,7 +306,7 @@ public:
         return json;
     }
 
-    static Kernel::CPtr FromJSON(const Json& json)
+    static Kernel FromJSON(const Json& json)
     {
         uint8_t type = KernelType::FromString(json.GetRequired<std::string>("type"));
         uint64_t fee = json.GetOr<uint64_t>("fee", 0);
@@ -321,7 +321,7 @@ public:
         Commitment excess = json.GetRequired<Commitment>("excess");
         Signature signature = json.GetRequired<Signature>("signature");
 
-        return std::make_shared<Kernel>(
+        return Kernel(
             type,
             fee,
             lockHeight,

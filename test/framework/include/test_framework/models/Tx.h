@@ -65,10 +65,10 @@ public:
 
         Serializer serializer;
         serializer.Append<uint8_t>((uint8_t)KernelType::PEGIN_KERNEL);
+        serializer.Append<uint64_t>(amount);
 
         Signature signature = Crypto::BuildSignature(
             kernelBF.ToSecretKey(),
-            kernelCommit,
             Crypto::Blake2b(serializer.vec())
         );
 

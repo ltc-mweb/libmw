@@ -95,7 +95,7 @@ public:
         {
             if (iter->is_object() || iter->is_array())
             {
-                return tl::make_optional<T>(iter->get<T>());
+                return tl::make_optional<T>(T::FromJSON(*iter));
             }
         }
 
@@ -109,12 +109,66 @@ public:
     }
 
     template<class T>
-    T GetRequired(const std::string& key) const
+    typename std::enable_if_t<std::is_base_of_v<Traits::IJsonable, T>, T> GetRequired(const std::string& key) const
+    {
+        auto iter = m_json.find(key);
+        if (iter != m_json.end())
+        {
+            return T::FromJSON(Json(*iter));
+        }
+
+        ThrowDeserialization_F("Failed to deserialize {}", key);
+    }
+
+    template<class T>
+    typename std::enable_if_t<!std::is_base_of_v<Traits::IJsonable, T>, T> GetRequired(const std::string& key) const
     {
         auto iter = m_json.find(key);
         if (iter != m_json.end())
         {
             return iter->get<T>();
+        }
+
+        ThrowDeserialization_F("Failed to deserialize {}", key);
+    }
+
+    template<class T>
+    std::vector<typename std::enable_if_t<std::is_base_of_v<Traits::IJsonable, T>, T>> GetRequiredVec(const std::string& key) const
+    {
+        auto iter = m_json.find(key);
+        if (iter != m_json.end())
+        {
+            if (iter->is_array())
+            {
+                std::vector<T> items;
+                for (const json& value : *iter)
+                {
+                    items.push_back(T::FromJSON(Json(value)));
+                }
+
+                return items;
+            }
+        }
+
+        ThrowDeserialization_F("Failed to deserialize {}", key);
+    }
+
+    template<class T>
+    std::vector<typename std::enable_if_t<!std::is_base_of_v<Traits::IJsonable, T>, T>> GetRequiredVec(const std::string& key) const
+    {
+        auto iter = m_json.find(key);
+        if (iter != m_json.end())
+        {
+            if (iter->is_array())
+            {
+                std::vector<T> items;
+                for (const json& value : *iter)
+                {
+                    items.push_back(value.get<T>());
+                }
+
+                return items;
+            }
         }
 
         ThrowDeserialization_F("Failed to deserialize {}", key);

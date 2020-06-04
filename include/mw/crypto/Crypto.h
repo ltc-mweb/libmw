@@ -193,29 +193,12 @@ public:
     static PublicKey ToPublicKey(const Commitment& commitment);
 
     //
-    // Hashes the message and signs it using the secret key.
-    // If successful, returns a compact Signature.
+    // Signs the message using the secret key.
+    // If successful, returns a schnorr signature.
     //
-    static CompactSignature SignMessage(
-        const SecretKey& secretKey,
-        const PublicKey& publicKey,
-        const std::string& message
-    );
-
     static Signature BuildSignature(
         const SecretKey& secretKey,
-        const Commitment& commitment,
         const Hash& messageHash
-    );
-
-    //
-    // Verifies the signature is a valid signature for the hash of the message.
-    // Returns true if valid.
-    //
-    static bool VerifyMessageSignature(
-        const CompactSignature& signature,
-        const PublicKey& publicKey,
-        const std::string& message
     );
 
     //

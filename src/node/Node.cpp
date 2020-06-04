@@ -27,7 +27,7 @@ void Node::ValidateBlock(
     BlockValidator().Validate(pBlock, pegInCoins, pegOutCoins);
 }
 
-void Node::ConnectBlock(const Block::Ptr& pBlock)
+void Node::ConnectBlock(const Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView)
 {
     LOG_TRACE_F("Connecting block {}", pBlock);
 
@@ -36,7 +36,7 @@ void Node::ConnectBlock(const Block::Ptr& pBlock)
     pBatch->Commit();
 }
 
-void Node::DisconnectBlock(const Block::CPtr& pBlock)
+void Node::DisconnectBlock(const Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView)
 {
     LOG_TRACE_F("Disconnecting block {}", pBlock);
 

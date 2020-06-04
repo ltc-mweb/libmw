@@ -38,7 +38,7 @@ TEST_CASE("Plain Kernel")
         REQUIRE(json.GetRequired<Signature>("signature") == signature);
         REQUIRE(json.GetRequired<std::string>("type") == "PLAIN");
 
-        REQUIRE(kernel == *Kernel::FromJSON(json));
+        REQUIRE(kernel == Kernel::FromJSON(json));
     }
 
     //
@@ -102,7 +102,7 @@ TEST_CASE("Peg-In Kernel")
         REQUIRE(json.GetRequired<Signature>("signature") == signature);
         REQUIRE(json.GetRequired<std::string>("type") == "PEGIN");
 
-        REQUIRE(kernel == *Kernel::FromJSON(json));
+        REQUIRE(kernel == Kernel::FromJSON(json));
     }
 
     //
@@ -172,7 +172,7 @@ TEST_CASE("Peg-Out Kernel")
         REQUIRE(json.GetRequired<Signature>("signature") == signature);
         REQUIRE(json.GetRequired<std::string>("type") == "PEGOUT");
 
-        REQUIRE(kernel == *Kernel::FromJSON(json));
+        REQUIRE(kernel == Kernel::FromJSON(json));
     }
 
     //
@@ -241,7 +241,7 @@ TEST_CASE("Height-Locked")
         REQUIRE(json.GetRequired<Signature>("signature") == signature);
         REQUIRE(json.GetRequired<std::string>("type") == "HEIGHT_LOCKED");
 
-        REQUIRE(kernel == *Kernel::FromJSON(json));
+        REQUIRE(kernel == Kernel::FromJSON(json));
     }
 
     //

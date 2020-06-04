@@ -29,54 +29,26 @@ SecretKey AggSig::GenerateSecureNonce() const
 
 Signature AggSig::SignMessage(
     const SecretKey& secretKey,
-    const PublicKey& publicKey,
     const Hash& message)
 {
-    secp256k1_pubkey pubKey = ConversionUtil(m_context).ToSecp256k1(publicKey);
-
     const SecretKey randomSeed = Random::CSPRNG<32>();
 
-    secp256k1_ecdsa_signature signature;
-    const int signedResult = secp256k1_aggsig_sign_single(
+    secp256k1_schnorrsig signature;
+    const int signedResult = secp256k1_schnorrsig_sign(
         m_context.Write()->Randomized(),
-        signature.data,
+        &signature,
+        nullptr,
         message.data(),
         secretKey.data(),
         nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
-        &pubKey,
-        randomSeed.data()
+        nullptr
     );
     if (signedResult != 1)
     {
         ThrowCrypto("Failed to sign message.");
     }
 
-    return Signature(signature.data);
-}
-
-bool AggSig::VerifyMessageSignature(
-    const CompactSignature& signature,
-    const PublicKey& publicKey,
-    const Hash& message) const
-{
-    secp256k1_ecdsa_signature secpSig = ConversionUtil(m_context).ToSecp256k1(signature);
-    secp256k1_pubkey pubkey = ConversionUtil(m_context).ToSecp256k1(publicKey);
-
-    const int verifyResult = secp256k1_aggsig_verify_single(
-        m_context.Read()->Get(),
-        secpSig.data,
-        message.data(),
-        nullptr,
-        &pubkey,
-        &pubkey,
-        nullptr,
-        false
-    );
-
-    return verifyResult == 1;
+    return ConversionUtil(m_context).ToSignature(signature); 
 }
 
 CompactSignature AggSig::CalculatePartialSignature(

@@ -119,10 +119,10 @@ public:
         return json();
     }
 
-    static Header::CPtr FromJSON(const Json& json)
+    static Header FromJSON(const Json& json)
     {
         // TODO: Implement
-        return nullptr;
+        throw std::exception();
     }
 
     //

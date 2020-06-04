@@ -11,6 +11,7 @@
 #include <mw/traits/Jsonable.h>
 #include <algorithm>
 
+// TODO: This should contain peg-in and peg-out info.
 class Block final :
     public Traits::IPrintable,
     public Traits::ISerializable,
@@ -120,10 +121,12 @@ public:
         });
     }
 
-    static Block::CPtr FromJSON(const Json& json)
+    static Block FromJSON(const Json& json)
     {
-        // TODO: Implement
-        return nullptr;
+        return Block{
+            std::make_shared<Header>(json.GetRequired<Header>("header")),
+            json.GetRequired<TxBody>("body")
+        };
     }
 
     //
@@ -137,7 +140,8 @@ public:
     //
     void Validate() const
     {
-
+        m_pHeader->Validate();
+        m_body.Validate();
     }
 
     bool WasValidated() const noexcept { return m_validated; }

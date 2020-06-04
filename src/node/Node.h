@@ -16,8 +16,8 @@ public:
         const std::vector<PegOutCoin>& pegOutCoins
     ) const final;
 
-    void ConnectBlock(const Block::Ptr& pBlock) final;
-    void DisconnectBlock(const Block::CPtr& pBlock) final;
+    void ConnectBlock(const Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView) final;
+    void DisconnectBlock(const Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView) final;
 
     ChainStatus::CPtr GetStatus() const noexcept final;
     Header::CPtr GetHeader(const Hash& hash) const final;

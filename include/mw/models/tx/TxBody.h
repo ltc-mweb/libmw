@@ -126,9 +126,13 @@ public:
         });
     }
 
-    static TxBody FromJSON(const Json&)
+    static TxBody FromJSON(const Json& json)
     {
-        // TODO: Implement
+        return TxBody{
+            json.GetRequiredVec<Input>("inputs"),
+            json.GetRequiredVec<Output>("outputs"),
+            json.GetRequiredVec<Kernel>("kernels")
+        };
     }
 
     void Validate() const

@@ -329,48 +329,14 @@ PublicKey Crypto::ToPublicKey(const Commitment& commitment)
     return ConversionUtil(SECP256K1_CONTEXT).ToPublicKey(commitment);
 }
 
-CompactSignature Crypto::SignMessage(
-    const SecretKey& secretKey,
-    const PublicKey& publicKey,
-    const std::string& message)
-{
-    const Hash messageHash = Crypto::Blake2b(
-        std::vector<uint8_t>(message.cbegin(), message.cend())
-    );
-    Signature signature = AggSig(SECP256K1_CONTEXT).SignMessage(
-        secretKey,
-        publicKey,
-        messageHash
-    );
-
-    return ConversionUtil(SECP256K1_CONTEXT).ToCompact(signature);
-}
-
 Signature Crypto::BuildSignature(
     const SecretKey& secretKey,
-    const Commitment& commitment,
     const Hash& messageHash)
 {
     return AggSig(SECP256K1_CONTEXT).SignMessage(
         secretKey,
-        ConversionUtil(SECP256K1_CONTEXT).ToPublicKey(commitment),
         messageHash
     );    
-}
-
-bool Crypto::VerifyMessageSignature(
-    const CompactSignature& signature,
-    const PublicKey& publicKey,
-    const std::string& message)
-{
-    const Hash messageHash = Crypto::Blake2b(
-        std::vector<uint8_t>(message.cbegin(), message.cend())
-    );
-    return AggSig(SECP256K1_CONTEXT).VerifyMessageSignature(
-        signature,
-        publicKey,
-        messageHash
-    );
 }
 
 CompactSignature Crypto::CalculatePartialSignature(

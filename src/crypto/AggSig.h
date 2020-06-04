@@ -23,18 +23,8 @@ public:
     //
     Signature SignMessage(
         const SecretKey& secretKey,
-        const PublicKey& publicKey,
         const Hash& message
     );
-
-    //
-    // Verifies the signature is valid for the message hash and public key.
-    //
-    bool VerifyMessageSignature(
-        const CompactSignature& signature,
-        const PublicKey& publicKey,
-        const Hash& message
-    ) const;
 
     CompactSignature CalculatePartialSignature(
         const SecretKey& secretKey,

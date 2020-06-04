@@ -17,14 +17,14 @@ void Node::ValidateBlock(
     m_pNode->ValidateBlock(pBlock, pegInCoins, pegOutCoins);
 }
 
-void Node::ConnectBlock(const Block::Ptr& pBlock)
+void Node::ConnectBlock(const Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView)
 {
-    m_pNode->ConnectBlock(pBlock);
+    m_pNode->ConnectBlock(pBlock, pView);
 }
 
-void Node::DisconnectBlock(const Block::CPtr& pBlock)
+void Node::DisconnectBlock(const Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView)
 {
-    m_pNode->DisconnectBlock(pBlock);
+    m_pNode->DisconnectBlock(pBlock, pView);
 }
 
 ChainStatus::CPtr Node::GetStatus() const noexcept

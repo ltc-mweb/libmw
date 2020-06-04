@@ -77,21 +77,15 @@ TEST_CASE("AggSig Interaction")
     REQUIRE(aggSigValid == true);
 }
 
-TEST_CASE("Message Signature")
+
+TEST_CASE("Coinbase Signature")
 {
-    const SecretKey secretKey = Random::CSPRNG<32>();
-    const PublicKey publicKey = Crypto::CalculatePublicKey(secretKey);
-    const std::string message = "MESSAGE";
+    Hash message = Random::CSPRNG<32>().GetBigInt();
+    SecretKey secretKey = Random::CSPRNG<32>();
+    Commitment commitment = Crypto::CommitBlinded(0, BlindingFactor(secretKey));
 
-    CompactSignature signature = Crypto::SignMessage(secretKey, publicKey, message);
+    Signature signature = Crypto::BuildSignature(secretKey, message);
 
-    const bool valid = Crypto::VerifyMessageSignature(signature, publicKey, message);
+    const bool valid = Crypto::VerifyKernelSignatures({ &signature }, { &commitment }, { &message });
     REQUIRE(valid == true);
-
-    const bool wrongMessage = Crypto::VerifyMessageSignature(signature, publicKey, "WRONG_MESSAGE");
-    REQUIRE(wrongMessage == false);
-
-    const PublicKey publicKey2 = Crypto::CalculatePublicKey(Random::CSPRNG<32>());
-    const bool differentPublicKey = Crypto::VerifyMessageSignature(signature, publicKey2, message);
-    REQUIRE(differentPublicKey == false);
 }

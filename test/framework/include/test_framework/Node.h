@@ -22,9 +22,9 @@ public:
     // Contextual validation of the block and application of the block to the active chain.
     // Consumer is required to call ValidateBlock first.
     //
-    void ConnectBlock(const Block::Ptr& pBlock) final;
+    void ConnectBlock(const Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView) final;
 
-    void DisconnectBlock(const Block::CPtr& pBlock) final;
+    void DisconnectBlock(const Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView) final;
 
     ChainStatus::CPtr GetStatus() const noexcept final;
     Header::CPtr GetHeader(const Hash& hash) const final;
