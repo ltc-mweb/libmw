@@ -8,23 +8,13 @@
 #include <mw/models/crypto/PublicKey.h>
 #include <mw/models/crypto/Hash.h>
 
-#include <shared_mutex>
-
-class AggSig
+class MuSig
 {
 public:
-    AggSig(Locked<Context>& context) : m_context(context) { }
-    ~AggSig() = default;
+    MuSig(Locked<Context>& context) : m_context(context) { }
+    ~MuSig() = default;
 
     SecretKey GenerateSecureNonce() const;
-
-    //
-    // Signs the message hash with the given key.
-    //
-    Signature SignMessage(
-        const SecretKey& secretKey,
-        const Hash& message
-    );
 
     CompactSignature CalculatePartialSignature(
         const SecretKey& secretKey,
@@ -45,18 +35,6 @@ public:
     Signature AggregateSignatures(
         const std::vector<CompactSignature>& signatures,
         const PublicKey& sumPubNonces
-    ) const;
-
-    bool VerifyAggregateSignatures(
-        const std::vector<const Signature*>& signatures,
-        const std::vector<const Commitment*>& publicKeys,
-        const std::vector<const Hash*>& messages
-    ) const;
-
-    bool VerifyAggregateSignature(
-        const Signature& signature,
-        const PublicKey& sumPubKeys,
-        const Hash& message
     ) const;
 
 private:

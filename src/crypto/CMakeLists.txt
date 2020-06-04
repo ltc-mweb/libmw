@@ -1,12 +1,13 @@
 set(TARGET_NAME Crypto)
 
 file(GLOB SOURCE_CODE
-	"AggSig.cpp"
 	"Bulletproofs.cpp"
 	"ConversionUtil.cpp"
 	"Crypto.cpp"
+	"MuSig.cpp"
 	"Pedersen.cpp"
 	"PublicKeys.cpp"
+	"Schnorr.cpp"
 )
 
 if(MW_STATIC)

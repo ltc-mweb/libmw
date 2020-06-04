@@ -14,10 +14,11 @@
 
 // Secp256k1
 #include "Context.h"
-#include "AggSig.h"
 #include "Bulletproofs.h"
+#include "MuSig.h"
 #include "Pedersen.h"
 #include "PublicKeys.h"
+#include "Schnorr.h"
 #include "ConversionUtil.h"
 
 #ifdef _WIN32
@@ -333,7 +334,7 @@ Signature Crypto::BuildSignature(
     const SecretKey& secretKey,
     const Hash& messageHash)
 {
-    return AggSig(SECP256K1_CONTEXT).SignMessage(
+    return Schnorr(SECP256K1_CONTEXT).Sign(
         secretKey,
         messageHash
     );    
@@ -346,7 +347,7 @@ CompactSignature Crypto::CalculatePartialSignature(
     const PublicKey& sumPubNonces,
     const Hash& message)
 {
-    return AggSig(SECP256K1_CONTEXT).CalculatePartialSignature(
+    return MuSig(SECP256K1_CONTEXT).CalculatePartialSignature(
         secretKey,
         secretNonce,
         sumPubKeys,
@@ -359,7 +360,7 @@ Signature Crypto::AggregateSignatures(
     const std::vector<CompactSignature>& signatures,
     const PublicKey& sumPubNonces)
 {
-    return AggSig(SECP256K1_CONTEXT).AggregateSignatures(signatures, sumPubNonces);
+    return MuSig(SECP256K1_CONTEXT).AggregateSignatures(signatures, sumPubNonces);
 }
 
 bool Crypto::VerifyPartialSignature(
@@ -369,7 +370,7 @@ bool Crypto::VerifyPartialSignature(
     const PublicKey& sumPubNonces,
     const Hash& message)
 {
-    return AggSig(SECP256K1_CONTEXT).VerifyPartialSignature(
+    return MuSig(SECP256K1_CONTEXT).VerifyPartialSignature(
         partialSignature,
         publicKey,
         sumPubKeys,
@@ -383,7 +384,7 @@ bool Crypto::VerifyAggregateSignature(
     const PublicKey sumPubKeys,
     const Hash& message)
 {
-    return AggSig(SECP256K1_CONTEXT).VerifyAggregateSignature(
+    return Schnorr(SECP256K1_CONTEXT).Verify(
         aggregateSignature,
         sumPubKeys,
         message
@@ -395,7 +396,7 @@ bool Crypto::VerifyKernelSignatures(
     const std::vector<const Commitment*>& publicKeys,
     const std::vector<const Hash*>& messages)
 {
-    return AggSig(SECP256K1_CONTEXT).VerifyAggregateSignatures(
+    return Schnorr(SECP256K1_CONTEXT).BatchVerify(
         signatures,
         publicKeys,
         messages
@@ -404,5 +405,5 @@ bool Crypto::VerifyKernelSignatures(
 
 SecretKey Crypto::GenerateSecureNonce()
 {
-    return AggSig(SECP256K1_CONTEXT).GenerateSecureNonce();
+    return MuSig(SECP256K1_CONTEXT).GenerateSecureNonce();
 }
