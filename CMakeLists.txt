@@ -7,13 +7,9 @@ if(UNIX AND NOT APPLE)
 	set(LINUX TRUE)
 endif()
 
-if (NOT MW_CORE_ROOT)
-	set(MW_CORE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../libmw-core")
-endif ()
-
-include(${MW_CORE_ROOT}/cmake/SetOutputDir.cmake)
-include(${MW_CORE_ROOT}/cmake/SetOptimizations.cmake)
-include(${MW_CORE_ROOT}/cmake/SetCpp17.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetOutputDir.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetOptimizations.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetCpp17.cmake)
 
 set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL MinSizeRel Release)
 set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release)
@@ -25,20 +21,23 @@ endif(MSVC)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(WITH_GFLAGS OFF)
+set(MW_STATIC TRUE)
 
 include_directories(
-	${MW_CORE_ROOT}/include
 	${PROJECT_SOURCE_DIR}/include
 )
 
 # Dependencies
-include(${MW_CORE_ROOT}/deps/vcpkg_deps.cmake)
-include(${MW_CORE_ROOT}/deps/dependencies.cmake)
-include(${MW_CORE_ROOT}/src/core.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/deps/vcpkg_deps.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/deps/dependencies.cmake)
+
+if (WIN32)
+    add_definitions(-DMW_ENABLE_WSTRING -DUNICODE -DNOMINMAX -DWIN32_LEAN_AND_MEAN)
+endif()
 
 add_subdirectory(src)
 
-option(GRINPP_TESTS "Build tests" true)
-if(GRINPP_TESTS AND NOT LINUX)
-	add_subdirectory(tests)
-endif(GRINPP_TESTS AND NOT LINUX)
+option(MW_TESTS "Build tests" true)
+if(MW_TESTS AND NOT LINUX)
+	add_subdirectory(test)
+endif(MW_TESTS AND NOT LINUX)
