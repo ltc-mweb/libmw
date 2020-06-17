@@ -63,10 +63,10 @@ public:
     ~Scheduler()
     {
         m_stop = true;
-        ThreadUtil::Join(m_scheduler);
+        ThreadUtil::Join({ std::move(m_scheduler) });
 
         m_conditional.notify_all();
-        ThreadUtil::JoinAll(m_workers);
+        ThreadUtil::Join(m_workers);
     }
 
     uint32_t RunEvery(std::function<void()>&& task, const std::chrono::milliseconds& interval)
