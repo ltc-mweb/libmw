@@ -18,11 +18,12 @@
 #include <mw/models/crypto/SecretKey.h>
 #include <mw/models/crypto/ScryptParameters.h>
 
-#ifdef MW_CRYPTO
-#define CRYPTO_API EXPORT
-#else
-#define CRYPTO_API IMPORT
-#endif
+//#ifdef MW_CRYPTO
+//#define CRYPTO_API EXPORT
+//#else
+//#define CRYPTO_API IMPORT
+//#endif
+#define CRYPTO_API
 
 //
 // Exported class that serves as a lightweight, easy-to-use wrapper for secp256k1-zkp and other crypto dependencies.
@@ -171,7 +172,8 @@ public:
     // The returned hash will be a 32 byte SecretKey.
     //
     static SecretKey PBKDF(
-        const SecureString& password,
+        const char* password,
+        const size_t passwordLen,
         const std::vector<uint8_t>& salt,
         const ScryptParameters& parameters
     );

@@ -1,6 +1,5 @@
 #include <catch.hpp>
 
-#include <mw/node/validation/BlockValidator.h>
 #include <test_framework/Node.h>
 #include <test_framework/Miner.h>
 
@@ -19,5 +18,6 @@ TEST_CASE("BlockValidator")
     std::vector<PegOutCoin> pegOutCoins;
     test::MinedBlock block_10 = miner.MineBlock(10, block_10_txs);
 
-    BlockValidator().Validate(block_10.GetBlock(), pegInCoins, pegOutCoins);
+    test::Node::Ptr pNode = test::Node::Create();
+    pNode->ValidateBlock(block_10.GetBlock(), pegInCoins, pegOutCoins);
 }

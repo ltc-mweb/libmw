@@ -40,21 +40,26 @@ public:
         return SleepFor(std::chrono::duration_cast<std::chrono::milliseconds>(duration), std::chrono::milliseconds(5), terminate);
     }
 
+    static void Join(std::thread& thread)
+    {
+        try
+        {
+            if (thread.joinable())
+            {
+                thread.join();
+            }
+        }
+        catch (...)
+        {
+
+        }
+    }
+
     static void Join(std::vector<std::thread>& threads)
     {
         for (auto& thread : threads)
         {
-            try
-            {
-                if (thread.joinable())
-                {
-                    thread.join();
-                }
-            }
-            catch (...)
-            {
-
-            }
+            Join(thread);
         }
     }
 

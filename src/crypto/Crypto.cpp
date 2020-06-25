@@ -289,14 +289,15 @@ SecureVector Crypto::AES256_Decrypt(
 }
 
 SecretKey Crypto::PBKDF(
-    const SecureString& password,
+    const char* password,
+    const size_t passwordLen,
     const std::vector<uint8_t>& salt,
     const ScryptParameters& parameters)
 {
     SecureVector buffer(64);
     const int result = crypto_scrypt(
-        (const uint8_t*)password.data(),
-        password.size(),
+        (const uint8_t*)password,
+        passwordLen,
         salt.data(),
         salt.size(),
         parameters.N,

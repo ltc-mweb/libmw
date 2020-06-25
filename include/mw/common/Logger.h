@@ -4,11 +4,13 @@
 #include <mw/util/StringUtil.h>
 #include <mw/file/FilePath.h>
 
-#ifdef MW_COMMON
-#define LOGGER_API EXPORT
-#else
-#define LOGGER_API IMPORT
-#endif
+//#ifdef MW_COMMON
+//#define LOGGER_API EXPORT
+//#else
+//#define LOGGER_API IMPORT
+//#endif
+
+#define LOGGER_API
 
 namespace LoggerAPI
 {

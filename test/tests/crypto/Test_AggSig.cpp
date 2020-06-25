@@ -1,6 +1,5 @@
 #include <catch.hpp>
 
-#include <mw/crypto/secp256k1.h>
 #include <mw/crypto/Crypto.h>
 #include <mw/crypto/Random.h>
 

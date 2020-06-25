@@ -21,7 +21,6 @@ endif(MSVC)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(WITH_GFLAGS OFF)
-set(MW_STATIC TRUE)
 
 include_directories(
 	${PROJECT_SOURCE_DIR}/include

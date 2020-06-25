@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mw/common/Macros.h>
+#include <mw/common/ImportExport.h>
 #include <mw/node/NodeConfig.h>
 #include <mw/node/ICoinsView.h>
 #include <mw/models/block/Header.h>
@@ -12,6 +13,12 @@
 #include <vector>
 
 MW_NAMESPACE
+
+#ifdef BUILDING_NODE
+#define NODE_API EXPORT
+#else
+#define NODE_API IMPORT
+#endif
 
 class INode
 {
@@ -47,6 +54,6 @@ public:
 // Creates an instance of the node.
 // This will fail if an instance is already running.
 //
-INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_map<std::string, std::string>&& options);
+NODE_API INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_map<std::string, std::string>&& options);
 
 END_NAMESPACE

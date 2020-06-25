@@ -4,11 +4,12 @@
 #include <string>
 #include <thread>
 
-#ifdef MW_COMMON
-#define THREAD_MANAGER_API EXPORT
-#else
-#define THREAD_MANAGER_API IMPORT
-#endif
+//#ifdef MW_COMMON
+//#define THREAD_MANAGER_API EXPORT
+//#else
+//#define THREAD_MANAGER_API IMPORT
+//#endif
+#define THREAD_MANAGER_API
 
 namespace ThreadManagerAPI
 {

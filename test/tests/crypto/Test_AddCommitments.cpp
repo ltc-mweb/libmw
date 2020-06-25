@@ -1,6 +1,5 @@
 #include <catch.hpp>
 
-#include <mw/crypto/secp256k1.h>
 #include <mw/crypto/Crypto.h>
 #include <mw/crypto/Random.h>
 
@@ -34,12 +33,7 @@ TEST_CASE("Crypto::AddCommitment")
             std::vector<Commitment>()
         );
 
-        secp256k1_context* ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
-
-        BlindingFactor blind_c;
-        std::vector<const uint8_t*> blindIn({ blind_a.data(), blind_b.data() });
-        secp256k1_pedersen_blind_sum(ctx, blind_c.data(), blindIn.data(), 2, 2);
-
+        BlindingFactor blind_c = Crypto::AddBlindingFactors({ blind_a, blind_b });
         Commitment commit_c = Crypto::CommitBlinded(5, blind_c);
         REQUIRE(commit_c == sum);
     }
@@ -56,12 +50,7 @@ TEST_CASE("Crypto::AddCommitment")
             std::vector<Commitment>({ commit_b })
         );
 
-        secp256k1_context* ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
-
-        BlindingFactor blind_c;
-        std::vector<const uint8_t*> blindIn({ blind_a.data(), blind_b.data() });
-        secp256k1_pedersen_blind_sum(ctx, blind_c.data(), blindIn.data(), 2, 1);
-
+        BlindingFactor blind_c = Crypto::AddBlindingFactors({ blind_a }, { blind_b });
         Commitment commit_c = Crypto::CommitBlinded(1, blind_c);
         REQUIRE(commit_c == difference);
     }

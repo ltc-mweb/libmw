@@ -6,7 +6,7 @@
 
 MW_NAMESPACE
 
-mw::INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_map<std::string, std::string>&& options)
+NODE_API mw::INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_map<std::string, std::string>&& options)
 {
     auto pConfig = NodeConfig::Create(datadir, std::move(options));
     auto database = BlockDBFactory::Open(pConfig->GetChainDir());
