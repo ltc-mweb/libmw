@@ -11,6 +11,8 @@ if(MSVC)
     endif()
 endif()
 
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/litecoin)
+
 # caches
 include_directories(${CMAKE_CURRENT_LIST_DIR}/caches/include)
 
@@ -21,7 +23,6 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/ghc/include)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/optional/include)
 
 # crypto
-include_directories(${CMAKE_CURRENT_LIST_DIR}/crypto/include)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/crypto ${BUILD_DIR}/crypto)
 
 # secp256k1-zkp
