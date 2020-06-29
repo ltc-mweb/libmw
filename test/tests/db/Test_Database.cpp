@@ -4,9 +4,9 @@
 #include <mw/db/IBlockDB.h>
 #include <mw/crypto/Random.h>
 
-static Header::CPtr GenerateRandomHeader(const uint64_t height)
+static mw::Header::CPtr GenerateRandomHeader(const uint64_t height)
 {
-    return std::make_shared<Header>(
+    return std::make_shared<mw::Header>(
         height,
         mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
         mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
@@ -45,7 +45,7 @@ TEST_CASE("Database - Headers - Batch rollback")
     auto pFoundHeader2 = batch->GetHeaderByHash(pHeader2->GetHash());
     REQUIRE(pFoundHeader2 == pHeader2);
 
-    std::vector<Header::CPtr> headers = batch->GetHeadersByHash(hashes);
+    std::vector<mw::Header::CPtr> headers = batch->GetHeadersByHash(hashes);
     REQUIRE(headers.size() == 3);
     REQUIRE(headers[0] == pHeader0);
     REQUIRE(headers[1] == pHeader1);
@@ -88,7 +88,7 @@ TEST_CASE("Database - Headers - Batch commit")
     auto pFoundHeader2 = batch->GetHeaderByHash(pHeader2->GetHash());
     REQUIRE(pFoundHeader2 == pHeader2);
 
-    std::vector<Header::CPtr> headers = batch->GetHeadersByHash(hashes);
+    std::vector<mw::Header::CPtr> headers = batch->GetHeadersByHash(hashes);
     REQUIRE(headers.size() == 3);
     REQUIRE(headers[0] == pHeader0);
     REQUIRE(headers[1] == pHeader1);

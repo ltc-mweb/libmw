@@ -14,10 +14,10 @@ public:
     //
     // Headers
     //
-    Header::CPtr GetHeaderByHash(const mw::Hash& hash) const noexcept final;
-    std::vector<Header::CPtr> GetHeadersByHash(const std::vector<mw::Hash>& hashes) const noexcept final;
-    void AddHeader(const Header::CPtr& pHeader) final;
-    void AddHeaders(const std::vector<Header::CPtr>& headers) final;
+    mw::Header::CPtr GetHeaderByHash(const mw::Hash& hash) const noexcept final;
+    std::vector<mw::Header::CPtr> GetHeadersByHash(const std::vector<mw::Hash>& hashes) const noexcept final;
+    void AddHeader(const mw::Header::CPtr& pHeader) final;
+    void AddHeaders(const std::vector<mw::Header::CPtr>& headers) final;
 
     //
     // Blocks
@@ -41,9 +41,9 @@ public:
     void OnEndWrite() noexcept final { m_pDatabase->OnEndWrite(); }
 
 private:
-    static DBEntry<Header> ToHeaderEntry(const Header::CPtr& pHeader)
+    static DBEntry<mw::Header> ToHeaderEntry(const mw::Header::CPtr& pHeader)
     {
-        return DBEntry<Header>(pHeader->GetHash().ToHex(), pHeader);
+        return DBEntry<mw::Header>(pHeader->GetHash().ToHex(), pHeader);
     }
 
     static DBEntry<mw::Block> ToBlockEntry(const mw::Block::CPtr& pBlock)

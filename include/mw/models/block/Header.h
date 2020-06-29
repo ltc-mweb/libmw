@@ -4,6 +4,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/models/crypto/BlindingFactor.h>
 #include <mw/models/crypto/Hash.h>
 #include <mw/traits/Hashable.h>
@@ -16,6 +17,8 @@
 #include <boost/optional.hpp>
 #include <cstdint>
 #include <memory>
+
+MW_NAMESPACE
 
 // TODO: Add UTXO commitment
 class Header final :
@@ -144,3 +147,5 @@ private:
     uint64_t m_outputMMRSize;
     uint64_t m_kernelMMRSize;
 };
+
+END_NAMESPACE

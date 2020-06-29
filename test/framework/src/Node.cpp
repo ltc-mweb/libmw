@@ -32,7 +32,7 @@ ChainStatus::CPtr Node::GetStatus() const noexcept
     return m_pNode->GetStatus();
 }
 
-Header::CPtr Node::GetHeader(const mw::Hash& hash) const
+mw::Header::CPtr Node::GetHeader(const mw::Hash& hash) const
 {
     return m_pNode->GetHeader(hash);
 }

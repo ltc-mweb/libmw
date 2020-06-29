@@ -48,7 +48,7 @@ ChainStatus::CPtr Node::GetStatus() const noexcept
     return m_pChainState.Read()->GetStatus();
 }
 
-Header::CPtr Node::GetHeader(const mw::Hash& hash) const
+mw::Header::CPtr Node::GetHeader(const mw::Hash& hash) const
 {
     return m_pDatabase.Read()->GetHeaderByHash(hash);
 }

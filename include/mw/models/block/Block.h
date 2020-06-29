@@ -28,9 +28,9 @@ public:
     //
     // Constructors
     //
-    Block(const Header::CPtr& pHeader, TxBody&& body)
+    Block(const mw::Header::CPtr& pHeader, TxBody&& body)
         : m_pHeader(pHeader), m_body(std::move(body)), m_validated(false) { }
-    Block(const Header::CPtr& pHeader, const TxBody& body)
+    Block(const mw::Header::CPtr& pHeader, const TxBody& body)
         : m_pHeader(pHeader), m_body(body), m_validated(false) { }
     Block(const Block& other) = default;
     Block(Block&& other) noexcept = default;
@@ -45,7 +45,7 @@ public:
     //
     // Getters
     //
-    const Header::CPtr& GetHeader() const noexcept { return m_pHeader; }
+    const mw::Header::CPtr& GetHeader() const noexcept { return m_pHeader; }
     const TxBody& GetTxBody() const noexcept { return m_body; }
 
     const std::vector<Input>& GetInputs() const noexcept { return m_body.GetInputs(); }
@@ -111,7 +111,7 @@ public:
 
     static Block Deserialize(Deserializer& deserializer)
     {
-        Header::CPtr pHeader = std::make_shared<Header>(Header::Deserialize(deserializer));
+        mw::Header::CPtr pHeader = std::make_shared<mw::Header>(mw::Header::Deserialize(deserializer));
         TxBody body = deserializer.Read<TxBody>();
         return Block{ pHeader, std::move(body) };
     }
@@ -119,7 +119,7 @@ public:
     json ToJSON() const noexcept final
     {
         return json({
-            { "header", m_pHeader },
+            { "header", m_pHeader->ToJSON() },
             { "body", m_body }
         });
     }
@@ -127,7 +127,7 @@ public:
     static Block FromJSON(const Json& json)
     {
         return Block{
-            std::make_shared<Header>(json.GetRequired<Header>("header")),
+            std::make_shared<mw::Header>(json.GetRequired<mw::Header>("header")),
             json.GetRequired<TxBody>("body")
         };
     }
@@ -151,7 +151,7 @@ public:
     void MarkAsValidated() noexcept { m_validated = true; }
 
 private:
-    Header::CPtr m_pHeader;
+    mw::Header::CPtr m_pHeader;
     TxBody m_body;
     bool m_validated;
 };

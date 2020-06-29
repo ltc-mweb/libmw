@@ -16,14 +16,14 @@ public:
 	//
 	// Retrieve Headers
 	//
-	virtual Header::CPtr GetHeaderByHash(const mw::Hash& hash) const noexcept = 0;
-	virtual std::vector<Header::CPtr> GetHeadersByHash(const std::vector<mw::Hash>& hashes) const noexcept = 0;
+	virtual mw::Header::CPtr GetHeaderByHash(const mw::Hash& hash) const noexcept = 0;
+	virtual std::vector<mw::Header::CPtr> GetHeadersByHash(const std::vector<mw::Hash>& hashes) const noexcept = 0;
 
 	//
 	// Save Headers
 	//
-	virtual void AddHeader(const Header::CPtr& pHeader) = 0;
-	virtual void AddHeaders(const std::vector<Header::CPtr>& headers) = 0;
+	virtual void AddHeader(const mw::Header::CPtr& pHeader) = 0;
+	virtual void AddHeaders(const std::vector<mw::Header::CPtr>& headers) = 0;
 
 	//
 	// Retrieve Blocks

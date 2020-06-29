@@ -39,7 +39,7 @@ public:
         auto outputMMR = GetOutputMMR(pTransaction->GetOutputs());
         auto rangeProofMMR = GetRangeProofMMR(pTransaction->GetOutputs());
 
-        auto pHeader = std::make_shared<Header>(
+        auto pHeader = std::make_shared<mw::Header>(
             height,
             outputMMR.Root(),
             rangeProofMMR.Root(),

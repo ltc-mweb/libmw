@@ -27,7 +27,7 @@ public:
     void DisconnectBlock(const mw::Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView) final;
 
     ChainStatus::CPtr GetStatus() const noexcept final;
-    Header::CPtr GetHeader(const mw::Hash& hash) const final;
+    mw::Header::CPtr GetHeader(const mw::Hash& hash) const final;
     mw::Block::CPtr GetBlock(const mw::Hash& hash) const final;
 
 private:

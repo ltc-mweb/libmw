@@ -14,11 +14,11 @@ Locked<IBlockDB> BlockDBFactory::Open(const FilePath& chainPath)
     return Locked<IBlockDB>(std::make_shared<BlockDB>(pDatabase, pChainStore));
 }
 
-Header::CPtr BlockDB::GetHeaderByHash(const mw::Hash& hash) const noexcept
+mw::Header::CPtr BlockDB::GetHeaderByHash(const mw::Hash& hash) const noexcept
 {
     LOG_TRACE_F("Loading header {}", hash);
 
-    auto pEntry = m_pDatabase->Get<Header>(HEADER_TABLE, hash.ToHex());
+    auto pEntry = m_pDatabase->Get<mw::Header>(HEADER_TABLE, hash.ToHex());
     if (pEntry != nullptr)
     {
         LOG_DEBUG_F("Header found for hash {}", hash);
@@ -31,16 +31,16 @@ Header::CPtr BlockDB::GetHeaderByHash(const mw::Hash& hash) const noexcept
     }
 }
 
-std::vector<Header::CPtr> BlockDB::GetHeadersByHash(const std::vector<mw::Hash>& hashes) const noexcept
+std::vector<mw::Header::CPtr> BlockDB::GetHeadersByHash(const std::vector<mw::Hash>& hashes) const noexcept
 {
     LOG_TRACE_F("Loading {} headers", hashes.size());
 
-    std::vector<Header::CPtr> headers;
+    std::vector<mw::Header::CPtr> headers;
     headers.reserve(hashes.size());
 
     for (const mw::Hash& hash : hashes)
     {
-        auto pEntry = m_pDatabase->Get<Header>(HEADER_TABLE, hash.ToHex());
+        auto pEntry = m_pDatabase->Get<mw::Header>(HEADER_TABLE, hash.ToHex());
         if (pEntry != nullptr)
         {
             LOG_TRACE_F("Header found for hash {}", hash);
@@ -56,19 +56,19 @@ std::vector<Header::CPtr> BlockDB::GetHeadersByHash(const std::vector<mw::Hash>&
     return headers;
 }
 
-void BlockDB::AddHeader(const Header::CPtr& pHeader)
+void BlockDB::AddHeader(const mw::Header::CPtr& pHeader)
 {
     LOG_TRACE_F("Adding header {}", pHeader);
 
-    std::vector<DBEntry<Header>> entries({ BlockDB::ToHeaderEntry(pHeader) });
+    std::vector<DBEntry<mw::Header>> entries({ BlockDB::ToHeaderEntry(pHeader) });
     m_pDatabase->Put(HEADER_TABLE, entries);
 }
 
-void BlockDB::AddHeaders(const std::vector<Header::CPtr>& headers)
+void BlockDB::AddHeaders(const std::vector<mw::Header::CPtr>& headers)
 {
     LOG_TRACE_F("Adding {} headers", headers.size());
 
-    std::vector<DBEntry<Header>> entries;
+    std::vector<DBEntry<mw::Header>> entries;
     entries.reserve(headers.size());
 
     std::transform(
