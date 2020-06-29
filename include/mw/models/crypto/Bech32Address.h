@@ -3,7 +3,7 @@
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Jsonable.h>
 #include <boost/container_hash/hash.hpp>
-#include <crypto/bech32.h>
+#include <bech32.h>
 #include <cstdint>
 #include <vector>
 
@@ -18,7 +18,7 @@ public:
 
     static Bech32Address FromString(const std::string& address)
     {
-        return Bech32Address(bech32::decode(address).second);
+        return Bech32Address(bech32::Decode(address).second);
     }
 
     //
@@ -50,14 +50,14 @@ public:
     json ToJSON() const noexcept final
     {
         std::string hrp = "bc"; // TODO: Figure out where to load hrp from.
-        std::string address = bech32::encode(hrp, m_address);
+        std::string address = bech32::Encode(hrp, m_address);
         return json(address);
     }
 
     static Bech32Address FromJSON(const Json& json)
     {
         std::string addressStr = json.Get<std::string>();
-        auto decoded = bech32::decode(addressStr);
+        auto decoded = bech32::Decode(addressStr);
         if (decoded.first.empty())
         {
             ThrowDeserialization_F("Failed to Bech32 decode address: {}", addressStr);

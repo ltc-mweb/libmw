@@ -6,8 +6,8 @@ ChainStore::Ptr ChainStore::Load(const FilePath& chainPath)
     return std::make_shared<ChainStore>();
 }
 
-tl::optional<Hash> ChainStore::GetHashByHeight(const uint64_t height) const noexcept
+boost::optional<mw::Hash> ChainStore::GetHashByHeight(const uint64_t height) const noexcept
 {
     // TODO: Implement
-    return tl::nullopt;
+    return boost::none;
 }

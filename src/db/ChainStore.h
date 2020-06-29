@@ -2,7 +2,7 @@
 
 #include <mw/models/block/Header.h>
 #include <mw/file/FilePath.h>
-#include <tl/optional.hpp>
+#include <boost/optional.hpp>
 
 class ChainStore
 {
@@ -11,5 +11,5 @@ public:
 
     static ChainStore::Ptr Load(const FilePath& chainPath);
 
-    tl::optional<Hash> GetHashByHeight(const uint64_t height) const noexcept;
+    boost::optional<mw::Hash> GetHashByHeight(const uint64_t height) const noexcept;
 };

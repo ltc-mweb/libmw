@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mw/crypto/Crypto.h>
+#include <mw/crypto/Hasher.h>
 #include <mw/traits/Committed.h>
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
@@ -9,7 +10,7 @@
 #include <mw/models/crypto/Bech32Address.h>
 #include <mw/models/crypto/Signature.h>
 #include <mw/models/tx/KernelType.h>
-#include <tl/optional.hpp>
+#include <boost/optional.hpp>
 
 class Kernel :
     public Traits::ICommitted,
@@ -25,7 +26,7 @@ public:
         const uint64_t fee,
         const uint64_t lockHeight,
         const uint64_t amount,
-        tl::optional<Bech32Address>&& address,
+        boost::optional<Bech32Address>&& address,
         std::vector<uint8_t>&& extraData,
         Commitment&& excess,
         Signature&& signature
@@ -34,7 +35,7 @@ public:
         m_lockHeight(lockHeight),
         m_excess(std::move(excess)),
         m_signature(std::move(signature)),
-        m_hash(tl::nullopt),
+        m_hash(boost::none),
         m_amount(amount),
         m_address(std::move(address)),
         m_extraData(std::move(extraData))
@@ -47,7 +48,7 @@ public:
             fee,
             0,
             0,
-            tl::nullopt,
+            boost::none,
             std::vector<uint8_t>(),
             std::move(excess),
             std::move(signature)
@@ -61,7 +62,7 @@ public:
             0,
             0, // TODO: Can peg-in kernels have lock-heights?
             amount,
-            tl::nullopt,
+            boost::none,
             std::vector<uint8_t>(),
             std::move(excess),
             std::move(signature)
@@ -75,7 +76,7 @@ public:
             fee,
             0, // TODO: Can peg-out kernels have lock-heights?
             amount,
-            tl::make_optional<Bech32Address>(std::move(address)),
+            boost::make_optional<Bech32Address>(std::move(address)),
             std::vector<uint8_t>(),
             std::move(excess),
             std::move(signature)
@@ -89,7 +90,7 @@ public:
             fee,
             lockHeight,
             0,
-            tl::nullopt,
+            boost::none,
             std::vector<uint8_t>(),
             std::move(excess),
             std::move(signature)
@@ -159,7 +160,7 @@ public:
     uint64_t GetPeggedOut() const noexcept { return IsPegOut() ? m_amount : 0; }
 
     uint64_t GetAmount() const noexcept { return m_amount; }
-    const tl::optional<Bech32Address>& GetAddress() const noexcept { return m_address; }
+    const boost::optional<Bech32Address>& GetAddress() const noexcept { return m_address; }
 
     //
     // Serialization/Deserialization
@@ -213,7 +214,7 @@ public:
         uint64_t fee = 0;
         uint64_t lockHeight = 0;
         uint64_t amount = 0;
-        tl::optional<Bech32Address> address = tl::nullopt;
+        boost::optional<Bech32Address> address = boost::none;
         std::vector<uint8_t> extraData{};
 
         switch (type)
@@ -232,7 +233,7 @@ public:
             {
                 fee = deserializer.Read<uint64_t>();
                 amount = deserializer.Read<uint64_t>();
-                address = tl::make_optional(Bech32Address::Deserialize(deserializer));
+                address = boost::make_optional(Bech32Address::Deserialize(deserializer));
                 break;
             }
             case KernelType::HEIGHT_LOCKED:
@@ -312,10 +313,10 @@ public:
         uint64_t fee = json.GetOr<uint64_t>("fee", 0);
         uint64_t lockHeight = json.GetOr<uint64_t>("lock_height", 0);
         uint64_t amount = json.GetOr<uint64_t>("amount", 0);
-        tl::optional<Bech32Address> address = tl::nullopt;
+        boost::optional<Bech32Address> address = boost::none;
         if (json.Exists("address"))
         {
-            address = tl::make_optional(json.GetRequired<Bech32Address>("address"));
+            address = boost::make_optional(json.GetRequired<Bech32Address>("address"));
         }
 
         Commitment excess = json.GetRequired<Commitment>("excess");
@@ -366,8 +367,8 @@ private:
     // The signature proving the excess is a valid public key, which signs the transaction fee.
     Signature m_signature;
 
-    mutable tl::optional<Hash> m_hash;
+    mutable boost::optional<mw::Hash> m_hash;
     uint64_t m_amount;
-    tl::optional<Bech32Address> m_address;
+    boost::optional<Bech32Address> m_address;
     std::vector<uint8_t> m_extraData;
 };

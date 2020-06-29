@@ -2,14 +2,13 @@
 #include <mw/exceptions/CryptoException.h>
 #include <mw/common/Logger.h>
 
-#include <Crypto/Blake2.h>
+//#include <Crypto/Blake2.h>
 #include <Crypto/sha256.h>
 #include <Crypto/ripemd160.h>
 #include <Crypto/hmac_sha256.h>
 #include <Crypto/hmac_sha512.h>
 #include <Crypto/aes.h>
 #include <Crypto/siphash.h>
-#include <Crypto/crypto_scrypt.h>
 #include <cassert>
 
 // Secp256k1
@@ -27,31 +26,31 @@
 
 Locked<Context> SECP256K1_CONTEXT(std::make_shared<Context>());
 
-BigInt<32> Crypto::Blake2b(const std::vector<uint8_t>& input)
-{
-    BigInt<32> result;
-    const int status = blake2b(result.data(), 32, input.data(), input.size(), nullptr, 0);
-    if (status != 0)
-    {
-        ThrowCrypto_F("blake2b failed with status: {}", status);
-    }
-
-    return result;
-}
-
-BigInt<32> Crypto::Blake2b(
-    const std::vector<uint8_t>& key,
-    const std::vector<uint8_t>& input)
-{
-    BigInt<32> result;
-    const int status = blake2b(result.data(), 32, input.data(), input.size(), key.data(), key.size());
-    if (status != 0)
-    {
-        ThrowCrypto_F("blake2b failed with status: {}", status);
-    }
-
-    return result;
-}
+//BigInt<32> Crypto::Blake2b(const std::vector<uint8_t>& input)
+//{
+//    BigInt<32> result;
+//    const int status = blake2b(result.data(), 32, input.data(), input.size(), nullptr, 0);
+//    if (status != 0)
+//    {
+//        ThrowCrypto_F("blake2b failed with status: {}", status);
+//    }
+//
+//    return result;
+//}
+//
+//BigInt<32> Crypto::Blake2b(
+//    const std::vector<uint8_t>& key,
+//    const std::vector<uint8_t>& input)
+//{
+//    BigInt<32> result;
+//    const int status = blake2b(result.data(), 32, input.data(), input.size(), key.data(), key.size());
+//    if (status != 0)
+//    {
+//        ThrowCrypto_F("blake2b failed with status: {}", status);
+//    }
+//
+//    return result;
+//}
 
 BigInt<32> Crypto::SHA256(const std::vector<uint8_t>& input)
 {
@@ -232,16 +231,6 @@ bool Crypto::VerifyRangeProofs(
     return Bulletproofs(SECP256K1_CONTEXT).VerifyBulletproofs(rangeProofs);
 }
 
-uint64_t Crypto::SipHash24(
-    const uint64_t k0,
-    const uint64_t k1,
-    const std::vector<uint8_t>& data)
-{
-    const std::vector<uint64_t> key = { k0, k1 };
-
-    return siphash24(key.data(), data.data(), data.size());
-}
-
 std::vector<uint8_t> Crypto::AES256_Encrypt(
     const SecureVector& input,
     const SecretKey& key,
@@ -288,34 +277,6 @@ SecureVector Crypto::AES256_Decrypt(
     return plaintext;
 }
 
-SecretKey Crypto::PBKDF(
-    const char* password,
-    const size_t passwordLen,
-    const std::vector<uint8_t>& salt,
-    const ScryptParameters& parameters)
-{
-    SecureVector buffer(64);
-    const int result = crypto_scrypt(
-        (const uint8_t*)password,
-        passwordLen,
-        salt.data(),
-        salt.size(),
-        parameters.N,
-        parameters.r,
-        parameters.p,
-        buffer.data(),
-        buffer.size()
-    );
-    if (result == 0)
-    {
-        SecretKey result;
-        blake2b(result.data(), 32, buffer.data(), buffer.size(), nullptr, 0);
-        return result;
-    }
-
-    ThrowCrypto("Scrypt failed");
-}
-
 PublicKey Crypto::CalculatePublicKey(const SecretKey& privateKey)
 {
     return PublicKeys(SECP256K1_CONTEXT).CalculatePublicKey(privateKey);
@@ -333,7 +294,7 @@ PublicKey Crypto::ToPublicKey(const Commitment& commitment)
 
 Signature Crypto::BuildSignature(
     const SecretKey& secretKey,
-    const Hash& messageHash)
+    const mw::Hash& messageHash)
 {
     return Schnorr(SECP256K1_CONTEXT).Sign(
         secretKey,
@@ -346,7 +307,7 @@ CompactSignature Crypto::CalculatePartialSignature(
     const SecretKey& secretNonce,
     const PublicKey& sumPubKeys,
     const PublicKey& sumPubNonces,
-    const Hash& message)
+    const mw::Hash& message)
 {
     return MuSig(SECP256K1_CONTEXT).CalculatePartialSignature(
         secretKey,
@@ -369,7 +330,7 @@ bool Crypto::VerifyPartialSignature(
     const PublicKey& publicKey,
     const PublicKey& sumPubKeys,
     const PublicKey& sumPubNonces,
-    const Hash& message)
+    const mw::Hash& message)
 {
     return MuSig(SECP256K1_CONTEXT).VerifyPartialSignature(
         partialSignature,
@@ -383,7 +344,7 @@ bool Crypto::VerifyPartialSignature(
 bool Crypto::VerifyAggregateSignature(
     const Signature& aggregateSignature,
     const PublicKey sumPubKeys,
-    const Hash& message)
+    const mw::Hash& message)
 {
     return Schnorr(SECP256K1_CONTEXT).Verify(
         aggregateSignature,
@@ -395,7 +356,7 @@ bool Crypto::VerifyAggregateSignature(
 bool Crypto::VerifyKernelSignatures(
     const std::vector<const Signature*>& signatures,
     const std::vector<const Commitment*>& publicKeys,
-    const std::vector<const Hash*>& messages)
+    const std::vector<const mw::Hash*>& messages)
 {
     return Schnorr(SECP256K1_CONTEXT).BatchVerify(
         signatures,

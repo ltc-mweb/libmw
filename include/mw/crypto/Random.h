@@ -4,9 +4,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-#include <mw/common/Secure.h>
 #include <mw/models/crypto/SecretKey.h>
 #include <mw/exceptions/CryptoException.h>
+#include <support/allocators/secure.h>
+
+#if defined(_MSC_VER)
+#include <Windows.h>
+#else
+#include <sys/mman.h>
+#endif
 
 #include <random>
 

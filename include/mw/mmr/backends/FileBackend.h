@@ -9,6 +9,7 @@
 #include <mw/mmr/Node.h>
 #include <mw/file/FilePath.h>
 #include <mw/file/AppendOnlyFile.h>
+#include <boost/optional.hpp>
 #include <cassert>
 
 MMR_NAMESPACE
@@ -26,7 +27,7 @@ class FileBackend : public IBackend
     };
 
 public:
-    static std::shared_ptr<FileBackend> Open(const FilePath& path, const tl::optional<uint16_t>& fixedLengthOpt)
+    static std::shared_ptr<FileBackend> Open(const FilePath& path, const boost::optional<uint16_t>& fixedLengthOpt)
     {
         auto pBackend = std::make_shared<FileBackend>(
             AppendOnlyFile::Load(path.GetChild("pmmr_hash.bin")),

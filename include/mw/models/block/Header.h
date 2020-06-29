@@ -11,8 +11,9 @@
 #include <mw/traits/Printable.h>
 #include <mw/traits/Jsonable.h>
 #include <mw/serialization/Serializer.h>
-#include <mw/crypto/Crypto.h>
+#include <mw/crypto/Hasher.h>
 
+#include <boost/optional.hpp>
 #include <cstdint>
 #include <memory>
 
@@ -70,6 +71,7 @@ public:
         if (!m_hash.has_value())
         {
             m_hash = tl::make_optional(Crypto::Blake2b(Serialized()));
+            m_hash = boost::make_optional(Hashed(*this));
         }
 
         return m_hash.value();
@@ -134,7 +136,7 @@ public:
     }
 
 private:
-    mutable tl::optional<Hash> m_hash;
+    mutable boost::optional<mw::Hash> m_hash;
     uint64_t m_height;
     Hash m_outputRoot;
     Hash m_rangeProofRoot;

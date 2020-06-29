@@ -6,7 +6,7 @@
 #include <mw/models/tx/TxBody.h>
 #include <mw/util/FunctionalUtil.h>
 #include <mw/common/Logger.h>
-#include <tl/optional.hpp>
+#include <boost/optional.hpp>
 
 class KernelSumValidator
 {
@@ -16,7 +16,7 @@ public:
         const TxBody& transactionBody,
         const int64_t overage,
         const BlindingFactor& kernelOffset,
-        const tl::optional<BlockSums>& blockSumsOpt)
+        const boost::optional<BlockSums>& blockSumsOpt)
     {
         // gather the commitments
         auto getInputCommitments = [](Input& input) -> Commitment { return input.GetCommitment(); };
@@ -37,7 +37,7 @@ public:
         const std::vector<Commitment>& kernels,
         const int64_t overage,
         const BlindingFactor& kernelOffset,
-        const tl::optional<BlockSums>& blockSumsOpt)
+        const boost::optional<BlockSums>& blockSumsOpt)
     {
         std::vector<Commitment> inputCommitments = inputs;
         std::vector<Commitment> outputCommitments = outputs;

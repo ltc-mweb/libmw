@@ -4,9 +4,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-#include <mw/common/Secure.h>
 #include <mw/models/crypto/BigInteger.h>
 #include <mw/traits/Serializable.h>
+#include <support/allocators/secure.h>
 
 template<size_t NUM_BYTES>
 class secret_key_t : public Traits::ISerializable

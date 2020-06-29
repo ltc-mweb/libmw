@@ -45,7 +45,7 @@ public:
         }
     }
 
-    size_t size() const { return NUM_BYTES; }
+    static size_t size() noexcept { return NUM_BYTES; }
     const std::vector<uint8_t, ALLOC>& vec() const { return m_bytes; }
     uint8_t* data() { return m_bytes.data(); }
     const uint8_t* data() const { return m_bytes.data(); }

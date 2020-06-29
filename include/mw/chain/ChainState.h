@@ -7,6 +7,7 @@
 #include <mw/mmr/MMR.h>
 #include <mw/mmr/backends/FileBackend.h>
 #include <mw/db/IBlockDB.h>
+#include <boost/optional.hpp>
 
 class ChainState : public Traits::IBatchable
 {
@@ -30,7 +31,7 @@ public:
     {
         auto pKernelBackend = mmr::FileBackend::Open(
             dataPath.GetChild("chain").GetChild("kernel"),
-            tl::nullopt
+            boost::none
         );
 
         return std::make_shared<ChainState>(

@@ -4,9 +4,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-#include <mw/common/Secure.h>
 #include <mw/util/EndianUtil.h>
 #include <mw/traits/Serializable.h>
+#include <support/allocators/secure.h>
 
 #include <cstdint>
 #include <vector>
@@ -19,7 +19,7 @@ class Serializer
 public:
     Serializer() = default;
     Serializer(const size_t expectedSize) { m_serialized.reserve(expectedSize); }
-    ~Serializer() { SecureMem::cleanse(m_serialized.data(), m_serialized.size()); }
+    ~Serializer() { memory_cleanse(m_serialized.data(), m_serialized.size()); }
 
     template <class T, typename SFINAE = typename std::enable_if_t<std::is_integral_v<T>>>
     Serializer& Append(const T& t)

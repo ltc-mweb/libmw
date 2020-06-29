@@ -1,6 +1,6 @@
 #pragma once
 
-#include <tl/optional.hpp>
+#include <boost/optional.hpp>
 #include <functional>
 #include <algorithm>
 #include <memory>
@@ -12,7 +12,7 @@ struct optional_back_insert_iterator : public std::iterator<std::output_iterator
 
     using value_type = typename Container::value_type;
 
-    optional_back_insert_iterator<Container>& operator=(const tl::optional<value_type> opt)
+    optional_back_insert_iterator<Container>& operator=(const boost::optional<value_type> opt)
     {
         if (opt.has_value())
         {
@@ -39,7 +39,7 @@ optional_back_insert_iterator<Container> optional_back_inserter(Container& conta
 template<class InputType, class OutputType>
 std::vector<OutputType> transform_if(
     const std::vector<InputType>& inputs,
-    const std::function<tl::optional<OutputType>(const InputType&)>& func)
+    const std::function<boost::optional<OutputType>(const InputType&)>& func)
 {
     std::vector<OutputType> transformed;
     std::transform(
@@ -52,7 +52,7 @@ std::vector<OutputType> transform_if(
 
 //return transform_if<IKernel::CPtr, Kernel::CPtr>(
 //    m_pBlock->GetKernels(),
-//    [](const auto& pKernel) -> tl::optional<Kernel::CPtr> {
-//        return pKernel->IsCoinbase() ? tl::make_optional(std::dynamic_pointer_cast<const Kernel>(pKernel)) : tl::nullopt;
+//    [](const auto& pKernel) -> boost::optional<Kernel::CPtr> {
+//        return pKernel->IsCoinbase() ? boost::make_optional(std::dynamic_pointer_cast<const Kernel>(pKernel)) : tl::nullopt;
 //    }
 //);

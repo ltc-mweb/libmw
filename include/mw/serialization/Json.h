@@ -2,7 +2,7 @@
 
 #include <mw/traits/Jsonable.h>
 #include <mw/traits/Printable.h>
-#include <tl/optional.hpp>
+#include <boost/optional.hpp>
 #include <type_traits>
 
 class Json : public Traits::IPrintable
@@ -13,93 +13,93 @@ public:
     virtual ~Json() = default;
 
     template<class T>
-    tl::optional<typename std::enable_if_t<std::is_arithmetic_v<T>, T>> Get(const std::string& key) const
+    boost::optional<typename std::enable_if_t<std::is_arithmetic_v<T>, T>> Get(const std::string& key) const
     {
         auto iter = m_json.find(key);
         if (iter != m_json.end())
         {
             if (iter->is_number())
             {
-                return tl::make_optional<T>(iter->get<T>());
+                return boost::make_optional<T>(iter->get<T>());
             }
         }
 
-        return tl::nullopt;
+        return boost::none;
     }
 
     template<class T>
-    tl::optional<typename std::enable_if_t<std::is_same_v<bool, T>, T>> Get(const std::string& key) const
+    boost::optional<typename std::enable_if_t<std::is_same_v<bool, T>, T>> Get(const std::string& key) const
     {
         auto iter = m_json.find(key);
         if (iter != m_json.end())
         {
             if (iter->is_bool())
             {
-                return tl::make_optional<T>(iter->get<T>());
+                return boost::make_optional<T>(iter->get<T>());
             }
         }
 
-        return tl::nullopt;
+        return boost::none;
     }
 
     template<class T>
-    tl::optional<typename std::enable_if_t<std::is_base_of_v<T, std::string>, T>> Get(const std::string& key) const
+    boost::optional<typename std::enable_if_t<std::is_base_of_v<T, std::string>, T>> Get(const std::string& key) const
     {
         auto iter = m_json.find(key);
         if (iter != m_json.end())
         {
             if (iter->is_string())
             {
-                return tl::make_optional<T>(iter->get<T>());
+                return boost::make_optional<T>(iter->get<T>());
             }
         }
 
-        return tl::nullopt;
+        return boost::none;
     }
 
     template<class T>
-    tl::optional<typename std::enable_if_t<std::is_same_v<T, json>, T>> Get(const std::string& key) const
+    boost::optional<typename std::enable_if_t<std::is_same_v<T, json>, T>> Get(const std::string& key) const
     {
         auto iter = m_json.find(key);
         if (iter != m_json.end())
         {
             if (iter->is_object() || iter->is_array())
             {
-                return tl::make_optional<T>(*iter);
+                return boost::make_optional<T>(*iter);
             }
         }
 
-        return tl::nullopt;
+        return boost::none;
     }
 
     template<class T>
-    tl::optional<typename std::enable_if_t<std::is_same_v<T, Json>, T>> Get(const std::string& key) const
+    boost::optional<typename std::enable_if_t<std::is_same_v<T, Json>, T>> Get(const std::string& key) const
     {
         auto iter = m_json.find(key);
         if (iter != m_json.end())
         {
             if (iter->is_object() || iter->is_array())
             {
-                return tl::make_optional<T>(Json(*iter));
+                return boost::make_optional<T>(Json(*iter));
             }
         }
 
-        return tl::nullopt;
+        return boost::none;
     }
 
     template<class T>
-    tl::optional<typename std::enable_if_t<std::is_base_of_v<T, Traits::IJsonable>, T>> Get(const std::string& key) const
+    boost::optional<typename std::enable_if_t<std::is_base_of_v<T, Traits::IJsonable>, T>> Get(const std::string& key) const
     {
         auto iter = m_json.find(key);
         if (iter != m_json.end())
         {
             if (iter->is_object() || iter->is_array())
             {
-                return tl::make_optional<T>(T::FromJSON(*iter));
+                return boost::make_optional<T>(T::FromJSON(*iter));
             }
         }
 
-        return tl::nullopt;
+        return boost::none;
     }
 
     template<class T>

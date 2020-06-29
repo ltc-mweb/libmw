@@ -2,7 +2,7 @@
 
 #include <mw/util/ThreadUtil.h>
 #include <mw/common/Logger.h>
-#include <tl/optional.hpp>
+#include <boost/optional.hpp>
 
 #include <map>
 #include <mutex>
@@ -17,10 +17,10 @@ class Task
 {
 public:
     Task(std::function<void()>&& task)
-        : m_task(std::move(task)), m_intervalOpt(tl::nullopt) { }
+        : m_task(std::move(task)), m_intervalOpt(boost::none) { }
 
     Task(std::function<void()>&& task, const std::chrono::milliseconds& interval)
-        : m_task(std::move(task)), m_intervalOpt(tl::make_optional(interval)) { }
+        : m_task(std::move(task)), m_intervalOpt(boost::make_optional(interval)) { }
 
     void Execute() noexcept
     {
@@ -35,11 +35,11 @@ public:
         }
     }
 
-    tl::optional<std::chrono::milliseconds> GetInterval() const { return m_intervalOpt; }
+    boost::optional<std::chrono::milliseconds> GetInterval() const { return m_intervalOpt; }
 
 private:
     std::function<void()> m_task;
-    tl::optional<std::chrono::milliseconds> m_intervalOpt;
+    boost::optional<std::chrono::milliseconds> m_intervalOpt;
 };
 
 class Scheduler

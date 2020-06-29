@@ -19,9 +19,6 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/caches/include)
 # ghc
 include_directories(${CMAKE_CURRENT_LIST_DIR}/ghc/include)
 
-# optional
-include_directories(${CMAKE_CURRENT_LIST_DIR}/optional/include)
-
 # crypto
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/crypto ${BUILD_DIR}/crypto)
 
