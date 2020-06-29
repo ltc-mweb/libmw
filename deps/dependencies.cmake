@@ -14,14 +14,6 @@ endif()
 # caches
 include_directories(${CMAKE_CURRENT_LIST_DIR}/caches/include)
 
-# Reproc++
-set(REPROC++ ON)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/reproc ${BUILD_DIR}/reproc)
-include_directories(
-    ${CMAKE_CURRENT_LIST_DIR}/reproc/reproc++/include
-    ${CMAKE_CURRENT_BINARY_DIR}/deps/reproc/reproc++/include
-)
-
 # ghc
 include_directories(${CMAKE_CURRENT_LIST_DIR}/ghc/include)
 
