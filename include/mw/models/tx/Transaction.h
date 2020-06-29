@@ -4,6 +4,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/crypto/Crypto.h>
 #include <mw/models/crypto/Hash.h>
 #include <mw/models/crypto/BigInteger.h>
@@ -16,6 +17,8 @@
 
 #include <memory>
 #include <vector>
+
+MW_NAMESPACE
 
 ////////////////////////////////////////
 // TRANSACTION - Represents a transaction or merged transactions before they've been included in a block.
@@ -35,10 +38,7 @@ public:
     Transaction(BlindingFactor&& offset, TxBody&& transactionBody)
         : m_offset(std::move(offset)), m_body(std::move(transactionBody))
     {
-        Serializer serializer;
-        Serialize(serializer);
-
-        m_hash = Crypto::Blake2b(serializer.vec());
+        m_hash = Hashed(*this);
     }
 
     Transaction(const Transaction& transaction) = default;
@@ -105,7 +105,7 @@ public:
     // Traits
     //
     std::string Format() const final { return GetHash().Format(); }
-    Hash GetHash() const noexcept final { return m_hash; }
+    mw::Hash GetHash() const noexcept final { return m_hash; }
 
 private:
     // The kernel "offset" k2 excess is k1G after splitting the key k = k1 + k2.
@@ -114,5 +114,7 @@ private:
     // The transaction body.
     TxBody m_body;
 
-    mutable Hash m_hash;
+    mutable mw::Hash m_hash;
 };
+
+END_NAMESPACE

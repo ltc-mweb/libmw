@@ -16,8 +16,8 @@ public:
 	//
 	// Retrieve Headers
 	//
-	virtual Header::CPtr GetHeaderByHash(const Hash& hash) const noexcept = 0;
-	virtual std::vector<Header::CPtr> GetHeadersByHash(const std::vector<Hash>& hashes) const noexcept = 0;
+	virtual Header::CPtr GetHeaderByHash(const mw::Hash& hash) const noexcept = 0;
+	virtual std::vector<Header::CPtr> GetHeadersByHash(const std::vector<mw::Hash>& hashes) const noexcept = 0;
 
 	//
 	// Save Headers
@@ -28,13 +28,13 @@ public:
 	//
 	// Retrieve Blocks
 	//
-	virtual Block::CPtr GetBlockByHash(const Hash& hash) const noexcept = 0;
-	virtual Block::CPtr GetBlockByHeight(const uint64_t height) const noexcept = 0;
+	virtual mw::Block::CPtr GetBlockByHash(const mw::Hash& hash) const noexcept = 0;
+	virtual mw::Block::CPtr GetBlockByHeight(const uint64_t height) const noexcept = 0;
 
 	//
 	// Save Blocks
 	//
-	virtual void AddBlock(const Block::CPtr& pBlock) = 0;
+	virtual void AddBlock(const mw::Block::CPtr& pBlock) = 0;
 
 	//
 	// Removes all blocks before the given height.

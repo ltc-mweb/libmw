@@ -34,15 +34,15 @@ public:
     //
     // Uses Blake2b to hash the given input into a 32 byte hash.
     //
-    static BigInt<32> Blake2b(const std::vector<uint8_t>& input);
+    //static BigInt<32> Blake2b(const std::vector<uint8_t>& input);
 
     //
     // Uses Blake2b to hash the given input into a 32 byte hash using a key.
     //
-    static BigInt<32> Blake2b(
-        const std::vector<uint8_t>& key,
-        const std::vector<uint8_t>& input
-    );
+    //static BigInt<32> Blake2b(
+    //    const std::vector<uint8_t>& key,
+    //    const std::vector<uint8_t>& input
+    //);
 
     //
     // Uses SHA256 to hash the given input into a 32 byte hash.
@@ -137,16 +137,7 @@ public:
     static bool VerifyKernelSignatures(
         const std::vector<const Signature*>& signatures,
         const std::vector<const Commitment*>& publicKeys,
-        const std::vector<const Hash*>& messages
-    );
-
-    //
-    //
-    //
-    static uint64_t SipHash24(
-        const uint64_t k0,
-        const uint64_t k1,
-        const std::vector<uint8_t>& data
+        const std::vector<const mw::Hash*>& messages
     );
 
     //
@@ -165,17 +156,6 @@ public:
         const std::vector<uint8_t>& ciphertext,
         const SecretKey& key,
         const BigInt<16>& iv
-    );
-
-    //
-    // Uses Scrypt to hash the given password and the given salt. It then blake2b hashes the output.
-    // The returned hash will be a 32 byte SecretKey.
-    //
-    static SecretKey PBKDF(
-        const char* password,
-        const size_t passwordLen,
-        const std::vector<uint8_t>& salt,
-        const ScryptParameters& parameters
     );
 
     //
@@ -200,7 +180,7 @@ public:
     //
     static Signature BuildSignature(
         const SecretKey& secretKey,
-        const Hash& messageHash
+        const mw::Hash& messageHash
     );
 
     //
@@ -212,7 +192,7 @@ public:
         const SecretKey& secretNonce,
         const PublicKey& sumPubKeys,
         const PublicKey& sumPubNonces,
-        const Hash& message
+        const mw::Hash& message
     );
 
     //
@@ -224,7 +204,7 @@ public:
         const PublicKey& publicKey,
         const PublicKey& sumPubKeys,
         const PublicKey& sumPubNonces,
-        const Hash& message
+        const mw::Hash& message
     );
 
     //
@@ -242,7 +222,7 @@ public:
     static bool VerifyAggregateSignature(
         const Signature& aggregateSignature,
         const PublicKey sumPubKeys,
-        const Hash& message
+        const mw::Hash& message
     );
 
     //

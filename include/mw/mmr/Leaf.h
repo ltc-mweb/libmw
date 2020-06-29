@@ -7,7 +7,7 @@
 #include <mw/common/Macros.h>
 #include <mw/mmr/LeafIndex.h>
 #include <mw/models/crypto/Hash.h>
-#include <mw/crypto/Crypto.h>
+#include <mw/crypto/Hasher.h>
 
 MMR_NAMESPACE
 
@@ -15,7 +15,7 @@ class Leaf
 {
 public:
     Leaf() noexcept = default;
-    Leaf(const LeafIndex& index, Hash&& hash, std::vector<uint8_t>&& data)
+    Leaf(const LeafIndex& index, mw::Hash&& hash, std::vector<uint8_t>&& data)
         : m_index(index), m_hash(std::move(hash)), m_data(std::move(data)) { }
 
     static Leaf Create(const LeafIndex& index, std::vector<uint8_t>&& data)
@@ -23,7 +23,7 @@ public:
         Serializer hashSerializer;
         hashSerializer.Append<uint64_t>(index.GetPosition());
         hashSerializer.Append(data);
-        Hash hash = Crypto::Blake2b(hashSerializer.vec());
+        mw::Hash hash = Hashed(hashSerializer.vec());
 
         return Leaf(index, std::move(hash), std::move(data));
     }
@@ -34,12 +34,12 @@ public:
 
     const Index& GetNodeIndex() const noexcept { return m_index.GetNodeIndex(); }
     const LeafIndex& GetLeafIndex() const noexcept { return m_index; }
-    const Hash& GetHash() const noexcept { return m_hash; }
+    const mw::Hash& GetHash() const noexcept { return m_hash; }
     const std::vector<uint8_t>& vec() const noexcept { return m_data; }
 
 private:
     LeafIndex m_index;
-    Hash m_hash;
+    mw::Hash m_hash;
     std::vector<uint8_t> m_data;
 };
 

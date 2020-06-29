@@ -17,10 +17,10 @@ public:
         std::vector<const Signature*> signatures;
         signatures.reserve(kernels.size());
 
-        std::vector<Hash> msgs;
+        std::vector<mw::Hash> msgs;
         msgs.reserve(kernels.size());
 
-        std::vector<const Hash*> messages;
+        std::vector<const mw::Hash*> messages;
         messages.reserve(kernels.size());
 
         // Verify the transaction proof validity. Entails handling the commitment as a public key and checking the signature verifies with the fee as message.

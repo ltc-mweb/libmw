@@ -18,7 +18,7 @@ public:
     void Add(const LeafIndex& idx);
     void Remove(const LeafIndex& idx);
     bool Contains(const LeafIndex& idx) const noexcept;
-    Hash Root(const uint64_t numLeaves) const;
+    mw::Hash Root(const uint64_t numLeaves) const;
     uint64_t GetSize() const;
 
     void Rewind(const uint64_t numLeaves, const std::vector<LeafIndex>& leavesToAdd);

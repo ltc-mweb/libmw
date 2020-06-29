@@ -5,7 +5,7 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
 #include <mw/models/tx/Features.h>
-#include <mw/crypto/Crypto.h>
+#include <mw/crypto/Hasher.h>
 #include <mw/traits/Committed.h>
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
@@ -25,9 +25,7 @@ public:
     OutputId(const EOutputFeatures features, const Commitment& commitment)
         : m_features(features), m_commitment(commitment)
     {
-        Serializer serializer;
-        Serialize(serializer);
-        m_hash = Crypto::Blake2b(serializer.vec());
+        m_hash = Hashed(*this);
     }
     OutputId(const OutputId& output) = default;
     OutputId(OutputId&& output) noexcept = default;
@@ -69,7 +67,7 @@ public:
     //
     // Traits
     //
-    Hash GetHash() const noexcept final { return m_hash; }
+    mw::Hash GetHash() const noexcept final { return m_hash; }
 
 private:
     // Options for an output's structure or use
@@ -78,5 +76,5 @@ private:
     // The homomorphic commitment representing the output amount
     Commitment m_commitment;
 
-    mutable Hash m_hash;
+    mutable mw::Hash m_hash;
 };

@@ -34,7 +34,7 @@ public:
     // The process we use is called "bagging the peaks." We first identify the peaks (nodes with no parents).
     // We then "bag" them by hashing them iteratively from the right, using the total size of the MMR as prefix. 
     //
-    Hash Root() const;
+    mw::Hash Root() const;
 
     void Commit() final { m_pBackend->Commit(); }
     void Rollback() noexcept final { m_pBackend->Rollback(); }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mw/common/Macros.h>
 #include <mw/models/tx/TxBody.h>
 #include <mw/models/block/Header.h>
 #include <mw/models/tx/Kernel.h>
@@ -10,6 +11,8 @@
 #include <mw/traits/Printable.h>
 #include <mw/traits/Jsonable.h>
 #include <algorithm>
+
+MW_NAMESPACE
 
 // TODO: This should contain peg-in and peg-out info.
 class Block final :
@@ -132,7 +135,7 @@ public:
     //
     // Traits
     //
-    Hash GetHash() const noexcept final { return m_pHeader->GetHash(); }
+    mw::Hash GetHash() const noexcept final { return m_pHeader->GetHash(); }
     std::string Format() const final { return GetHash().ToHex(); }
 
     //
@@ -152,3 +155,5 @@ private:
     TxBody m_body;
     bool m_validated;
 };
+
+END_NAMESPACE

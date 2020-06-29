@@ -4,27 +4,25 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/common/Macros.h>
 #include <mw/models/crypto/BigInteger.h>
 #include <mw/util/BitUtil.h>
 #include <boost/container_hash/hash.hpp>
 
+MW_NAMESPACE
+
 using Hash = BigInt<32>;
 
-class HASH
-{
-public:
-    static inline const Hash ZERO = Hash::ValueOf(0);
-    static inline const uint8_t LENGTH = 32;
-};
+END_NAMESPACE
 
-#define ZERO_HASH HASH::ZERO
+#define ZERO_HASH mw::Hash::ValueOf(0)
 
 namespace std
 {
     template<>
-    struct hash<Hash>
+    struct hash<mw::Hash>
     {
-        size_t operator()(const Hash& hash) const
+        size_t operator()(const mw::Hash& hash) const
         {
             return boost::hash_value(hash.vec());
         }

@@ -7,34 +7,34 @@
 #include <mw/common/Macros.h>
 #include <mw/mmr/Index.h>
 #include <mw/models/crypto/Hash.h>
-#include <mw/crypto/Crypto.h>
+#include <mw/crypto/Hasher.h>
 
 MMR_NAMESPACE
 
 class Node
 {
 public:
-    static Node CreateParent(const Index& index, const Hash& leftHash, const Hash& rightHash)
+    static Node CreateParent(const Index& index, const mw::Hash& leftHash, const mw::Hash& rightHash)
     {
         Serializer hashSerializer;
         hashSerializer.Append<uint64_t>(index.GetPosition());
         hashSerializer.Append(leftHash);
         hashSerializer.Append(rightHash);
-        Hash hash = Crypto::Blake2b(hashSerializer.vec());
+        mw::Hash hash = Hashed(hashSerializer.vec());
 
         return Node(index, std::move(hash));
     }
 
     const Index& GetIndex() const noexcept { return m_index; }
-    const Hash& GetHash() const noexcept { return m_hash; }
+    const mw::Hash& GetHash() const noexcept { return m_hash; }
     uint64_t GetHeight() const noexcept { return m_index.GetHeight(); }
 
 private:
-    Node(const Index& index, Hash&& hash)
+    Node(const Index& index, mw::Hash&& hash)
         : m_index(index), m_hash(std::move(hash)) { }
 
     Index m_index;
-    Hash m_hash;
+    mw::Hash m_hash;
 };
 
 END_NAMESPACE

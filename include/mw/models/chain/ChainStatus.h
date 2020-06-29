@@ -15,7 +15,7 @@ enum class ETxHashSetStatus
 struct Tip
 {
 	uint64_t m_height;
-	Hash m_hash;
+	mw::Hash m_hash;
 };
 
 class ChainStatus
@@ -74,14 +74,14 @@ public:
 		m_txHashSetStatus = txHashSetStatus;
 	}
 
-	void UpdateHeaderTip(const uint64_t height, const Hash& hash) noexcept
+	void UpdateHeaderTip(const uint64_t height, const mw::Hash& hash) noexcept
 	{
 		std::unique_lock<std::shared_mutex> writeLock(m_mutex);
 
 		m_headerTip = { height, hash };
 	}
 
-	void UpdateBlockTip(const uint64_t height, const Hash& hash) noexcept
+	void UpdateBlockTip(const uint64_t height, const mw::Hash& hash) noexcept
 	{
 		std::unique_lock<std::shared_mutex> writeLock(m_mutex);
 

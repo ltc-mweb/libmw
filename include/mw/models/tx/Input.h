@@ -5,7 +5,7 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
 #include <mw/models/tx/Features.h>
-#include <mw/crypto/Crypto.h>
+#include <mw/crypto/Hasher.h>
 #include <mw/traits/Committed.h>
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
@@ -29,7 +29,7 @@ public:
     {
         Serializer serializer;
         Serialize(serializer);
-        m_hash = Crypto::Blake2b(serializer.vec());
+        m_hash = Hashed(serializer.vec());
     }
     Input(const Input& input) = default;
     Input(Input&& input) noexcept = default;
@@ -92,7 +92,7 @@ public:
     //
     // Traits
     //
-    Hash GetHash() const noexcept final { return m_hash; }
+    mw::Hash GetHash() const noexcept final { return m_hash; }
 
 private:
     // The features of the output being spent. 
@@ -102,5 +102,5 @@ private:
     // The commit referencing the output being spent.
     Commitment m_commitment;
 
-    mutable Hash m_hash;
+    mutable mw::Hash m_hash;
 };

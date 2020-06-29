@@ -113,7 +113,7 @@ public:
     const Commitment& GetExcess() const noexcept { return m_excess; }
     const Signature& GetSignature() const noexcept { return m_signature; }
 
-    Hash GetSignatureMessage() const
+    mw::Hash GetSignatureMessage() const
     {
         Serializer serializer;
         serializer.Append<uint8_t>(m_features);
@@ -150,7 +150,7 @@ public:
             }
         }
 
-        return Crypto::Blake2b(serializer.vec());
+        return Hashed(serializer.vec());
     }
 
     bool IsPegIn() const noexcept { return GetFeatures() == KernelType::PEGIN_KERNEL; }
@@ -337,11 +337,11 @@ public:
     //
     // Traits
     //
-    Hash GetHash() const noexcept final
+    mw::Hash GetHash() const noexcept final
     {
         if (!m_hash.has_value())
         {
-            m_hash = tl::make_optional(Crypto::Blake2b(Serialized()));
+            m_hash = boost::make_optional(Hashed(*this));
         }
 
         return m_hash.value();

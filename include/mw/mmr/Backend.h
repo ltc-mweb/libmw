@@ -23,11 +23,11 @@ public:
     virtual ~IBackend() = default;
 
     virtual void AddLeaf(const Leaf& leaf) = 0;
-    virtual void AddHash(const Hash& hash) = 0;
+    virtual void AddHash(const mw::Hash& hash) = 0;
     virtual void Rewind(const LeafIndex& nextLeafIndex) = 0;
 
     virtual uint64_t GetNumLeaves() const noexcept = 0;
-    virtual Hash GetHash(const Index& idx) const = 0;
+    virtual mw::Hash GetHash(const Index& idx) const = 0;
     virtual Leaf GetLeaf(const LeafIndex& idx) const = 0;
 
     virtual LeafIndex GetNextLeaf() const noexcept { return LeafIndex::At(GetNumLeaves()); }

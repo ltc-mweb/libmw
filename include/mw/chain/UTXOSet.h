@@ -17,7 +17,7 @@ public:
         return nullptr;
     }
 
-    void ApplyBlock(const Block::CPtr& pBlock)
+    void ApplyBlock(const mw::Block::CPtr& pBlock)
     {
         const auto& inputs = pBlock->GetInputs();
 
@@ -47,7 +47,7 @@ public:
         );
     }
 
-    void Validate(const Block::CPtr& pBlock)
+    void Validate(const mw::Block::CPtr& pBlock)
     {
         const auto& inputs = pBlock->GetInputs();
 

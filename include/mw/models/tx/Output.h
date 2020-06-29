@@ -29,9 +29,7 @@ public:
     Output(const EOutputFeatures features, Commitment&& commitment, const RangeProof::CPtr& pProof)
         : m_features(features), m_commitment(std::move(commitment)), m_pProof(pProof)
     {
-        Serializer serializer;
-        Serialize(serializer);
-        m_hash = Crypto::Blake2b(serializer.vec());
+        m_hash = Hashed(*this);
     }
     Output(const Output& Output) = default;
     Output(Output&& Output) noexcept = default;
@@ -101,7 +99,7 @@ public:
     //
     // Traits
     //
-    Hash GetHash() const noexcept final { return m_hash; }
+    mw::Hash GetHash() const noexcept final { return m_hash; }
 
 private:
     // Options for an output's structure or use
@@ -113,5 +111,5 @@ private:
     // A proof that the commitment is in the right range
     RangeProof::CPtr m_pProof;
 
-    mutable Hash m_hash;
+    mutable mw::Hash m_hash;
 };

@@ -55,7 +55,7 @@ public:
         auto nextIdx = leaf.GetNodeIndex().GetNext();
         while (!nextIdx.IsLeaf())
         {
-            const Hash leftHash = GetHash(nextIdx.GetLeftChild());
+            const mw::Hash leftHash = GetHash(nextIdx.GetLeftChild());
             const Node node = Node::CreateParent(nextIdx, leftHash, rightHash);
 
             AddHash(node.GetHash());
@@ -64,7 +64,7 @@ public:
         }
     }
 
-    void AddHash(const Hash& hash) final { m_pHashFile->Append(hash.vec()); }
+    void AddHash(const mw::Hash& hash) final { m_pHashFile->Append(hash.vec()); }
 
     void Rewind(const LeafIndex& nextLeafIndex) final
     {
@@ -88,9 +88,9 @@ public:
         }
     }
 
-    Hash GetHash(const Index& idx) const final
+    mw::Hash GetHash(const Index& idx) const final
     {
-        return Hash(m_pHashFile->Read(idx.GetPosition() * HASH::LENGTH, HASH::LENGTH));
+        return mw::Hash(m_pHashFile->Read(idx.GetPosition() * mw::Hash::size(), mw::Hash::size()));
     }
 
     Leaf GetLeaf(const LeafIndex& idx) const final

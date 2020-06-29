@@ -42,7 +42,7 @@ public:
         );
     }
 
-    void ConnectBlock(const Block::CPtr& pBlock)
+    void ConnectBlock(const mw::Block::CPtr& pBlock)
     {
         // TODO: Validate that this is the next block.
         // TODO: Handle reorgs?

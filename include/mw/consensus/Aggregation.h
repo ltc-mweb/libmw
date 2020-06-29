@@ -20,7 +20,7 @@ public:
     //
     // Preconditions: transactions must not be empty
     //
-    static Transaction::CPtr Aggregate(const std::vector<Transaction::CPtr>& transactions)
+    static mw::Transaction::CPtr Aggregate(const std::vector<mw::Transaction::CPtr>& transactions)
     {
         assert(!transactions.empty());
 
@@ -34,7 +34,7 @@ public:
         std::vector<BlindingFactor> kernelOffsets;
 
         // collect all the inputs, outputs and kernels from the txs
-        for (const Transaction::CPtr& pTransaction : transactions) {
+        for (const mw::Transaction::CPtr& pTransaction : transactions) {
             for (const Input& input : pTransaction->GetInputs()) {
                 inputs.push_back(input);
             }
@@ -66,7 +66,7 @@ public:
         //   * cut-through outputs
         //   * full set of tx kernels
         //   * sum of all kernel offsets
-        return std::make_shared<Transaction>(
+        return std::make_shared<mw::Transaction>(
             std::move(offset),
             TxBody{ std::move(inputs), std::move(outputs), std::move(kernels) }
         );

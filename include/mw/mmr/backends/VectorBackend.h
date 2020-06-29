@@ -26,7 +26,7 @@ public:
         auto nextIdx = leaf.GetNodeIndex().GetNext();
         while (!nextIdx.IsLeaf())
         {
-            const Hash leftHash = GetHash(nextIdx.GetLeftChild());
+            const mw::Hash leftHash = GetHash(nextIdx.GetLeftChild());
             const Node node = Node::CreateParent(nextIdx, leftHash, rightHash);
 
             AddHash(node.GetHash());
@@ -35,7 +35,7 @@ public:
         }
     }
 
-    void AddHash(const Hash& hash) final { m_nodes.push_back(hash); }
+    void AddHash(const mw::Hash& hash) final { m_nodes.push_back(hash); }
     void Rewind(const LeafIndex& nextLeafIndex) final
     {
         m_leaves.resize(nextLeafIndex.GetLeafIndex());
@@ -44,7 +44,7 @@ public:
 
     uint64_t GetNumLeaves() const noexcept final { return m_leaves.size(); }
 
-    Hash GetHash(const Index& idx) const final { return m_nodes[idx.GetPosition()]; }
+    mw::Hash GetHash(const Index& idx) const final { return m_nodes[idx.GetPosition()]; }
     Leaf GetLeaf(const LeafIndex& idx) const final { return m_leaves[idx.GetLeafIndex()]; }
 
     // TODO: Implement
@@ -53,7 +53,7 @@ public:
 
 private:
     std::vector<Leaf> m_leaves;
-    std::vector<Hash> m_nodes;
+    std::vector<mw::Hash> m_nodes;
 };
 
 END_NAMESPACE

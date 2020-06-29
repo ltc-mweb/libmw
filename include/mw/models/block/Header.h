@@ -32,9 +32,9 @@ public:
     //
     Header(
         const uint64_t height,
-        Hash&& outputRoot,
-        Hash&& rangeProofRoot,
-        Hash&& kernelRoot,
+        mw::Hash&& outputRoot,
+        mw::Hash&& rangeProofRoot,
+        mw::Hash&& kernelRoot,
         BlindingFactor&& offset,
         const uint64_t outputMMRSize,
         const uint64_t kernelMMRSize
@@ -56,9 +56,9 @@ public:
     // Getters
     //
     uint64_t GetHeight() const noexcept { return m_height; }
-    const Hash& GetOutputRoot() const noexcept { return m_outputRoot; }
-    const Hash& GetRangeProofRoot() const noexcept { return m_rangeProofRoot; }
-    const Hash& GetKernelRoot() const noexcept { return m_kernelRoot; }
+    const mw::Hash& GetOutputRoot() const noexcept { return m_outputRoot; }
+    const mw::Hash& GetRangeProofRoot() const noexcept { return m_rangeProofRoot; }
+    const mw::Hash& GetKernelRoot() const noexcept { return m_kernelRoot; }
     const BlindingFactor& GetOffset() const noexcept { return m_offset; }
     uint64_t GetOutputMMRSize() const noexcept { return m_outputMMRSize; }
     uint64_t GetKernelMMRSize() const noexcept { return m_kernelMMRSize; }
@@ -66,11 +66,10 @@ public:
     //
     // Traits
     //
-    Hash GetHash() const noexcept final
+    mw::Hash GetHash() const noexcept final
     {
         if (!m_hash.has_value())
         {
-            m_hash = tl::make_optional(Crypto::Blake2b(Serialized()));
             m_hash = boost::make_optional(Hashed(*this));
         }
 
@@ -97,9 +96,9 @@ public:
     static Header Deserialize(Deserializer& deserializer)
     {
         uint64_t height = deserializer.Read<uint64_t>();
-        Hash outputRoot = Hash::Deserialize(deserializer);
-        Hash proofRoot = Hash::Deserialize(deserializer);
-        Hash kernelRoot = Hash::Deserialize(deserializer);
+        mw::Hash outputRoot = mw::Hash::Deserialize(deserializer);
+        mw::Hash proofRoot = mw::Hash::Deserialize(deserializer);
+        mw::Hash kernelRoot = mw::Hash::Deserialize(deserializer);
         BlindingFactor offset = BlindingFactor::Deserialize(deserializer);
         uint64_t outputMMRSize = deserializer.Read<uint64_t>();
         uint64_t kernelMMRSize = deserializer.Read<uint64_t>();
@@ -138,9 +137,9 @@ public:
 private:
     mutable boost::optional<mw::Hash> m_hash;
     uint64_t m_height;
-    Hash m_outputRoot;
-    Hash m_rangeProofRoot;
-    Hash m_kernelRoot;
+    mw::Hash m_outputRoot;
+    mw::Hash m_rangeProofRoot;
+    mw::Hash m_kernelRoot;
     BlindingFactor m_offset;
     uint64_t m_outputMMRSize;
     uint64_t m_kernelMMRSize;
