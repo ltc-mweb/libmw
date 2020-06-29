@@ -11,17 +11,17 @@ public:
         : m_pConfig(pConfig), m_pChainState(pChainState), m_pDatabase(database) { }
 
     void ValidateBlock(
-        const Block::Ptr& pBlock,
+        const mw::Block::Ptr& pBlock,
         const std::vector<PegInCoin>& pegInCoins,
         const std::vector<PegOutCoin>& pegOutCoins
     ) const final;
 
-    void ConnectBlock(const Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView) final;
-    void DisconnectBlock(const Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView) final;
+    void ConnectBlock(const mw::Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView) final;
+    void DisconnectBlock(const mw::Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView) final;
 
     ChainStatus::CPtr GetStatus() const noexcept final;
-    Header::CPtr GetHeader(const Hash& hash) const final;
-    Block::CPtr GetBlock(const Hash& hash) const final;
+    Header::CPtr GetHeader(const mw::Hash& hash) const final;
+    mw::Block::CPtr GetBlock(const mw::Hash& hash) const final;
 
 private:
     NodeConfig ::Ptr m_pConfig;

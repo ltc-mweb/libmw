@@ -8,9 +8,9 @@ static Header::CPtr GenerateRandomHeader(const uint64_t height)
 {
     return std::make_shared<Header>(
         height,
-        Hash{ Random().CSPRNG<32>().GetBigInt() },
-        Hash{ Random().CSPRNG<32>().GetBigInt() },
-        Hash{ Random().CSPRNG<32>().GetBigInt() },
+        mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
+        mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
+        mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
         BlindingFactor{ Random().CSPRNG<32>().GetBigInt() },
         Random().FastRandom(),
         Random().FastRandom()
@@ -25,7 +25,7 @@ TEST_CASE("Database - Headers - Batch rollback")
     auto pHeader1 = GenerateRandomHeader(1);
     auto pHeader2 = GenerateRandomHeader(2);
 
-    std::vector<Hash> hashes{
+    std::vector<mw::Hash> hashes{
         pHeader0->GetHash(),
         pHeader1->GetHash(),
         pHeader2->GetHash(),
@@ -68,7 +68,7 @@ TEST_CASE("Database - Headers - Batch commit")
     auto pHeader1 = GenerateRandomHeader(1);
     auto pHeader2 = GenerateRandomHeader(2);
 
-    std::vector<Hash> hashes{
+    std::vector<mw::Hash> hashes{
         Random().CSPRNG<32>().GetBigInt(),
         pHeader0->GetHash(),
         pHeader1->GetHash(),

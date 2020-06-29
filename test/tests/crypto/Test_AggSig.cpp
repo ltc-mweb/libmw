@@ -5,7 +5,7 @@
 
 TEST_CASE("AggSig Interaction")
 {
-    Hash message = Random::CSPRNG<32>().GetBigInt();
+    mw::Hash message = Random::CSPRNG<32>().GetBigInt();
 
     // Generate sender keypairs
     SecretKey secretKeySender = Random::CSPRNG<32>();
@@ -79,7 +79,7 @@ TEST_CASE("AggSig Interaction")
 
 TEST_CASE("Coinbase Signature")
 {
-    Hash message = Random::CSPRNG<32>().GetBigInt();
+    mw::Hash message = Random::CSPRNG<32>().GetBigInt();
     SecretKey secretKey = Random::CSPRNG<32>();
     Commitment commitment = Crypto::CommitBlinded(0, BlindingFactor(secretKey));
 

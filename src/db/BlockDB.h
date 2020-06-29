@@ -14,17 +14,17 @@ public:
     //
     // Headers
     //
-    Header::CPtr GetHeaderByHash(const Hash& hash) const noexcept final;
-    std::vector<Header::CPtr> GetHeadersByHash(const std::vector<Hash>& hashes) const noexcept final;
+    Header::CPtr GetHeaderByHash(const mw::Hash& hash) const noexcept final;
+    std::vector<Header::CPtr> GetHeadersByHash(const std::vector<mw::Hash>& hashes) const noexcept final;
     void AddHeader(const Header::CPtr& pHeader) final;
     void AddHeaders(const std::vector<Header::CPtr>& headers) final;
 
     //
     // Blocks
     //
-    Block::CPtr GetBlockByHash(const Hash& hash) const noexcept final;
-    Block::CPtr GetBlockByHeight(const uint64_t height) const noexcept final;
-    void AddBlock(const Block::CPtr& pBlock) final;
+    mw::Block::CPtr GetBlockByHash(const mw::Hash& hash) const noexcept final;
+    mw::Block::CPtr GetBlockByHeight(const uint64_t height) const noexcept final;
+    void AddBlock(const mw::Block::CPtr& pBlock) final;
     void RemoveOldBlocks(const uint64_t height) final;
 
     //
@@ -46,9 +46,9 @@ private:
         return DBEntry<Header>(pHeader->GetHash().ToHex(), pHeader);
     }
 
-    static DBEntry<Block> ToBlockEntry(const Block::CPtr& pBlock)
+    static DBEntry<mw::Block> ToBlockEntry(const mw::Block::CPtr& pBlock)
     {
-        return DBEntry<Block>(pBlock->GetHash().ToHex(), pBlock);
+        return DBEntry<mw::Block>(pBlock->GetHash().ToHex(), pBlock);
     }
 
     Database::Ptr m_pDatabase;

@@ -3,7 +3,7 @@
 #include <unordered_map>
 
 void BlockValidator::Validate(
-    const Block::Ptr& pBlock,
+    const mw::Block::Ptr& pBlock,
     const std::vector<PegInCoin>& pegInCoins,
     const std::vector<PegOutCoin>& pegOutCoins)
 {
@@ -20,7 +20,7 @@ void BlockValidator::Validate(
 }
 
 void BlockValidator::ValidatePegInCoins(
-    const Block::CPtr& pBlock,
+    const mw::Block::CPtr& pBlock,
     const std::vector<PegInCoin>& pegInCoins)
 {
     std::unordered_map<Commitment, uint64_t> pegInAmounts;
@@ -45,7 +45,7 @@ void BlockValidator::ValidatePegInCoins(
 }
 
 void BlockValidator::ValidatePegOutCoins(
-    const Block::CPtr& pBlock,
+    const mw::Block::CPtr& pBlock,
     const std::vector<PegOutCoin>& pegOutCoins)
 {
     std::unordered_map<Bech32Address, uint64_t> pegOutAmounts;

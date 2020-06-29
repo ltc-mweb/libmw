@@ -3,6 +3,7 @@
 #include <mw/common/Macros.h>
 #include <mw/models/tx/Transaction.h>
 #include <mw/crypto/Random.h>
+#include <mw/crypto/Hasher.h>
 
 #include <test_framework/models/TxOutput.h>
 
@@ -45,12 +46,12 @@ public:
         Tx Build() const
         {
             return Tx(
-                std::make_shared<Transaction>(BlindingFactor(offset), TxBody(inputs, outputs, kernels))
+                std::make_shared<mw::Transaction>(BlindingFactor(offset), TxBody(inputs, outputs, kernels))
             );
         }
     };
 
-    Tx(const Transaction::CPtr& pTransaction)
+    Tx(const mw::Transaction::CPtr& pTransaction)
         : m_pTransaction(pTransaction) { }
 
     static Tx CreatePegIn(const uint64_t amount)
@@ -69,7 +70,7 @@ public:
 
         Signature signature = Crypto::BuildSignature(
             kernelBF.ToSecretKey(),
-            Crypto::Blake2b(serializer.vec())
+            Hashed(serializer.vec())
         );
 
         Kernel kernel = Kernel::CreatePegIn(amount, std::move(kernelCommit), std::move(signature));
@@ -77,10 +78,10 @@ public:
         return Tx::Builder().SetOffset(txOffset).AddKernel(kernel).AddOutput(output).Build();
     }
 
-    const Transaction::CPtr& GetTransaction() const noexcept { return m_pTransaction; }
+    const mw::Transaction::CPtr& GetTransaction() const noexcept { return m_pTransaction; }
 
 private:
-    Transaction::CPtr m_pTransaction;
+    mw::Transaction::CPtr m_pTransaction;
 };
 
 END_NAMESPACE

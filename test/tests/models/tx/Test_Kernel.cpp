@@ -45,12 +45,12 @@ TEST_CASE("Plain Kernel")
     // Signature Message
     //
     {
-        Hash hashed = kernel.GetSignatureMessage();
+        mw::Hash hashed = kernel.GetSignatureMessage();
         std::vector<uint8_t> message = Serializer()
             .Append<uint8_t>(0)
             .Append<uint64_t>(fee)
             .vec();
-        REQUIRE(hashed == Crypto::Blake2b(message));
+        REQUIRE(hashed == Hashed(message));
     }
 
     //
@@ -109,12 +109,12 @@ TEST_CASE("Peg-In Kernel")
     // Signature Message
     //
     {
-        Hash hashed = kernel.GetSignatureMessage();
+        mw::Hash hashed = kernel.GetSignatureMessage();
         std::vector<uint8_t> message = Serializer()
             .Append<uint8_t>(1)
             .Append<uint64_t>(amount)
             .vec();
-        REQUIRE(hashed == Crypto::Blake2b(message));
+        REQUIRE(hashed == Hashed(message));
     }
 
     //
@@ -179,14 +179,14 @@ TEST_CASE("Peg-Out Kernel")
     // Signature Message
     //
     {
-        Hash hashed = kernel.GetSignatureMessage();
+        mw::Hash hashed = kernel.GetSignatureMessage();
         std::vector<uint8_t> message = Serializer()
             .Append<uint8_t>(2)
             .Append<uint64_t>(fee)
             .Append<uint64_t>(amount)
             .Append(address)
             .vec();
-        REQUIRE(hashed == Crypto::Blake2b(message));
+        REQUIRE(hashed == Hashed(message));
     }
 
     //
@@ -248,13 +248,13 @@ TEST_CASE("Height-Locked")
     // Signature Message
     //
     {
-        Hash hashed = kernel.GetSignatureMessage();
+        mw::Hash hashed = kernel.GetSignatureMessage();
         std::vector<uint8_t> message = Serializer()
             .Append<uint8_t>(3)
             .Append<uint64_t>(fee)
             .Append<uint64_t>(lockHeight)
             .vec();
-        REQUIRE(hashed == Crypto::Blake2b(message));
+        REQUIRE(hashed == Hashed(message));
     }
 
     //

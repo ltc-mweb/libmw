@@ -24,5 +24,5 @@ add_subdirectory(tests/util)
 
 add_executable(Tests ${test_sources})
 add_dependencies(Tests fmt::fmt MW_TEST::Framework MW::Node)
-target_link_libraries(Tests reproc++ MW_TEST::Framework MW::Node)
+target_link_libraries(Tests MW_TEST::Framework MW::Node)
 target_include_directories(Tests PRIVATE ${MW_CORE_ROOT}/deps/Catch2)

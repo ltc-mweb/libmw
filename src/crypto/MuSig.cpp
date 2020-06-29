@@ -31,7 +31,7 @@ CompactSignature MuSig::CalculatePartialSignature(
     const SecretKey& secretNonce,
     const PublicKey& sumPubKeys,
     const PublicKey& sumPubNonces,
-    const Hash& message)
+    const mw::Hash& message)
 {
     secp256k1_pubkey pubKeyForE = ConversionUtil(m_context).ToSecp256k1(sumPubKeys);
     secp256k1_pubkey pubNoncesForE = ConversionUtil(m_context).ToSecp256k1(sumPubNonces);
@@ -64,7 +64,7 @@ bool MuSig::VerifyPartialSignature(
     const PublicKey& publicKey,
     const PublicKey& sumPubKeys,
     const PublicKey& sumPubNonces,
-    const Hash& message) const
+    const mw::Hash& message) const
 {
     secp256k1_ecdsa_signature signature = ConversionUtil(m_context).ToSecp256k1(partialSignature);
 

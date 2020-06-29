@@ -21,7 +21,7 @@ public:
         const SecretKey& secretNonce,
         const PublicKey& sumPubKeys,
         const PublicKey& sumPubNonces,
-        const Hash& message
+        const mw::Hash& message
     );
 
     bool VerifyPartialSignature(
@@ -29,7 +29,7 @@ public:
         const PublicKey& publicKey,
         const PublicKey& sumPubKeys,
         const PublicKey& sumPubNonces,
-        const Hash& message
+        const mw::Hash& message
     ) const;
 
     Signature AggregateSignatures(

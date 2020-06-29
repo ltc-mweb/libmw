@@ -11,7 +11,7 @@ const size_t SCRATCH_SPACE_SIZE = 256 * MAX_WIDTH;
 
 Signature Schnorr::Sign(
     const SecretKey& secretKey,
-    const Hash& message)
+    const mw::Hash& message)
 {
     const SecretKey randomSeed = Random::CSPRNG<32>();
 
@@ -36,7 +36,7 @@ Signature Schnorr::Sign(
 bool Schnorr::Verify(
     const Signature& signature,
     const PublicKey& sumPubKeys,
-    const Hash& message) const
+    const mw::Hash& message) const
 {
     secp256k1_pubkey parsedPubKey = ConversionUtil(m_context).ToSecp256k1(sumPubKeys);
 
@@ -57,7 +57,7 @@ bool Schnorr::Verify(
 bool Schnorr::BatchVerify(
     const std::vector<const Signature*>& signatures,
     const std::vector<const Commitment*>& commitments,
-    const std::vector<const Hash*>& messages) const
+    const std::vector<const mw::Hash*>& messages) const
 {
     assert(signatures.size() == commitments.size());
     assert(commitments.size() == messages.size());
@@ -81,7 +81,7 @@ bool Schnorr::BatchVerify(
     std::transform(
         messages.cbegin(), messages.cend(),
         std::back_inserter(messageData),
-        [](const Hash* pMessage) { return pMessage->data(); }
+        [](const mw::Hash* pMessage) { return pMessage->data(); }
     );
 
     secp256k1_scratch_space* pScratchSpace = secp256k1_scratch_space_create(

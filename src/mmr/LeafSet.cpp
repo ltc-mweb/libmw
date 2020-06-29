@@ -24,7 +24,7 @@ bool LeafSet::Contains(const LeafIndex& idx) const noexcept
     return false;
 }
 
-Hash LeafSet::Root(const uint64_t numLeaves) const
+mw::Hash LeafSet::Root(const uint64_t numLeaves) const
 {
     return {};
 }

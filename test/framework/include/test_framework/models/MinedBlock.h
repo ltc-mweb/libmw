@@ -10,16 +10,16 @@ TEST_NAMESPACE
 class MinedBlock
 {
 public:
-    MinedBlock(const Block::Ptr& pBlock, std::vector<Tx>&& txs)
+    MinedBlock(const mw::Block::Ptr& pBlock, std::vector<Tx>&& txs)
         : m_pBlock(pBlock), m_txs(std::move(txs)) { }
-    MinedBlock(const Block::Ptr& pBlock, const std::vector<Tx>& txs)
+    MinedBlock(const mw::Block::Ptr& pBlock, const std::vector<Tx>& txs)
         : m_pBlock(pBlock), m_txs(txs) { }
 
     const Header::CPtr& GetHeader() const noexcept { return m_pBlock->GetHeader(); }
-    const Block::Ptr& GetBlock() const noexcept { return m_pBlock; }
+    const mw::Block::Ptr& GetBlock() const noexcept { return m_pBlock; }
 
 private:
-    Block::Ptr m_pBlock;
+    mw::Block::Ptr m_pBlock;
     std::vector<Tx> m_txs;
 };
 

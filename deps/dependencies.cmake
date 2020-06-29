@@ -33,7 +33,7 @@ else()
 endif()
 
 add_library(secp256k1-zkp STATIC ${CMAKE_CURRENT_LIST_DIR}/secp256k1-zkp/src/secp256k1.c)
-target_compile_definitions(secp256k1-zkp PRIVATE HAVE_CONFIG_H SECP256K1_BUILD)
+target_compile_definitions(secp256k1-zkp PRIVATE HAVE_CONFIG_H)# SECP256K1_BUILD)
 target_include_directories(secp256k1-zkp PRIVATE ${CMAKE_CURRENT_LIST_DIR}/secp256k1-zkp ${CMAKE_CURRENT_LIST_DIR}/secp256k1-zkp/src)
 
 if(MSVC)

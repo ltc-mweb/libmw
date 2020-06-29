@@ -19,9 +19,9 @@ class Miner
 public:
     MinedBlock MineBlock(const uint64_t height, const std::vector<Tx>& txs)
     {
-        Transaction::CPtr pTransaction = std::make_shared<const Transaction>();
+        mw::Transaction::CPtr pTransaction = std::make_shared<const mw::Transaction>();
         if (!txs.empty()) {
-            std::vector<Transaction::CPtr> transactions;
+            std::vector<mw::Transaction::CPtr> transactions;
             std::transform(
                 txs.cbegin(), txs.cend(),
                 std::back_inserter(transactions),
@@ -52,7 +52,7 @@ public:
         std::cout << "Mined Block: " << pHeader->GetHeight() << " - " << pHeader->Format() << std::endl;
 
         MinedBlock minedBlock(
-            std::make_shared<Block>(pHeader, pTransaction->GetBody()),
+            std::make_shared<mw::Block>(pHeader, pTransaction->GetBody()),
             txs
         );
         m_blocks.push_back(minedBlock);

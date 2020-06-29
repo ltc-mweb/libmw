@@ -19,19 +19,19 @@ public:
     //
     Signature Sign(
         const SecretKey& secretKey,
-        const Hash& message
+        const mw::Hash& message
     );
 
     bool Verify(
         const Signature& signature,
         const PublicKey& sumPubKeys,
-        const Hash& message
+        const mw::Hash& message
     ) const;
 
     bool BatchVerify(
         const std::vector<const Signature*>& signatures,
         const std::vector<const Commitment*>& publicKeys,
-        const std::vector<const Hash*>& messages
+        const std::vector<const mw::Hash*>& messages
     ) const;
 
 private:

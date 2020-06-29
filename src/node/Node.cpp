@@ -18,7 +18,7 @@ NODE_API mw::INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_m
 END_NAMESPACE
 
 void Node::ValidateBlock(
-    const Block::Ptr& pBlock,
+    const mw::Block::Ptr& pBlock,
     const std::vector<PegInCoin>& pegInCoins,
     const std::vector<PegOutCoin>& pegOutCoins) const
 {
@@ -27,7 +27,7 @@ void Node::ValidateBlock(
     BlockValidator().Validate(pBlock, pegInCoins, pegOutCoins);
 }
 
-void Node::ConnectBlock(const Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView)
+void Node::ConnectBlock(const mw::Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView)
 {
     LOG_TRACE_F("Connecting block {}", pBlock);
 
@@ -36,7 +36,7 @@ void Node::ConnectBlock(const Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pVi
     pBatch->Commit();
 }
 
-void Node::DisconnectBlock(const Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView)
+void Node::DisconnectBlock(const mw::Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView)
 {
     LOG_TRACE_F("Disconnecting block {}", pBlock);
 
@@ -48,12 +48,12 @@ ChainStatus::CPtr Node::GetStatus() const noexcept
     return m_pChainState.Read()->GetStatus();
 }
 
-Header::CPtr Node::GetHeader(const Hash& hash) const
+Header::CPtr Node::GetHeader(const mw::Hash& hash) const
 {
     return m_pDatabase.Read()->GetHeaderByHash(hash);
 }
 
-Block::CPtr Node::GetBlock(const Hash& hash) const
+mw::Block::CPtr Node::GetBlock(const mw::Hash& hash) const
 {
     return m_pDatabase.Read()->GetBlockByHash(hash);
 }

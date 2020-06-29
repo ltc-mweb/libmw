@@ -25,7 +25,7 @@ uint64_t MMR::GetNumNodes() const noexcept
 // The process we use is called "bagging the peaks." We first identify the peaks (nodes with no parents).
 // We then "bag" them by hashing them iteratively from the right, using the total size of the MMR as prefix. 
 //
-Hash MMR::Root() const
+mw::Hash MMR::Root() const
 {
     const uint64_t size = GetNumNodes();
     if (size == 0)
@@ -54,10 +54,10 @@ Hash MMR::Root() const
     assert(numLeft == 0);
 
     // Bag 'em
-    Hash hash = ZERO_HASH;
+    mw::Hash hash = ZERO_HASH;
     for (auto iter = peakIndices.crbegin(); iter != peakIndices.crend(); iter++)
     {
-        Hash peakHash = m_pBackend->GetHash(Index::At(*iter));
+        mw::Hash peakHash = m_pBackend->GetHash(Index::At(*iter));
         if (hash == ZERO_HASH)
         {
             hash = peakHash;

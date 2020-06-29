@@ -18,12 +18,12 @@ TEST_CASE("mmr::FileBackend")
     FileRemover remover(tempDir);
 
     {
-        auto pBackend = FileBackend::Open(tempDir, tl::nullopt);
+        auto pBackend = FileBackend::Open(tempDir, boost::none);
         pBackend->AddLeaf(mmr::Leaf::Create(mmr::LeafIndex::At(0), { 0x05, 0x03, 0x07 }));
         pBackend->Commit();
     }
     {
-        auto pBackend = FileBackend::Open(tempDir, tl::nullopt);
+        auto pBackend = FileBackend::Open(tempDir, boost::none);
         REQUIRE(pBackend->GetNumLeaves() == 1);
     }
 }
