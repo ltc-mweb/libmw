@@ -67,6 +67,7 @@ public:
     const std::vector<Input>& GetInputs() const noexcept { return m_body.GetInputs(); }
     const std::vector<Output>& GetOutputs() const noexcept { return m_body.GetOutputs(); }
     const std::vector<Kernel>& GetKernels() const noexcept { return m_body.GetKernels(); }
+    uint64_t GetTotalFee() const noexcept { return m_body.GetTotalFee(); }
 
     //
     // Serialization/Deserialization

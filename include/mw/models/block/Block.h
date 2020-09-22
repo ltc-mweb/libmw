@@ -92,15 +92,6 @@ public:
         return peggedOut;
     }
 
-    uint64_t GetTotalFee() const noexcept
-    {
-        const auto& kernels = GetKernels();
-        return std::accumulate(
-            kernels.cbegin(), kernels.cend(), (uint64_t)0,
-            [](const uint64_t sum, const auto& kernel) noexcept { return sum + kernel.GetFee(); }
-        );
-    }
-
     //
     // Serialization/Deserialization
     //

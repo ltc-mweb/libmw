@@ -40,18 +40,19 @@ public:
     //
     Commitment& operator=(const Commitment& other) = default;
     Commitment& operator=(Commitment&& other) noexcept = default;
-    bool operator<(const Commitment& rhs) const { return m_bytes < rhs.GetBigInt(); }
-    bool operator!=(const Commitment& rhs) const { return m_bytes != rhs.GetBigInt(); }
-    bool operator==(const Commitment& rhs) const { return m_bytes == rhs.GetBigInt(); }
+    bool operator<(const Commitment& rhs) const noexcept { return m_bytes < rhs.GetBigInt(); }
+    bool operator!=(const Commitment& rhs) const noexcept { return m_bytes != rhs.GetBigInt(); }
+    bool operator==(const Commitment& rhs) const noexcept { return m_bytes == rhs.GetBigInt(); }
 
     //
     // Getters
     //
-    const BigInt<SIZE>& GetBigInt() const { return m_bytes; }
-    const std::vector<uint8_t>& vec() const { return m_bytes.vec(); }
-    const uint8_t* data() const { return m_bytes.data(); }
-    uint8_t* data() { return m_bytes.data(); }
-    size_t size() const { return m_bytes.size(); }
+    const BigInt<SIZE>& GetBigInt() const noexcept { return m_bytes; }
+    const std::vector<uint8_t>& vec() const noexcept { return m_bytes.vec(); }
+    const uint8_t* data() const noexcept { return m_bytes.data(); }
+    uint8_t* data() noexcept { return m_bytes.data(); }
+    size_t size() const noexcept { return m_bytes.size(); }
+    bool IsZero() const noexcept { return m_bytes.IsZero(); }
 
     //
     // Serialization/Deserialization

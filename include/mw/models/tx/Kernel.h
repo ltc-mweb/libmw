@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mw/common/Macros.h>
 #include <mw/crypto/Crypto.h>
 #include <mw/crypto/Hasher.h>
 #include <mw/traits/Committed.h>
@@ -21,6 +22,7 @@ class Kernel :
 public:
     using CPtr = std::shared_ptr<const Kernel>;
 
+    Kernel() = default;
     Kernel(
         const uint8_t features,
         const uint64_t fee,

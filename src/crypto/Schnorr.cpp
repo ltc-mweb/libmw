@@ -1,10 +1,12 @@
-#include "Schnorr.h"
+#include <mw/crypto/Schnorr.h>
+#include "Context.h"
 #include "ConversionUtil.h"
 
 #include <mw/common/Logger.h>
-#include <mw/crypto/Random.h>
 #include <mw/exceptions/CryptoException.h>
 #include <mw/util/VectorUtil.h>
+
+Locked<Context> SCHNORR_CONTEXT(std::make_shared<Context>());
 
 const uint64_t MAX_WIDTH = 1 << 20;
 const size_t SCRATCH_SPACE_SIZE = 256 * MAX_WIDTH;
@@ -13,11 +15,9 @@ Signature Schnorr::Sign(
     const SecretKey& secretKey,
     const mw::Hash& message)
 {
-    const SecretKey randomSeed = Random::CSPRNG<32>();
-
     secp256k1_schnorrsig signature;
     const int signedResult = secp256k1_schnorrsig_sign(
-        m_context.Write()->Randomized(),
+        SCHNORR_CONTEXT.Write()->Randomized(),
         &signature,
         nullptr,
         message.data(),
@@ -25,23 +25,22 @@ Signature Schnorr::Sign(
         nullptr,
         nullptr
     );
-    if (signedResult != 1)
-    {
+    if (signedResult != 1) {
         ThrowCrypto("Failed to sign message.");
     }
 
-    return ConversionUtil(m_context).ToSignature(signature);
+    return ConversionUtil(SCHNORR_CONTEXT).ToSignature(signature);
 }
 
 bool Schnorr::Verify(
     const Signature& signature,
     const PublicKey& sumPubKeys,
-    const mw::Hash& message) const
+    const mw::Hash& message)
 {
-    secp256k1_pubkey parsedPubKey = ConversionUtil(m_context).ToSecp256k1(sumPubKeys);
+    secp256k1_pubkey parsedPubKey = ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(sumPubKeys);
 
     const int verifyResult = secp256k1_aggsig_verify_single(
-        m_context.Read()->Get(),
+        SCHNORR_CONTEXT.Read()->Get(),
         signature.data(),
         message.data(),
         nullptr,
@@ -54,10 +53,26 @@ bool Schnorr::Verify(
     return verifyResult == 1;
 }
 
+bool Schnorr::BatchVerify(const std::vector<std::tuple<Signature, Commitment, mw::Hash>>& signatures)
+{
+    std::vector<const Signature*> signature_ptrs;
+    std::vector<const Commitment*> commitment_ptrs;
+    std::vector<const mw::Hash*> message_ptrs;
+
+    for (const auto& signature : signatures)
+    {
+        signature_ptrs.push_back(&std::get<0>(signature));
+        commitment_ptrs.push_back(&std::get<1>(signature));
+        message_ptrs.push_back(&std::get<2>(signature));
+    }
+
+    return BatchVerify(signature_ptrs, commitment_ptrs, message_ptrs);
+}
+
 bool Schnorr::BatchVerify(
     const std::vector<const Signature*>& signatures,
     const std::vector<const Commitment*>& commitments,
-    const std::vector<const mw::Hash*>& messages) const
+    const std::vector<const mw::Hash*>& messages)
 {
     assert(signatures.size() == commitments.size());
     assert(commitments.size() == messages.size());
@@ -66,15 +81,15 @@ bool Schnorr::BatchVerify(
     std::transform(
         commitments.cbegin(), commitments.cend(),
         std::back_inserter(parsedPubKeys),
-        [this](const Commitment* commitment) -> secp256k1_pubkey {
-            PublicKey publicKey = ConversionUtil(m_context).ToPublicKey(*commitment);
-            return ConversionUtil(m_context).ToSecp256k1(publicKey);
+        [](const Commitment* commitment) -> secp256k1_pubkey {
+            PublicKey publicKey = ConversionUtil(SCHNORR_CONTEXT).ToPublicKey(*commitment);
+            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(publicKey);
         }
     );
 
     std::vector<secp256k1_pubkey*> pubKeyPtrs = VectorUtil::ToPointerVec(parsedPubKeys);
 
-    std::vector<secp256k1_schnorrsig> parsedSignatures = ConversionUtil(m_context).ToSecp256k1(signatures);
+    std::vector<secp256k1_schnorrsig> parsedSignatures = ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signatures);
     std::vector<secp256k1_schnorrsig*> signaturePtrs = VectorUtil::ToPointerVec(parsedSignatures);
 
     std::vector<const unsigned char*> messageData;
@@ -85,11 +100,11 @@ bool Schnorr::BatchVerify(
     );
 
     secp256k1_scratch_space* pScratchSpace = secp256k1_scratch_space_create(
-        m_context.Read()->Get(),
+        SCHNORR_CONTEXT.Read()->Get(),
         SCRATCH_SPACE_SIZE
     );
     const int verifyResult = secp256k1_schnorrsig_verify_batch(
-        m_context.Read()->Get(),
+        SCHNORR_CONTEXT.Read()->Get(),
         pScratchSpace,
         signaturePtrs.data(),
         messageData.data(),

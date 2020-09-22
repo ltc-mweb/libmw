@@ -21,6 +21,18 @@ public:
     static Index At(const uint64_t position) noexcept;
 
     bool operator==(const Index& rhs) const noexcept { return m_position == rhs.m_position && m_height == rhs.m_height; }
+    bool operator!=(const Index& rhs) const noexcept { return m_position != rhs.m_position || m_height != rhs.m_height; }
+    bool operator<(const Index& rhs) const noexcept { return m_position < rhs.m_position; }
+    bool operator<=(const Index& rhs) const noexcept { return m_position <= rhs.m_position; }
+    bool operator>(const Index& rhs) const noexcept { return m_position > rhs.m_position; }
+    bool operator>=(const Index& rhs) const noexcept { return m_position >= rhs.m_position; }
+
+    bool operator==(const uint64_t position) const noexcept { return m_position == position; }
+    bool operator!=(const uint64_t position) const noexcept { return m_position != position; }
+    bool operator<(const uint64_t position) const noexcept { return m_position < position; }
+    bool operator<=(const uint64_t position) const noexcept { return m_position <= position; }
+    bool operator>(const uint64_t position) const noexcept { return m_position > position; }
+    bool operator>=(const uint64_t position) const noexcept { return m_position >= position; }
 
     bool IsLeaf() const noexcept { return m_height == 0; }
     uint64_t GetPosition() const noexcept { return m_position; }

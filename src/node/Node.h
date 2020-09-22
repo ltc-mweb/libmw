@@ -1,14 +1,15 @@
 #pragma once
 
 #include <mw/node/INode.h>
-#include <mw/chain/ChainState.h>
 #include <mw/common/Lock.h>
 
 class Node : public mw::INode
 {
 public:
-    Node(const NodeConfig::Ptr& pConfig, const ChainState::Ptr& pChainState, const Locked<IBlockDB>& database)
-        : m_pConfig(pConfig), m_pChainState(pChainState), m_pDatabase(database) { }
+    Node(const NodeConfig::Ptr& pConfig, const mw::CoinsViewDB::Ptr& pDBView)
+        : m_pConfig(pConfig), m_pDBView(pDBView) { }
+
+    mw::CoinsViewDB::Ptr GetDBView() final { return m_pDBView; }
 
     void ValidateBlock(
         const mw::Block::Ptr& pBlock,
@@ -20,11 +21,17 @@ public:
     void DisconnectBlock(const mw::Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView) final;
 
     ChainStatus::CPtr GetStatus() const noexcept final;
-    mw::Header::CPtr GetHeader(const mw::Hash& hash) const final;
-    mw::Block::CPtr GetBlock(const mw::Hash& hash) const final;
+
+    mw::ICoinsView::Ptr ApplyState(
+        const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper,
+        const mw::IBlockStore& blockStore,
+        const mw::Hash& firstMWHeaderHash,
+        const mw::Hash& stateHeaderHash,
+        const std::vector<UTXO::CPtr>& utxos,
+        const std::vector<Kernel>& kernels
+    ) final;
 
 private:
     NodeConfig ::Ptr m_pConfig;
-    Locked<ChainState> m_pChainState;
-    Locked<IBlockDB> m_pDatabase;
+    mw::CoinsViewDB::Ptr m_pDBView;
 };

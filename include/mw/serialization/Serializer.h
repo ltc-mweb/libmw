@@ -7,6 +7,7 @@
 #include <mw/util/EndianUtil.h>
 #include <mw/traits/Serializable.h>
 #include <support/allocators/secure.h>
+#include <mw/serialization/Deserializer.h>
 
 #include <cstdint>
 #include <vector>
@@ -91,6 +92,29 @@ public:
     Serializer& Append(const std::shared_ptr<const Traits::ISerializable>& pSerializable)
     {
         return pSerializable->Serialize(*this);
+    }
+
+    template <class T, typename SFINAE = typename std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
+    Serializer& AppendVec(const std::vector<T>& vec)
+    {
+        Append<uint64_t>(vec.size());
+        for (const T& item : vec)
+        {
+            item.Serialize(*this);
+        }
+
+        return *this;
+    }
+
+    template <class T, typename SFINAE = typename std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
+    Serializer& AppendVec(const std::vector<std::shared_ptr<const T>>& vec)
+    {
+        Append<uint64_t>(vec.size());
+        for (const std::shared_ptr<const T>& pItem : vec) {
+            pItem->Serialize(*this);
+        }
+
+        return *this;
     }
 
     const std::vector<uint8_t>& vec() const { return m_serialized; }

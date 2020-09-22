@@ -5,6 +5,7 @@ TEST_NAMESPACE
 
 Node::Ptr Node::Create()
 {
+    // TODO: DBWrapper
     auto pNode = mw::InitializeNode(test::TestUtil::GetTempDir(), { });
     return std::shared_ptr<Node>(new Node(pNode));
 }
@@ -32,14 +33,15 @@ ChainStatus::CPtr Node::GetStatus() const noexcept
     return m_pNode->GetStatus();
 }
 
-mw::Header::CPtr Node::GetHeader(const mw::Hash& hash) const
+mw::ICoinsView::Ptr Node::ApplyState(
+    const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper,
+    const mw::IBlockStore& blockStore,
+    const mw::Hash& firstMWHeaderHash,
+    const mw::Hash& stateHeaderHash,
+	const std::vector<UTXO::CPtr>& utxos,
+	const std::vector<Kernel>& kernels)
 {
-    return m_pNode->GetHeader(hash);
-}
-
-mw::Block::CPtr Node::GetBlock(const mw::Hash& hash) const
-{
-    return m_pNode->GetBlock(hash);
+    return m_pNode->ApplyState(pDBWrapper, blockStore, firstMWHeaderHash, stateHeaderHash, utxos, kernels);
 }
 
 END_NAMESPACE

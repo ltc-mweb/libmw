@@ -44,6 +44,7 @@ public:
             outputMMR.Root(),
             rangeProofMMR.Root(),
             kernelMMR.Root(),
+			mw::Hash(), // TODO: Add LeafSet root
             std::move(offset),
             outputMMR.GetNumNodes(),
             kernelMMR.GetNumNodes()

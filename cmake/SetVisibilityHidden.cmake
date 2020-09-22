@@ -1,0 +1,6 @@
+set(CMAKE_CXX_VISIBILITY_PRESET hidden) 
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden -Wl,--exclude-libs,ALL")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -Wl,--exclude-libs,ALL")
+endif()

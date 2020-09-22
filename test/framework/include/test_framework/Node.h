@@ -12,6 +12,8 @@ public:
 
     static Node::Ptr Create();
 
+    mw::ICoinsView::Ptr GetDBView() final { return m_pNode->GetDBView(); }
+
     void ValidateBlock(
         const mw::Block::Ptr& pBlock,
         const std::vector<PegInCoin>& pegInCoins,
@@ -27,8 +29,15 @@ public:
     void DisconnectBlock(const mw::Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView) final;
 
     ChainStatus::CPtr GetStatus() const noexcept final;
-    mw::Header::CPtr GetHeader(const mw::Hash& hash) const final;
-    mw::Block::CPtr GetBlock(const mw::Hash& hash) const final;
+
+    mw::ICoinsView::Ptr ApplyState(
+        const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper,
+        const mw::IBlockStore& blockStore,
+        const mw::Hash& firstMWHeaderHash,
+        const mw::Hash& stateHeaderHash,
+		const std::vector<UTXO::CPtr>& utxos,
+		const std::vector<Kernel>& kernels
+    ) final;
 
 private:
     Node(const mw::INode::Ptr& pNode)

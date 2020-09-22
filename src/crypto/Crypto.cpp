@@ -17,7 +17,7 @@
 #include "MuSig.h"
 #include "Pedersen.h"
 #include "PublicKeys.h"
-#include "Schnorr.h"
+#include <mw/crypto/Schnorr.h>
 #include "ConversionUtil.h"
 
 #ifdef _WIN32
@@ -117,15 +117,13 @@ Commitment Crypto::AddCommitments(
     const std::vector<Commitment>& positive,
     const std::vector<Commitment>& negative)
 {
-    const Commitment zeroCommitment(BigInt<33>::ValueOf(0));
-
     std::vector<Commitment> sanitizedPositive;
     std::copy_if(
         positive.cbegin(),
         positive.cend(),
         std::back_inserter(sanitizedPositive),
-        [&zeroCommitment](const auto& positiveCommitment) {
-            return positiveCommitment != zeroCommitment;
+        [](const auto& positiveCommitment) {
+            return !positiveCommitment.IsZero();
         }
     );
 
@@ -134,8 +132,8 @@ Commitment Crypto::AddCommitments(
         negative.cbegin(),
         negative.cend(),
         std::back_inserter(sanitizedNegative),
-        [&zeroCommitment](const auto& negativeCommitment) {
-            return negativeCommitment != zeroCommitment;
+        [](const auto& negativeCommitment) {
+            return !negativeCommitment.IsZero();
         }
     );
 
@@ -226,7 +224,7 @@ std::unique_ptr<RewoundProof> Crypto::RewindRangeProof(
 }
 
 bool Crypto::VerifyRangeProofs(
-    const std::vector<std::pair<Commitment, RangeProof::CPtr>>& rangeProofs)
+    const std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>>& rangeProofs)
 {
     return Bulletproofs(SECP256K1_CONTEXT).VerifyBulletproofs(rangeProofs);
 }
@@ -296,7 +294,7 @@ Signature Crypto::BuildSignature(
     const SecretKey& secretKey,
     const mw::Hash& messageHash)
 {
-    return Schnorr(SECP256K1_CONTEXT).Sign(
+    return Schnorr::Sign(
         secretKey,
         messageHash
     );    
@@ -346,22 +344,10 @@ bool Crypto::VerifyAggregateSignature(
     const PublicKey sumPubKeys,
     const mw::Hash& message)
 {
-    return Schnorr(SECP256K1_CONTEXT).Verify(
+    return Schnorr::Verify(
         aggregateSignature,
         sumPubKeys,
         message
-    );
-}
-
-bool Crypto::VerifyKernelSignatures(
-    const std::vector<const Signature*>& signatures,
-    const std::vector<const Commitment*>& publicKeys,
-    const std::vector<const mw::Hash*>& messages)
-{
-    return Schnorr(SECP256K1_CONTEXT).BatchVerify(
-        signatures,
-        publicKeys,
-        messages
     );
 }
 

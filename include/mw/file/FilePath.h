@@ -10,10 +10,10 @@
 
 #if defined(__cplusplus) && defined(__has_include) && __has_include(<filesystem>)
 #include <filesystem>
-namespace fs = std::filesystem;
+namespace filesystem = std::filesystem;
 #else
 #include <ghc/filesystem.hpp>
-namespace fs = ghc::filesystem;
+namespace filesystem = ghc::filesystem;
 #endif
 
 #include <mw/exceptions/FileException.h>
@@ -30,7 +30,7 @@ public:
     //
     FilePath(const FilePath& other) = default;
     FilePath(FilePath&& other) = default;
-    FilePath(const fs::path& path) : m_path(path) {}
+    FilePath(const filesystem::path& path) : m_path(path) {}
     FilePath(const char* path) : m_path(path) {}
     FilePath(const std::string& u8str) : m_path(u8str) {}
     FilePath(const std::u16string& u16str) : m_path(u16str) {}
@@ -51,13 +51,13 @@ public:
     FilePath& operator=(FilePath&& other) noexcept = default;
     bool operator==(const FilePath& rhs) const noexcept { return m_path == rhs.m_path; }
 
-    FilePath GetChild(const fs::path& filename) const { return FilePath(m_path / filename); }
-    FilePath GetChild(const char* filename) const { return FilePath(m_path / fs::path(filename)); }
-    FilePath GetChild(const std::string& filename) const { return FilePath(m_path / fs::path(filename)); }
-    FilePath GetChild(const std::u16string& filename) const { return FilePath(m_path / fs::path(filename)); }
+    FilePath GetChild(const filesystem::path& filename) const { return FilePath(m_path / filename); }
+    FilePath GetChild(const char* filename) const { return FilePath(m_path / filesystem::path(filename)); }
+    FilePath GetChild(const std::string& filename) const { return FilePath(m_path / filesystem::path(filename)); }
+    FilePath GetChild(const std::u16string& filename) const { return FilePath(m_path / filesystem::path(filename)); }
 #ifdef MW_ENABLE_WSTRING
-    FilePath GetChild(const wchar_t* filename) const { return FilePath(m_path / fs::path(filename)); }
-    FilePath GetChild(const std::wstring& filename) const { return FilePath(m_path / fs::path(filename.c_str())); }
+    FilePath GetChild(const wchar_t* filename) const { return FilePath(m_path / filesystem::path(filename)); }
+    FilePath GetChild(const std::wstring& filename) const { return FilePath(m_path / filesystem::path(filename.c_str())); }
 #endif
 
     FilePath GetParent() const
@@ -73,7 +73,7 @@ public:
     bool Exists() const
     {
         std::error_code ec;
-        const bool exists = fs::exists(m_path, ec);
+        const bool exists = filesystem::exists(m_path, ec);
         if (ec)
         {
             ThrowFile_F("Error ({}) while checking if {} exists", ec.message(), *this);
@@ -85,13 +85,13 @@ public:
     bool Exists_Safe() const noexcept
     {
         std::error_code ec;
-        return fs::exists(m_path, ec);
+        return filesystem::exists(m_path, ec);
     }
 
     bool IsDirectory() const
     {
         std::error_code ec;
-        const bool isDirectory = fs::is_directory(m_path, ec);
+        const bool isDirectory = filesystem::is_directory(m_path, ec);
         if (ec)
         {
             ThrowFile_F("Error ({}) while checking if {} is a directory", ec.message(), *this);
@@ -103,13 +103,13 @@ public:
     bool IsDirectory_Safe() const noexcept
     {
         std::error_code ec;
-        return fs::is_directory(m_path, ec);
+        return filesystem::is_directory(m_path, ec);
     }
 
     void CreateDirIfMissing() const
     {
         std::error_code ec;
-        fs::create_directories(m_path, ec);
+        filesystem::create_directories(m_path, ec);
         if (ec && (!Exists_Safe() || !IsDirectory_Safe()))
         {
             ThrowFile_F("Error ({}) while trying to create directory {}", ec.message(), *this);
@@ -119,14 +119,14 @@ public:
     void Remove() const
     {
         std::error_code ec;
-        fs::remove_all(m_path, ec);
+        filesystem::remove_all(m_path, ec);
         if (ec)
         {
             ThrowFile_F("Error ({}) while trying to remove {}", ec.message(), *this);
         }
     }
 
-    const fs::path& ToPath() const noexcept { return m_path; }
+    const filesystem::path& ToPath() const noexcept { return m_path; }
 
 #ifdef MW_ENABLE_WSTRING
     std::wstring ToString() const { return m_path.wstring(); }
@@ -142,5 +142,5 @@ public:
     std::string Format() const final { return m_path.u8string(); }
 
 private:
-    fs::path m_path;
+    filesystem::path m_path;
 };

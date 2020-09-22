@@ -17,6 +17,7 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include <array>
 
 #pragma warning(disable: 4505)
 
@@ -30,6 +31,7 @@ public:
     BigInt() noexcept : m_bytes(NUM_BYTES) { }
     BigInt(const std::vector<uint8_t, ALLOC>& bytes) : m_bytes(bytes) { assert(bytes.size() == NUM_BYTES); }
     BigInt(std::vector<uint8_t, ALLOC>&& bytes) : m_bytes(std::move(bytes)) { assert(bytes.size() == NUM_BYTES); }
+    BigInt(const std::array<uint8_t, NUM_BYTES>& bytes) : m_bytes(bytes.cbegin(), bytes.cend()) { }
     explicit BigInt(const uint8_t* arr) : m_bytes(arr, arr + NUM_BYTES) { }
     BigInt(const BigInt& bigInteger) = default;
     BigInt(BigInt&& bigInteger) noexcept = default;
@@ -49,8 +51,19 @@ public:
     const std::vector<uint8_t, ALLOC>& vec() const { return m_bytes; }
     uint8_t* data() { return m_bytes.data(); }
     const uint8_t* data() const { return m_bytes.data(); }
+    bool IsZero() const noexcept
+    {
+        assert(m_bytes.size() == NUM_BYTES);
+        for (uint8_t byte : m_bytes)
+        {
+            if (byte != 0) {
+                return false;
+            }
+        }
 
-    // TODO: Take in uint64_t
+        return true;
+    }
+
     static BigInt<NUM_BYTES, ALLOC> ValueOf(const uint8_t value)
     {
         std::vector<uint8_t, ALLOC> bytes(NUM_BYTES);
@@ -75,6 +88,13 @@ public:
         }
 
         return BigInt<NUM_BYTES, ALLOC>(std::move(bytes));
+    }
+
+    std::array<uint8_t, NUM_BYTES> ToArray() const noexcept
+    {
+        std::array<uint8_t, NUM_BYTES> arr;
+        std::copy_n(m_bytes.begin(), NUM_BYTES, arr.begin());
+        return arr;
     }
 
     std::string ToHex() const noexcept { return HexUtil::ToHex(m_bytes); }

@@ -1,8 +1,8 @@
 #set(VCPKG_CRT_LINKAGE dynamic)
 #set(VCPKG_LIBRARY_LINKAGE static)
 
-add_definitions(-DSPDLOG_WCHAR_FILENAMES)
 if (WIN32)
+    #add_definitions(-DSPDLOG_WCHAR_FILENAMES)
     #add_definitions(-DSPDLOG_WCHAR_TO_UTF8_SUPPORT)
 endif()
 find_package(spdlog CONFIG REQUIRED)
@@ -14,14 +14,13 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(mio CONFIG REQUIRED)
 #target_link_libraries(main PRIVATE mio::mio mio::mio_base mio::mio_full_winapi)
 
-# leveldb # TODO: Add Snappy dependency
-find_package(leveldb CONFIG REQUIRED)
-#target_link_libraries(main PRIVATE leveldb::leveldb)
+if (MW_TESTS)
+    # leveldb # TODO: Add Snappy dependency
+    find_package(leveldb CONFIG REQUIRED)
+    #target_link_libraries(main PRIVATE leveldb::leveldb)
+endif()
 
-find_package(civetweb CONFIG REQUIRED)
-#target_link_libraries(main PRIVATE civetweb::civetweb civetweb::civetweb-cpp)
-
-add_definitions(-DUNICODE)
+#add_definitions(-DUNICODE)
 find_package(fmt CONFIG REQUIRED)
 #target_link_libraries(main PRIVATE fmt::fmt fmt::fmt-header-only)
 
@@ -32,7 +31,9 @@ find_package(asio CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
 #target_link_libraries(main PRIVATE Catch2::Catch2)
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem thread)
+
+find_package(OpenSSL REQUIRED)
 
 if (MSVC)
     # VCPKG directories on Windows

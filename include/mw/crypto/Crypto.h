@@ -128,16 +128,7 @@ public:
     //
     //
     static bool VerifyRangeProofs(
-        const std::vector<std::pair<Commitment, RangeProof::CPtr>>& rangeProofs
-    );
-
-    //
-    //
-    //
-    static bool VerifyKernelSignatures(
-        const std::vector<const Signature*>& signatures,
-        const std::vector<const Commitment*>& publicKeys,
-        const std::vector<const mw::Hash*>& messages
+        const std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>>& rangeProofs
     );
 
     //

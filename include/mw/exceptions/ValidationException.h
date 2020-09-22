@@ -9,11 +9,13 @@ enum class EConsensusError
 {
     CUT_THROUGH,
     BLOCK_WEIGHT,
-    KERNEL_SUMS,
+    BLOCK_SUMS,
     KERNEL_SIG,
     BULLETPROOF,
     PEGIN_MISMATCH,
-    PEGOUT_MISMATCH
+    PEGOUT_MISMATCH,
+    MMR_MISMATCH,
+	UTXO_MISSING
 };
 
 class ValidationException : public LTCException
@@ -39,8 +41,8 @@ private:
                 return "CUT_THROUGH";
             case EConsensusError::BLOCK_WEIGHT:
                 return "BLOCK_WEIGHT";
-            case EConsensusError::KERNEL_SUMS:
-                return "KERNEL_SUMS";
+            case EConsensusError::BLOCK_SUMS:
+                return "BLOCK_SUMS";
             case EConsensusError::KERNEL_SIG:
                 return "KERNEL_SIG";
             case EConsensusError::BULLETPROOF:
@@ -49,6 +51,10 @@ private:
                 return "PEGIN_MISMATCH";
             case EConsensusError::PEGOUT_MISMATCH:
                 return "PEGOUT_MISMATCH";
+			case EConsensusError::MMR_MISMATCH:
+				return "MMR_MISMATCH";
+			case EConsensusError::UTXO_MISSING:
+				return "UTXO_MISSING";
         }
 
         return "UNKNOWN";

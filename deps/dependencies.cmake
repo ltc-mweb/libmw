@@ -1,7 +1,3 @@
-if(NOT BUILD_DIR)
-    set(BUILD_DIR build)
-endif()
-
 if(MSVC)
     set(CMAKE_CXX_FLAGS_ORIG "${CMAKE_CXX_FLAGS}")
     if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
@@ -20,7 +16,7 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/caches/include)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/ghc/include)
 
 # crypto
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/crypto ${BUILD_DIR}/crypto)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/crypto)
 
 # secp256k1-zkp
 include_directories(${CMAKE_CURRENT_LIST_DIR}/secp256k1-zkp/include)

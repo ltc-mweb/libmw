@@ -33,7 +33,7 @@ public:
         return TxOutput(
             blindingFactor,
             amount,
-            Output{ features, std::move(commitment), pRangeProof }
+            Output{ features, std::move(commitment), std::vector<uint8_t>{}, pRangeProof }
         );
     }
 

@@ -31,18 +31,19 @@ public:
     //
     BlindingFactor& operator=(const BlindingFactor& other) = default;
     BlindingFactor& operator=(BlindingFactor&& other) noexcept = default;
-    bool operator<(const BlindingFactor& rhs) const { return m_value < rhs.GetBigInt(); }
-    bool operator!=(const BlindingFactor& rhs) const { return m_value != rhs.GetBigInt(); }
-    bool operator==(const BlindingFactor& rhs) const { return m_value == rhs.GetBigInt(); }
+    bool operator<(const BlindingFactor& rhs) const noexcept { return m_value < rhs.GetBigInt(); }
+    bool operator!=(const BlindingFactor& rhs) const noexcept { return m_value != rhs.GetBigInt(); }
+    bool operator==(const BlindingFactor& rhs) const noexcept { return m_value == rhs.GetBigInt(); }
 
     //
     // Getters
     //
-    const BigInt<32>& GetBigInt() const { return m_value; }
-    const std::vector<uint8_t>& vec() const { return m_value.vec(); }
-    const uint8_t* data() const { return m_value.data(); }
-    uint8_t* data() { return m_value.data(); }
-    size_t size() const { return m_value.size(); }
+    const BigInt<32>& GetBigInt() const noexcept { return m_value; }
+    const std::vector<uint8_t>& vec() const noexcept { return m_value.vec(); }
+    const uint8_t* data() const noexcept { return m_value.data(); }
+    uint8_t* data() noexcept { return m_value.data(); }
+    size_t size() const noexcept { return m_value.size(); }
+    bool IsZero() const noexcept { return m_value.IsZero(); }
 
     //
     // Serialization/Deserialization

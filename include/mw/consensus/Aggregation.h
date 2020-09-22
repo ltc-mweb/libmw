@@ -18,11 +18,11 @@ public:
     //
     // Aggregates multiple transactions into 1.
     //
-    // Preconditions: transactions must not be empty
-    //
     static mw::Transaction::CPtr Aggregate(const std::vector<mw::Transaction::CPtr>& transactions)
     {
-        assert(!transactions.empty());
+        if (transactions.empty()) {
+            return std::make_shared<mw::Transaction>();
+        }
 
         if (transactions.size() == 1) {
             return transactions.front();

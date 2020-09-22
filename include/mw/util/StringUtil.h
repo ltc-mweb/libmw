@@ -17,6 +17,8 @@
 #include <codecvt>
 #include <algorithm>
 
+#include <util/strencodings.h>
+
 #pragma warning(disable : 4840)
 
 class StringUtil
@@ -110,12 +112,12 @@ public:
 
         // trim from start
         copy.erase(copy.begin(), std::find_if(copy.begin(), copy.end(), [](int ch) {
-            return !std::isspace(ch);
+            return !IsSpace(ch);
         }));
 
         // trim from end (in place)
         copy.erase(std::find_if(copy.rbegin(), copy.rend(), [](int ch) {
-            return !std::isspace(ch) && ch != '\r' && ch != '\n';
+            return !IsSpace(ch) && ch != '\r' && ch != '\n';
         }).base(), copy.end());
 
         return copy;

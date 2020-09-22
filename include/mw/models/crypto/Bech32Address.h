@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mw/config/ChainParams.h>
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Jsonable.h>
 #include <boost/container_hash/hash.hpp>
@@ -11,14 +12,15 @@ class Bech32Address : public Traits::ISerializable, public Traits::IJsonable
 {
 public:
     Bech32Address() = default;
-    Bech32Address(const std::vector<uint8_t>& address)
-        : m_address(address) { }
-    Bech32Address(std::vector<uint8_t>&& address)
-        : m_address(std::move(address)) { }
+    Bech32Address(const std::string& hrp, const std::vector<uint8_t>& address)
+        : m_hrp(hrp), m_address(address) { }
+    Bech32Address(const std::string& hrp, std::vector<uint8_t>&& address)
+        : m_hrp(hrp), m_address(std::move(address)) { }
 
     static Bech32Address FromString(const std::string& address)
     {
-        return Bech32Address(bech32::Decode(address).second);
+        auto decoded = bech32::Decode(address);
+        return Bech32Address(decoded.first, decoded.second);
     }
 
     //
@@ -41,16 +43,16 @@ public:
 
     static Bech32Address Deserialize(Deserializer& deserializer)
     {
+        std::string hrp = mw::ChainParams::GetHRP();
         const uint8_t numBytes = deserializer.Read<uint8_t>();
         std::vector<uint8_t> address = deserializer.ReadVector(numBytes);
 
-        return Bech32Address(std::move(address));
+        return Bech32Address(hrp, std::move(address));
     }
 
     json ToJSON() const noexcept final
     {
-        std::string hrp = "bc"; // TODO: Figure out where to load hrp from.
-        std::string address = bech32::Encode(hrp, m_address);
+        std::string address = bech32::Encode(m_hrp, m_address);
         return json(address);
     }
 
@@ -63,10 +65,11 @@ public:
             ThrowDeserialization_F("Failed to Bech32 decode address: {}", addressStr);
         }
 
-        return Bech32Address(decoded.second);
+        return Bech32Address(decoded.first, decoded.second);
     }
 
 private:
+    std::string m_hrp;
     std::vector<uint8_t> m_address;
 };
 

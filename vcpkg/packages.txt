@@ -1,0 +1,6 @@
+nlohmann-json
+mio
+leveldb
+fmt
+asio
+Catch2

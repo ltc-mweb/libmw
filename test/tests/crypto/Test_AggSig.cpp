@@ -1,6 +1,7 @@
 #include <catch.hpp>
 
 #include <mw/crypto/Crypto.h>
+#include <mw/crypto/Schnorr.h>
 #include <mw/crypto/Random.h>
 
 TEST_CASE("AggSig Interaction")
@@ -85,6 +86,6 @@ TEST_CASE("Coinbase Signature")
 
     Signature signature = Crypto::BuildSignature(secretKey, message);
 
-    const bool valid = Crypto::VerifyKernelSignatures({ &signature }, { &commitment }, { &message });
+    const bool valid = Schnorr::BatchVerify({ std::make_tuple(signature, commitment, message) });
     REQUIRE(valid == true);
 }

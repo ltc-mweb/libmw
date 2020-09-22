@@ -11,7 +11,7 @@
 #include <mw/models/tx/Output.h>
 #include <mw/models/tx/Kernel.h>
 #include <mw/consensus/CutThrough.h>
-#include <mw/consensus/KernelSignatureValidator.h>
+#include <mw/crypto/Schnorr.h>
 
 #include <memory>
 #include <vector>
@@ -54,6 +54,14 @@ public:
     const std::vector<Input>& GetInputs() const noexcept { return m_inputs; }
     const std::vector<Output>& GetOutputs() const noexcept { return m_outputs; }
     const std::vector<Kernel>& GetKernels() const noexcept { return m_kernels; }
+
+    uint64_t GetTotalFee() const noexcept
+    {
+        return std::accumulate(
+            m_kernels.cbegin(), m_kernels.cend(), (uint64_t)0,
+            [](const uint64_t sum, const auto& kernel) noexcept { return sum + kernel.GetFee(); }
+        );
+    }
 
     //
     // Serialization/Deserialization
@@ -138,7 +146,14 @@ public:
     void Validate() const
     {
         CutThrough::VerifyCutThrough(m_inputs, m_outputs);
-        KernelSignatureValidator::VerifyKernelSignatures(m_kernels);
+
+        std::vector<std::tuple<Signature, Commitment, mw::Hash>> signatures;
+        std::transform(
+            m_kernels.cbegin(), m_kernels.cend(),
+            std::back_inserter(signatures),
+            [](const Kernel& kernel) { return std::make_tuple(kernel.GetSignature(), kernel.GetCommitment(), kernel.GetSignatureMessage()); }
+        );
+        Schnorr::BatchVerify(signatures);
 
         // TODO: Validate Weight
         // TODO: Verify Sorted
@@ -146,14 +161,13 @@ public:
         //
         // Verify RangeProofs
         //
-        std::vector<std::pair<Commitment, RangeProof::CPtr>> rangeProofs;
+        std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>> rangeProofs;
         std::transform(
             m_outputs.cbegin(), m_outputs.cend(),
             std::back_inserter(rangeProofs),
-            [](const Output& output) { return std::make_pair(output.GetCommitment(), output.GetRangeProof()); }
+            [](const Output& output) { return std::make_tuple(output.GetCommitment(), output.GetRangeProof(), output.GetExtraData()); }
         );
-        if (!Crypto::VerifyRangeProofs(rangeProofs))
-        {
+        if (!Crypto::VerifyRangeProofs(rangeProofs)) {
             ThrowValidation(EConsensusError::BULLETPROOF);
         }
     }

@@ -6,6 +6,7 @@
 
 #include <mw/util/EndianUtil.h>
 #include <mw/exceptions/DeserializationException.h>
+#include <mw/traits/Serializable.h>
 
 #include <vector>
 #include <string>
@@ -52,6 +53,18 @@ public:
         m_index += stringLength;
 
         return std::string((char*)temp.data(), stringLength);
+    }
+
+    template <class T, typename SFINAE = typename std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
+    std::vector<T> ReadVec()
+    {
+        const uint64_t num_entries = Read<uint64_t>();
+        std::vector<T> vec(num_entries);
+        for (uint64_t i = 0; i < num_entries; i++) {
+            vec[i] = Read<T>();
+        }
+
+        return vec;
     }
 
     std::vector<uint8_t> ReadVector(const uint64_t numBytes)

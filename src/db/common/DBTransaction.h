@@ -7,8 +7,7 @@
 #include <mw/exceptions/DatabaseException.h>
 #include <mw/serialization/Serializer.h>
 #include <mw/traits/Serializable.h>
-#include <leveldb/db.h>
-#include <leveldb/write_batch.h>
+#include <ext/interfaces.h>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -17,9 +16,10 @@
 class DBTransaction
 {
 public:
-    using Ptr = std::shared_ptr<DBTransaction>;
+    using UPtr = std::unique_ptr<DBTransaction>;
 
-    DBTransaction(leveldb::DB* pDB) : m_pDB(pDB) { }
+    DBTransaction(mw::db::IDBWrapper* pDB, mw::db::IDBBatch* pBatch)
+        : m_pDB(pDB), m_pBatch(pBatch) { }
 
     template<typename T,
         typename SFINAE = typename std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
@@ -32,7 +32,7 @@ public:
             Serializer serializer;
             serializer.Append(entry.item);
 
-            m_batch.Put(leveldb::Slice(key), leveldb::Slice((const char*)serializer.data(), serializer.size()));
+            m_pBatch->Write(key, serializer.vec());
             m_added.insert({ key, entry.item });
         }
 
@@ -53,11 +53,11 @@ public:
             }
         }
 
-        std::string itemStr;
-        leveldb::Status status = m_pDB->Get(leveldb::ReadOptions(), table.BuildKey(key), &itemStr);
-        if (status.ok())
+        std::vector<uint8_t> entry;
+        const bool status = m_pDB->Read(table.BuildKey(key), entry);
+        if (status)
         {
-            Deserializer deserializer(std::vector<uint8_t>(itemStr.cbegin(), itemStr.cend()));
+            Deserializer deserializer(std::move(entry));
             return std::make_unique<DBEntry<T>>(key, T::Deserialize(deserializer));
         }
 
@@ -66,22 +66,12 @@ public:
 
     void Delete(const DBTable& table, const std::string& key)
     {
-        m_batch.Delete(leveldb::Slice(table.BuildKey(key)));
+        m_pBatch->Erase(table.BuildKey(key));
         m_added.erase(table.BuildKey(key));
     }
 
-    void Commit()
-    {
-        leveldb::Status status = m_pDB->Write(leveldb::WriteOptions(), &m_batch);
-        if (!status.ok())
-        {
-            ThrowDatabase_F("Commit failed with status {}", status.ToString());
-        }
-    }
-
 private:
-    leveldb::DB* m_pDB;
-    leveldb::WriteBatch m_batch;
+    mw::db::IDBWrapper* m_pDB;
+    mw::db::IDBBatch* m_pBatch;
     OrderedMultimap<std::string, Traits::ISerializable> m_added;
-    //std::unordered_map<std::string, std::shared_ptr<const Traits::ISerializable>> m_added;
 };

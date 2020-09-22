@@ -8,29 +8,43 @@
 const uint64_t MAX_WIDTH = 1 << 20;
 const size_t SCRATCH_SPACE_SIZE = 256 * MAX_WIDTH;
 
-bool Bulletproofs::VerifyBulletproofs(const std::vector<std::pair<Commitment, RangeProof::CPtr>>& rangeProofs) const
+bool Bulletproofs::VerifyBulletproofs(const std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>>& rangeProofs) const
 {
     const size_t numBits = 64;
-    const size_t proofLength = rangeProofs.front().second->size();
+    const size_t proofLength = std::get<1>(rangeProofs.front())->size();
 
     std::vector<Commitment> commitments;
     std::vector<secp256k1_pedersen_commitment> secpCommitments;
     commitments.reserve(rangeProofs.size());
 
-    std::vector<const unsigned char*> bulletproofPointers;
+    std::vector<const uint8_t*> bulletproofPointers;
     bulletproofPointers.reserve(rangeProofs.size());
-    for (const std::pair<Commitment, RangeProof::CPtr>& rangeProof : rangeProofs)
+
+    std::vector<const uint8_t*> extraData;
+    extraData.reserve(rangeProofs.size());
+
+    std::vector<size_t> extraDataLen;
+    extraDataLen.reserve(rangeProofs.size());
+
+    for (const auto& rangeProof : rangeProofs)
     {
-        if (!m_cache.WasAlreadyVerified(rangeProof.first))
-        {
-            commitments.push_back(rangeProof.first);
-            secpCommitments.push_back(ConversionUtil(m_context).ToSecp256k1(rangeProof.first));
-            bulletproofPointers.emplace_back(rangeProof.second->data());
+        if (!m_cache.WasAlreadyVerified(rangeProof)) {
+            commitments.push_back(std::get<0>(rangeProof));
+            secpCommitments.push_back(ConversionUtil(m_context).ToSecp256k1(std::get<0>(rangeProof)));
+            bulletproofPointers.emplace_back(std::get<1>(rangeProof)->data());
+
+            const std::vector<uint8_t>& extra = std::get<2>(rangeProof);
+            if (!extra.empty()) {
+                extraData.push_back(extra.data());
+                extraDataLen.push_back(extra.size());
+            } else {
+                extraData.push_back(nullptr);
+                extraDataLen.push_back(0);
+            }
         }
     }
 
-    if (commitments.empty())
-    {
+    if (commitments.empty()) {
         return true;
     }
 
@@ -59,16 +73,15 @@ bool Bulletproofs::VerifyBulletproofs(const std::vector<std::pair<Commitment, Ra
         1,
         numBits,
         valueGenerators.data(),
-        NULL,
-        NULL
+        extraData.data(),
+        extraDataLen.data()
     );
     secp256k1_scratch_space_destroy(pScratchSpace);
 
-    if (result == 1)
-    {
-        for (const Commitment& commitment : commitments)
+    if (result == 1) {
+        for (const auto& proof_tuple : rangeProofs)
         {
-            m_cache.AddToCache(commitment);
+            m_cache.AddToCache(proof_tuple);
         }
     }
 
@@ -85,12 +98,12 @@ RangeProof::CPtr Bulletproofs::GenerateRangeProof(
     auto contextWriter = m_context.Write();
     secp256k1_context* pContext = contextWriter->Randomized();
 
-    std::vector<unsigned char> proofBytes(RangeProof::MAX_SIZE, 0);
+    std::vector<uint8_t> proofBytes(RangeProof::MAX_SIZE, 0);
     size_t proofLen = RangeProof::MAX_SIZE;
 
     secp256k1_scratch_space* pScratchSpace = secp256k1_scratch_space_create(pContext, SCRATCH_SPACE_SIZE);
 
-    std::vector<const unsigned char*> blindingFactors({ key.data() });
+    std::vector<const uint8_t*> blindingFactors({ key.data() });
     int result = secp256k1_bulletproof_rangeproof_prove(
         pContext,
         pScratchSpace,
@@ -115,13 +128,12 @@ RangeProof::CPtr Bulletproofs::GenerateRangeProof(
     );
     secp256k1_scratch_space_destroy(pScratchSpace);
 
-    if (result == 1)
-    {
-        proofBytes.resize(proofLen);
-        return std::make_shared<RangeProof>(std::move(proofBytes));
+    if (result != 1) {
+        ThrowCrypto_F("secp256k1_bulletproof_rangeproof_prove failed with error: {}", result);
     }
 
-    ThrowCrypto_F("secp256k1_bulletproof_rangeproof_prove failed with error: {}", result);
+    proofBytes.resize(proofLen);
+    return std::make_shared<RangeProof>(std::move(proofBytes));
 }
 
 std::unique_ptr<RewoundProof> Bulletproofs::RewindProof(
@@ -133,7 +145,7 @@ std::unique_ptr<RewoundProof> Bulletproofs::RewindProof(
 
     uint64_t value;
     SecretKey blindingFactor;
-    std::vector<unsigned char> message(20, 0);
+    std::vector<uint8_t> message(20, 0);
 
     int result = secp256k1_bulletproof_rangeproof_rewind(
         m_context.Read()->Get(),
@@ -150,8 +162,7 @@ std::unique_ptr<RewoundProof> Bulletproofs::RewindProof(
         message.data()
     );
 
-    if (result == 1)
-    {
+    if (result == 1) {
         return std::make_unique<RewoundProof>(
             value, 
             std::make_unique<SecretKey>(std::move(blindingFactor)),

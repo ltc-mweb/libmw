@@ -10,7 +10,8 @@ static mw::Header::CPtr GenerateRandomHeader(const uint64_t height)
         height,
         mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
         mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
-        mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
+		mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
+		mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
         BlindingFactor{ Random().CSPRNG<32>().GetBigInt() },
         Random().FastRandom(),
         Random().FastRandom()

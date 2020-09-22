@@ -49,7 +49,7 @@ void File::Truncate(const uint64_t size)
 
     CloseHandle(hFile);
 #else
-    sucess = (truncate(m_path.c_str(), size) == 0);
+    success = (truncate(m_path.ToString().c_str(), size) == 0);
 #endif
 
     if (!success)
@@ -79,7 +79,7 @@ void File::Rename(const std::string& filename)
     }
 
     std::error_code ec;
-    fs::rename(m_path.m_path, destination.m_path, ec);
+    filesystem::rename(m_path.m_path, destination.m_path, ec);
     if (ec)
     {
         ThrowFile_F("Failed to rename {} to {}", *this, destination);
@@ -91,7 +91,7 @@ void File::Rename(const std::string& filename)
 std::vector<uint8_t> File::ReadBytes() const
 {
     std::error_code ec;
-    if (!fs::exists(m_path.m_path, ec) || ec)
+    if (!filesystem::exists(m_path.m_path, ec) || ec)
     {
         ThrowFile_F("{} not found", *this);
     }
@@ -102,7 +102,7 @@ std::vector<uint8_t> File::ReadBytes() const
         ThrowFile_F("Failed to open {} for reading", *this);
     }
 
-    const size_t size = (size_t)fs::file_size(m_path.m_path, ec);
+    const size_t size = (size_t)filesystem::file_size(m_path.m_path, ec);
 
     std::vector<uint8_t> bytes((size_t)size);
     file.seekg(0, std::ios::beg);
@@ -161,7 +161,7 @@ void File::WriteBytes(const std::map<uint64_t, uint8_t>& bytes)
 size_t File::GetSize() const
 {
     std::error_code ec;
-    const size_t size = (size_t)fs::file_size(m_path.m_path, ec);
+    const size_t size = (size_t)filesystem::file_size(m_path.m_path, ec);
     if (ec)
     {
         ThrowFile_F("Failed to determine size of {}", *this);

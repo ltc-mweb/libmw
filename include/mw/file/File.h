@@ -27,7 +27,7 @@ public:
     size_t GetSize() const;
 
     const FilePath& GetPath() const noexcept { return m_path; }
-    const fs::path& GetFSPath() const noexcept { return m_path.ToPath(); }
+    const filesystem::path& GetFSPath() const noexcept { return m_path.ToPath(); }
 
     //
     // Traits

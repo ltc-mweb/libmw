@@ -2,11 +2,19 @@ set(TARGET_NAME litecoin)
 
 file(GLOB SOURCE_CODE
     bech32.cpp
+    chainparamsbase.cpp
+    clientversion.cpp
+    dbwrapper.cpp
+    fs.cpp
     hash.cpp
+    logging.cpp
+    random.cpp
+    sync.cpp
     uint256.cpp
     crypto/aes.cpp
     crypto/bech32.cpp
     crypto/blake2b.cpp
+    crypto/chacha20.cpp
     crypto/hmac_sha256.cpp
     crypto/hmac_sha512.cpp
     crypto/ripemd160.cpp
@@ -15,11 +23,31 @@ file(GLOB SOURCE_CODE
     crypto/scrypt/crypto_scrypt-ref.cpp
     crypto/scrypt/sha256.cpp
     crypto/ctaes/ctaes.c
+    #leveldb/helpers/memenv/memenv.cc
     support/cleanse.cpp
     support/lockedpool.cpp
     util/strencodings.cpp
+    util/system.cpp
+    util/time.cpp
 )
 
 add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})
-#target_compile_definitions(${TARGET_NAME} PRIVATE HAVE_CONFIG_H)
-target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
+if (WIN32)
+    #target_sources(${TARGET_NAME} PRIVATE leveldb/port/port_win.cc)
+    #target_compile_definitions(${TARGET_NAME} PRIVATE LEVELDB_PLATFORM_WINDOWS)
+    target_link_libraries(${TARGET_NAME} PUBLIC Ws2_32)
+endif()
+
+target_link_libraries(${TARGET_NAME} PUBLIC ${Boost_LIBRARIES} OpenSSL::SSL OpenSSL::Crypto)
+
+target_compile_definitions(${TARGET_NAME} PUBLIC
+    CLIENT_VERSION_MAJOR=1
+    CLIENT_VERSION_MINOR=17
+    CLIENT_VERSION_REVISION=99
+    CLIENT_VERSION_BUILD=0
+    CLIENT_VERSION_IS_RELEASE=false
+    COPYRIGHT_YEAR=2018
+    HAVE_WORKING_BOOST_SLEEP_FOR
+)
+target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_LIST_DIR}/leveldb/helpers/memenv ${CMAKE_CURRENT_LIST_DIR}/leveldb)

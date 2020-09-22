@@ -2,6 +2,7 @@ set(MMR_Tests
     "Test_FileBackend.cpp"
     "Test_Index.cpp"
     "Test_LeafIndex.cpp"
+	"Test_LeafSet.cpp"
     "Test_MMR.cpp"
 )
 

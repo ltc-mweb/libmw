@@ -22,9 +22,17 @@ public:
         return LeafIndex(leafIndex, (2 * leafIndex) - BitUtil::CountBitsSet(leafIndex));
     }
 
+    bool operator<(const LeafIndex& rhs) const noexcept { return m_leafIndex < rhs.m_leafIndex; }
+    bool operator>(const LeafIndex& rhs) const noexcept { return m_leafIndex > rhs.m_leafIndex; }
+    bool operator==(const LeafIndex& rhs) const noexcept { return m_leafIndex == rhs.m_leafIndex; }
+    bool operator!=(const LeafIndex& rhs) const noexcept { return m_leafIndex != rhs.m_leafIndex; }
+    bool operator<=(const LeafIndex& rhs) const noexcept { return m_leafIndex <= rhs.m_leafIndex; }
+    bool operator>=(const LeafIndex& rhs) const noexcept { return m_leafIndex >= rhs.m_leafIndex; }
+
     uint64_t GetLeafIndex() const noexcept { return m_leafIndex; }
     const Index& GetNodeIndex() const noexcept { return m_nodeIndex; }
     uint64_t GetPosition() const noexcept { return m_nodeIndex.GetPosition(); }
+    LeafIndex Next() const noexcept { return LeafIndex::At(m_leafIndex + 1); }
 
 private:
     uint64_t m_leafIndex;

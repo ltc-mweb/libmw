@@ -40,6 +40,7 @@ public:
     //
     RangeProof& operator=(const RangeProof& other) = default;
     RangeProof& operator=(RangeProof&& other) noexcept = default;
+    bool operator==(const RangeProof& other) const noexcept { return m_bytes == other.m_bytes; }
 
     //
     // Getters

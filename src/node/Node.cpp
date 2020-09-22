@@ -1,18 +1,24 @@
 #include "Node.h"
+#include "CoinsViewFactory.h"
 
+#include <mw/config/ChainParams.h>
 #include <mw/node/validation/BlockValidator.h>
+#include <mw/consensus/Aggregation.h>
 #include <mw/common/Logger.h>
+#include <mw/mmr/MMR.h>
 #include <unordered_map>
 
 MW_NAMESPACE
 
-NODE_API mw::INode::Ptr InitializeNode(const FilePath& datadir, std::unordered_map<std::string, std::string>&& options)
+mw::INode::Ptr InitializeNode(const FilePath& datadir, const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper)
 {
-    auto pConfig = NodeConfig::Create(datadir, std::move(options));
-    auto database = BlockDBFactory::Open(pConfig->GetChainDir());
-    auto pChainState = ChainState::Initialize(pConfig->GetDataDir(), pConfig, database);
+    auto pConfig = NodeConfig::Create(datadir, { });
+    mw::ChainParams::Initialize("tmwltc"); // TODO: Pass this in
 
-    return std::shared_ptr<mw::INode>(new Node(pConfig, pChainState, database));
+    // TODO: Validate Current State & Create DB View
+    mw::CoinsViewDB::Ptr pDBView = nullptr;
+
+    return std::shared_ptr<mw::INode>(new Node(pConfig, pDBView));
 }
 
 END_NAMESPACE
@@ -31,9 +37,11 @@ void Node::ConnectBlock(const mw::Block::Ptr& pBlock, const mw::ICoinsView::Ptr&
 {
     LOG_TRACE_F("Connecting block {}", pBlock);
 
-    auto pBatch = m_pChainState.BatchWrite();
-    pBatch->ConnectBlock(pBlock);
-    pBatch->Commit();
+    mw::CoinsViewCache::Ptr pCache = std::make_shared<mw::CoinsViewCache>(pView);
+    pCache->ApplyUpdates(pBlock->GetTxBody());
+    // TODO: Check MMRs
+    pView->SetBestHeader(pBlock->GetHeader());
+    // TODO: If MMRs are correct, apply changes from pCache to pView
 }
 
 void Node::DisconnectBlock(const mw::Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView)
@@ -45,15 +53,25 @@ void Node::DisconnectBlock(const mw::Block::CPtr& pBlock, const mw::ICoinsView::
 
 ChainStatus::CPtr Node::GetStatus() const noexcept
 {
-    return m_pChainState.Read()->GetStatus();
+    // TODO: Implement
+    return nullptr;
 }
 
-mw::Header::CPtr Node::GetHeader(const mw::Hash& hash) const
+mw::ICoinsView::Ptr Node::ApplyState(
+	const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper,
+    const mw::IBlockStore& blockStore,
+    const mw::Hash& firstMWHeaderHash,
+    const mw::Hash& stateHeaderHash,
+    const std::vector<UTXO::CPtr>& utxos,
+    const std::vector<Kernel>& kernels)
 {
-    return m_pDatabase.Read()->GetHeaderByHash(hash);
-}
-
-mw::Block::CPtr Node::GetBlock(const mw::Hash& hash) const
-{
-    return m_pDatabase.Read()->GetBlockByHash(hash);
+    return CoinsViewFactory::CreateDBView(
+        pDBWrapper,
+        blockStore,
+        m_pConfig->GetChainDir(),
+        firstMWHeaderHash,
+        stateHeaderHash,
+        utxos,
+        kernels
+    );
 }

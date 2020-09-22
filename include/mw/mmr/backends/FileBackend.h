@@ -95,8 +95,6 @@ public:
 
     Leaf GetLeaf(const LeafIndex& idx) const final
     {
-        assert(idx.IsLeaf());
-
         const uint64_t leafIndex = idx.GetLeafIndex();
         if (m_pPositionFile != nullptr)
         {

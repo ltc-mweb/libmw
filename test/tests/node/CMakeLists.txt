@@ -1,4 +1,5 @@
 set(Node_Tests
+    "Test_CoinsViewDB.cpp"
     "validation/Test_BlockValidator.cpp"
 )
 

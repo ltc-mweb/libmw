@@ -9,7 +9,7 @@ using namespace mmr;
 
 static FilePath CreateTempDir()
 {
-    return FilePath(fs::temp_directory_path() / (StringUtil::ToWide(Random::CSPRNG<6>().GetBigInt().ToHex()) + L"\u30c4"));
+    return FilePath(filesystem::temp_directory_path() / (StringUtil::ToWide(Random::CSPRNG<6>().GetBigInt().ToHex()) + L"\u30c4"));
 }
 
 TEST_CASE("mmr::FileBackend")

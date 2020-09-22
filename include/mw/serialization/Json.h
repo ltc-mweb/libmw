@@ -33,7 +33,7 @@ public:
         auto iter = m_json.find(key);
         if (iter != m_json.end())
         {
-            if (iter->is_bool())
+            if (iter->is_boolean())
             {
                 return boost::make_optional<T>(iter->get<T>());
             }
@@ -185,9 +185,9 @@ public:
         assert(m_json.is_object());
         
         std::vector<std::string> fields;
-        for (auto& item : m_json.items())
+        for (auto it = m_json.begin(); it != m_json.end(); ++it)
         {
-            fields.push_back(item.key());
+            fields.push_back(it.key());
         }
 
         return fields;
