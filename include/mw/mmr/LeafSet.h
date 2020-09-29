@@ -19,15 +19,26 @@ public:
 
 	virtual ~ILeafSet() = default;
 
-	virtual void Add(const LeafIndex& idx) = 0;
-	virtual void Remove(const LeafIndex& idx) = 0;
-	virtual bool Contains(const LeafIndex& idx) const noexcept = 0;
-	virtual mw::Hash Root(const uint64_t numLeaves) const = 0;
-	virtual uint64_t GetSize() const = 0;
+	//virtual uint64_t GetSize() const = 0;
 	virtual uint8_t GetByte(const uint64_t byteIdx) const = 0;
+	virtual void SetByte(const uint64_t byteIdx, const uint8_t value) = 0;
 
-	virtual void Rewind(const uint64_t numLeaves, const std::vector<LeafIndex>& leavesToAdd) = 0;
-	//virtual void Snapshot(const File& snapshotFile) const = 0;
+	void Add(const LeafIndex& idx);
+	void Remove(const LeafIndex& idx);
+	bool Contains(const LeafIndex& idx) const noexcept;
+	mw::Hash Root() const;
+	void Rewind(const uint64_t numLeaves, const std::vector<LeafIndex>& leavesToAdd);
+	const mmr::LeafIndex& GetNextLeafIdx() const noexcept { return m_nextLeafIdx; }
+
+	virtual void ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unordered_map<uint64_t, uint8_t>& modifiedBytes) = 0;
+
+protected:
+	uint8_t BitToByte(const uint8_t bit) const;
+
+	ILeafSet(const mmr::LeafIndex& nextLeafIdx)
+		: m_nextLeafIdx(nextLeafIdx) { }
+
+	mmr::LeafIndex m_nextLeafIdx;
 };
 
 class LeafSet : public ILeafSet
@@ -35,45 +46,41 @@ class LeafSet : public ILeafSet
 public:
 	using Ptr = std::shared_ptr<LeafSet>;
 
-	LeafSet(MemMap&& mmap)
-		: m_mmap(std::move(mmap)) { }
+	static LeafSet::Ptr Open(const FilePath& leafset_dir);
 
-    void Add(const LeafIndex& idx) final;
-    void Remove(const LeafIndex& idx) final;
-    bool Contains(const LeafIndex& idx) const noexcept final;
-    mw::Hash Root(const uint64_t numLeaves) const final;
-    uint64_t GetSize() const;
-
-    void Rewind(const uint64_t numLeaves, const std::vector<LeafIndex>& leavesToAdd) final;
-
+    //uint64_t GetSize() const;
 	uint8_t GetByte(const uint64_t byteIdx) const final;
+	void SetByte(const uint64_t byteIdx, const uint8_t value) final;
+
+	void ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unordered_map<uint64_t, uint8_t>& modifiedBytes) final;
+	void Flush();
 
 private:
-	uint8_t BitToByte(const uint8_t bit) const;
+	LeafSet(MemMap&& mmap, const mmr::LeafIndex& nextLeafIdx)
+		: m_mmap(std::move(mmap)), ILeafSet(nextLeafIdx) { }
 
 	MemMap m_mmap;
 	std::unordered_map<uint64_t, uint8_t> m_modifiedBytes;
 };
 
-class BackedLeafSet : public ILeafSet
+class LeafSetCache : public ILeafSet
 {
 public:
-	BackedLeafSet(const ILeafSet::Ptr& pBacked)
-		: m_pBacked(pBacked) { }
+	using Ptr = std::shared_ptr<LeafSetCache>;
+	using UPtr = std::unique_ptr<LeafSetCache>;
 
-	void Add(const LeafIndex& idx) final;
-	void Remove(const LeafIndex& idx) final;
-	bool Contains(const LeafIndex& idx) const noexcept final;
-	mw::Hash Root(const uint64_t numLeaves) const final;
-	uint64_t GetSize() const final;
+	LeafSetCache(const ILeafSet::Ptr& pBacked)
+		: m_pBacked(pBacked), ILeafSet(pBacked->GetNextLeafIdx()) { }
 
-	void Rewind(const uint64_t numLeaves, const std::vector<LeafIndex>& leavesToAdd) final;
-
+	//uint64_t GetSize() const final;
 	uint8_t GetByte(const uint64_t byteIdx) const final;
+	void SetByte(const uint64_t byteIdx, const uint8_t value) final;
+	//void Snapshot(const File& snapshotFile) const;
+
+	void ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unordered_map<uint64_t, uint8_t>& modifiedBytes) final;
+	void Flush();
 
 private:
-	uint8_t BitToByte(const uint8_t bit) const;
-
 	ILeafSet::Ptr m_pBacked;
 	std::unordered_map<uint64_t, uint8_t> m_modifiedBytes;
 };

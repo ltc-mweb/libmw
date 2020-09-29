@@ -6,14 +6,14 @@
 #include <mw/file/FilePath.h>
 #include <mw/mmr/MMR.h>
 #include <mw/db/IBlockStore.h>
-#include <ext/interfaces.h>
+#include <libmw/interfaces.h>
 #include <functional>
 
 class CoinsViewFactory
 {
 public:
     static mw::CoinsViewDB::Ptr CreateDBView(
-        const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper,
+        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
         const mw::IBlockStore& blockStore,
         const FilePath& chainDir,
         const mw::Hash& firstMWHeaderHash,

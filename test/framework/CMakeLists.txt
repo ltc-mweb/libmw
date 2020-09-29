@@ -1,7 +1,7 @@
 set(TARGET_NAME Framework)
 
 file(GLOB SOURCE_CODE
-	"src/Node.cpp"
+	"src/TestFramework.cpp"
 )
 
 add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})

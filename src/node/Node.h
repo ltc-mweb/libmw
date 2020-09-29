@@ -8,6 +8,7 @@ class Node : public mw::INode
 public:
     Node(const NodeConfig::Ptr& pConfig, const mw::CoinsViewDB::Ptr& pDBView)
         : m_pConfig(pConfig), m_pDBView(pDBView) { }
+    ~Node();
 
     mw::CoinsViewDB::Ptr GetDBView() final { return m_pDBView; }
 
@@ -17,13 +18,11 @@ public:
         const std::vector<PegOutCoin>& pegOutCoins
     ) const final;
 
-    void ConnectBlock(const mw::Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView) final;
-    void DisconnectBlock(const mw::Block::CPtr& pBlock, const mw::ICoinsView::Ptr& pView) final;
-
-    ChainStatus::CPtr GetStatus() const noexcept final;
+    mw::BlockUndo::CPtr ConnectBlock(const mw::Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView) final;
+    void DisconnectBlock(const mw::BlockUndo::CPtr& pUndoData, const mw::ICoinsView::Ptr& pView) final;
 
     mw::ICoinsView::Ptr ApplyState(
-        const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper,
+        const libmw::IDBWrapper::Ptr& pDBWrapper,
         const mw::IBlockStore& blockStore,
         const mw::Hash& firstMWHeaderHash,
         const mw::Hash& stateHeaderHash,

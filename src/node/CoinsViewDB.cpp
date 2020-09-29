@@ -3,24 +3,27 @@
 #include "models/CoinKey.h"
 #include "models/CoinEntry.h"
 
+#include <mw/db/CoinDB.h>
 #include <mw/exceptions/ValidationException.h>
 
 MW_NAMESPACE
 
-void CoinsViewDB::ApplyUpdates(const TxBody& body)
-{
-    auto pBatch = m_pDatabase->CreateBatch();
-    WriteBatch(*pBatch, body);
-}
-
 std::vector<UTXO::CPtr> CoinsViewDB::GetUTXOs(const Commitment& commitment) const
 {
     std::vector<uint8_t> value;
-    m_pDatabase->Read(CoinKey(commitment).ToString(), value); // TODO: Need to read from batch first
-    return CoinEntry::Deserialize(value).utxos;
+
+    // TODO: Need to read from batch first
+    CoinDB coinDB(m_pDatabase.get(), nullptr);
+    auto utxos_by_commitment = coinDB.GetUTXOs({ commitment });
+    auto iter = utxos_by_commitment.find(commitment);
+    if (iter != utxos_by_commitment.cend()) {
+        return { iter->second };
+    }
+
+    return {};
 }
 
-void CoinsViewDB::AddUTXO(mw::db::IDBBatch& batch, const Output& output)
+void CoinsViewDB::AddUTXO(CoinDB& coinDB, const Output& output)
 {
     mmr::LeafIndex leafIdx = m_pOutputPMMR->Add(OutputId{ output.GetFeatures(), output.GetCommitment() });
     mmr::LeafIndex leafIdx2 = m_pRangeProofPMMR->Add(*output.GetRangeProof());
@@ -28,47 +31,45 @@ void CoinsViewDB::AddUTXO(mw::db::IDBBatch& batch, const Output& output)
 
     m_pLeafSet->Add(leafIdx);
 
-    AddUTXO(batch, std::make_shared<UTXO>(GetBestHeader()->GetHeight(), std::move(leafIdx), output));
+    AddUTXO(coinDB, std::make_shared<UTXO>(GetBestHeader()->GetHeight(), std::move(leafIdx), output));
 }
 
-void CoinsViewDB::AddUTXO(mw::db::IDBBatch& batch, const UTXO::CPtr& pUTXO)
+void CoinsViewDB::AddUTXO(CoinDB& coinDB, const UTXO::CPtr& pUTXO)
 {
     const Commitment& commitment = pUTXO->GetOutput().GetCommitment();
     std::vector<UTXO::CPtr> utxos = GetUTXOs(commitment);
     utxos.push_back(pUTXO);
 
-    batch.Write(CoinKey{ commitment }.ToString(), CoinEntry{ std::move(utxos) }.Serialized());
+    coinDB.AddUTXOs(std::vector<UTXO::CPtr>{ pUTXO });
 }
 
-void CoinsViewDB::SpendUTXO(mw::db::IDBBatch& batch, const Commitment& commitment)
+void CoinsViewDB::SpendUTXO(CoinDB& coinDB, const Commitment& commitment)
 {
     std::vector<UTXO::CPtr> utxos = GetUTXOs(commitment);
     if (utxos.empty()) {
 		ThrowValidation(EConsensusError::UTXO_MISSING);
     }
 
-    m_pLeafSet->Remove(utxos.back()->GetLeafIndex());
-
     utxos.pop_back();
-    batch.Write(CoinKey{ commitment }.ToString(), CoinEntry{ std::move(utxos) }.Serialized());
+    coinDB.RemoveUTXOs(std::vector<Commitment>{ commitment });
 }
 
-void CoinsViewDB::WriteBatch(mw::db::IDBBatch& batch, const TxBody& body)
+void CoinsViewDB::WriteBatch(const std::unique_ptr<libmw::IDBBatch>& pBatch, const CoinsViewUpdates& updates, const mw::Header::CPtr& pHeader)
 {
-    std::for_each(
-        body.GetKernels().cbegin(), body.GetKernels().cend(),
-        [this](const Kernel& kernel) { m_pKernelMMR->Add(kernel); }
-    );
+    assert(pBatch != nullptr);
+    SetBestHeader(pHeader);
 
-    std::for_each(
-        body.GetInputs().cbegin(), body.GetInputs().cend(),
-        [this, &batch](const Input& input) { SpendUTXO(batch, input.GetCommitment()); }
-    );
-
-    std::for_each(
-        body.GetOutputs().cbegin(), body.GetOutputs().cend(),
-        [this, &batch](const Output& output) { AddUTXO(batch, output); }
-    );
+    CoinDB coinDB(m_pDatabase.get(), pBatch.get());
+    for (const auto& actions : updates.GetActions()) {
+        const Commitment& commitment = actions.first;
+        for (const auto& action : actions.second) {
+            if (action.IsSpend()) {
+                SpendUTXO(coinDB, commitment);
+            } else {
+                AddUTXO(coinDB, action.pUTXO);
+            }
+        }
+    }
 }
 
 END_NAMESPACE

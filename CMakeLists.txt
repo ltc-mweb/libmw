@@ -37,8 +37,8 @@ add_subdirectory(src)
 
 # Install includes & libs
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ext/
-    DESTINATION include/mw
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/libmw/
+    DESTINATION include/libmw
 )
 
 install(

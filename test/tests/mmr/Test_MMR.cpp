@@ -26,15 +26,18 @@ TEST_CASE("mmr::MMR")
     REQUIRE(mmr.GetLeaf(LeafIndex::At(2)) == Leaf::Create(LeafIndex::At(2), std::vector<uint8_t>(leaf2)));
     REQUIRE(mmr.GetLeaf(LeafIndex::At(3)) == Leaf::Create(LeafIndex::At(3), std::vector<uint8_t>(leaf3)));
 
+    REQUIRE(mmr.GetNumLeaves() == 4);
     REQUIRE(mmr.GetNumNodes() == 7);
-    REQUIRE(mmr.Root() == mw::Hash::FromHex("531b5c35f430f911db70cbf892cec23165d291bb08e568049f2bdc8174ded78a"));
+    REQUIRE(mmr.Root() == mw::Hash::FromHex("675996c8bbfce6319dd00588ebd289d555eedfa60aa17a9a83cc7da80888a97e"));
 
     mmr.Add(leaf4);
     REQUIRE(mmr.GetLeaf(LeafIndex::At(4)) == Leaf::Create(LeafIndex::At(4), std::vector<uint8_t>(leaf4)));
+    REQUIRE(mmr.GetNumLeaves() == 5);
     REQUIRE(mmr.GetNumNodes() == 8);
-    REQUIRE(mmr.Root() == mw::Hash::FromHex("8479b8a461e696556726def136322f4b654986436a54c849e251b7a8a94bd62c"));
+    REQUIRE(mmr.Root() == mw::Hash::FromHex("2657bf9ad4d4269ba1cfa872b325497fcff937c6b96df336e4ba29842a80232d"));
 
     mmr.Rewind(7);
+    REQUIRE(mmr.GetNumLeaves() == 4);
     REQUIRE(mmr.GetNumNodes() == 7);
-    REQUIRE(mmr.Root() == mw::Hash::FromHex("531b5c35f430f911db70cbf892cec23165d291bb08e568049f2bdc8174ded78a"));
+    REQUIRE(mmr.Root() == mw::Hash::FromHex("675996c8bbfce6319dd00588ebd289d555eedfa60aa17a9a83cc7da80888a97e"));
 }

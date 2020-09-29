@@ -3,7 +3,8 @@
 #include <mw/mmr/backends/FileBackend.h>
 #include <mw/models/tx/Kernel.h>
 #include <mw/crypto/Random.h>
-#include <mw/file/FileRemover.h>
+#include <mw/file/ScopedFileRemover.h>
+#include <test_framework/TestUtil.h>
 
 using namespace mmr;
 
@@ -14,8 +15,8 @@ static FilePath CreateTempDir()
 
 TEST_CASE("mmr::FileBackend")
 {
-    FilePath tempDir = CreateTempDir();
-    FileRemover remover(tempDir);
+    FilePath tempDir = test::TestUtil::GetTempDir();// CreateTempDir();
+    ScopedFileRemover remover(tempDir);
 
     {
         auto pBackend = FileBackend::Open(tempDir, boost::none);

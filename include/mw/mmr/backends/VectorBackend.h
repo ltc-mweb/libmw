@@ -47,7 +47,7 @@ public:
     mw::Hash GetHash(const Index& idx) const final { return m_nodes[idx.GetPosition()]; }
     Leaf GetLeaf(const LeafIndex& idx) const final { return m_leaves[idx.GetLeafIndex()]; }
 
-    // TODO: Implement
+    // Not supported yet
     void Commit() final { }
     void Rollback() noexcept final { }
 

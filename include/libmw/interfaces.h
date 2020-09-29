@@ -5,6 +5,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include "defs.h"
+
 #include <array>
 #include <vector>
 #include <string>
@@ -12,16 +14,12 @@
 #include <cstdint>
 #include <unordered_map>
 
-#define MW_NAMESPACE namespace mw {
-#define DB_NAMESPACE namespace db {
-#define END_NAMESPACE }
-
-MW_NAMESPACE
-DB_NAMESPACE
+LIBMW_NAMESPACE
 
 class IDBBatch
 {
 public:
+    using UPtr = std::unique_ptr<libmw::IDBBatch>;
     virtual ~IDBBatch() = default;
 
     virtual void Write(const std::string& key, const std::vector<uint8_t>& value) = 0;
@@ -45,6 +43,8 @@ public:
 class IDBWrapper
 {
 public:
+    using Ptr = std::shared_ptr<libmw::IDBWrapper>;
+
     virtual ~IDBWrapper() = default;
 
     virtual bool Read(const std::string& key, std::vector<uint8_t>& value) const = 0;
@@ -52,5 +52,25 @@ public:
     virtual std::unique_ptr<IDBBatch> CreateBatch() = 0;
 };
 
-END_NAMESPACE // db
-END_NAMESPACE // mw
+//
+// Interface for looking up blocks and headers.
+// This must be implemented by the libmw consumer.
+//
+class IBlockStore
+{
+public:
+    using Ptr = std::shared_ptr<libmw::IBlockStore>;
+
+    virtual ~IBlockStore() = default;
+
+    virtual libmw::HeaderRef GetHeader(const uint64_t height) const /*throw(NotFoundException)*/ = 0;
+    virtual libmw::HeaderRef GetHeader(const libmw::BlockHash& hash) const /*throw(NotFoundException)*/ = 0;
+
+    virtual libmw::HeaderAndPegsRef GetHeaderAndPegs(const uint64_t height) const /*throw(NotFoundException)*/ = 0;
+    virtual libmw::HeaderAndPegsRef GetHeaderAndPegs(const libmw::BlockHash& hash) const /*throw(NotFoundException)*/ = 0;
+
+    virtual libmw::BlockRef GetBlock(const uint64_t height) const /*throw(NotFoundException)*/ = 0;
+    virtual libmw::BlockRef GetBlock(const libmw::BlockHash& hash) const /*throw(NotFoundException)*/ = 0;
+};
+
+END_NAMESPACE // libmw

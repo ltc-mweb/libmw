@@ -11,7 +11,7 @@ class RootCalculator
 {
 public:
     template<class T, typename = std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
-    static Hash CalculateRoot(const std::vector<T>& leaves)
+    static mw::Hash CalculateRoot(const std::vector<T>& leaves)
     {
 		assert(!leaves.empty());
 

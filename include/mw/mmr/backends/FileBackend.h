@@ -68,12 +68,25 @@ public:
 
     void Rewind(const LeafIndex& nextLeafIndex) final
     {
-        assert(nextLeafIndex.GetLeafIndex() > 0);
+        if (nextLeafIndex.GetLeafIndex() == 0) {
+            if (m_pPositionFile != nullptr) {
+                m_pPositionFile->Rewind(0);
+            }
 
-        const PosEntry posEntry = GetPosEntry(nextLeafIndex.GetLeafIndex() - 1);
-        m_pPositionFile->Rewind(nextLeafIndex.GetLeafIndex());
-        m_pDataFile->Rewind(posEntry.position + posEntry.size);
-        m_pHashFile->Rewind(nextLeafIndex.GetPosition());
+            m_pDataFile->Rewind(0);
+            m_pHashFile->Rewind(0);
+            return;
+        }
+
+        if (m_pPositionFile != nullptr) {
+            const PosEntry posEntry = GetPosEntry(nextLeafIndex.GetLeafIndex() - 1);
+            m_pPositionFile->Rewind(nextLeafIndex.GetLeafIndex() * PosEntry::LENGTH);
+            m_pDataFile->Rewind(posEntry.position + posEntry.size);
+        } else {
+            m_pDataFile->Rewind(nextLeafIndex.GetPosition() * m_fixedLength);
+        }
+
+        m_pHashFile->Rewind(nextLeafIndex.GetPosition() * 32);
     }
 
     uint64_t GetNumLeaves() const noexcept final

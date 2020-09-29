@@ -1,5 +1,5 @@
 set(File_Tests
-    "Test_BitmapFile.cpp"
+ #   "Test_BitmapFile.cpp"
 )
 
 list(TRANSFORM File_Tests PREPEND ${CMAKE_CURRENT_LIST_DIR}/)

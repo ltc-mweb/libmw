@@ -3,17 +3,23 @@
 #include <mw/common/Macros.h>
 #include <mw/models/block/Header.h>
 #include <mw/models/block/Block.h>
+#include <mw/models/block/BlockUndo.h>
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/tx/UTXO.h>
 #include <mw/mmr/MMR.h>
 #include <mw/mmr/LeafSet.h>
-#include <ext/interfaces.h>
+#include <libmw/interfaces.h>
 #include <memory>
+
+// Forward Declarations
+class CoinDB;
 
 MW_NAMESPACE
 
 struct CoinAction
 {
+    bool IsSpend() const noexcept { return pUTXO == nullptr; }
+
     UTXO::CPtr pUTXO;
 };
 
@@ -34,6 +40,8 @@ public:
         AddAction(commitment, CoinAction{ nullptr });
     }
 
+    const std::unordered_map<Commitment, std::vector<CoinAction>>& GetActions() const noexcept { return m_actions; }
+
     std::vector<CoinAction> GetActions(const Commitment& commitment) const
     {
         auto iter = m_actions.find(commitment);
@@ -42,6 +50,11 @@ public:
         }
 
         return {};
+    }
+
+    void Clear() noexcept
+    {
+        m_actions.clear();
     }
 
 private:
@@ -58,6 +71,7 @@ private:
         }
     }
 
+    // TODO: Handle sorting of kernels & UTXOs per block... Just use a vector of TxBody's?
     std::unordered_map<Commitment, std::vector<CoinAction>> m_actions;
 };
 
@@ -71,21 +85,29 @@ class ICoinsView : public std::enable_shared_from_this<ICoinsView>
 public:
     using Ptr = std::shared_ptr<ICoinsView>;
     using CPtr = std::shared_ptr<const ICoinsView>;
+
+    ICoinsView(const mw::Header::CPtr& pHeader)
+        : m_pHeader(pHeader) { }
     virtual ~ICoinsView() = default;
 
-    mw::Block::CPtr BuildNextBlock(const std::vector<mw::Transaction::CPtr>& transactions) const;
-
-    void SetBestHeader(const mw::Header::CPtr & pHeader) noexcept { m_pHeader = pHeader; }
+    void SetBestHeader(const mw::Header::CPtr& pHeader) noexcept { m_pHeader = pHeader; }
     mw::Header::CPtr GetBestHeader() const noexcept { return m_pHeader; }
 
     // Virtual functions
     virtual std::vector<UTXO::CPtr> GetUTXOs(const Commitment& commitment) const = 0;
-    virtual void ApplyUpdates(const TxBody& body) = 0;
+    virtual void WriteBatch(
+        const libmw::IDBBatch::UPtr& pBatch,
+        const CoinsViewUpdates& updates,
+        const mw::Header::CPtr& pHeader
+    ) = 0;
 
     virtual mmr::ILeafSet::Ptr GetLeafSet() const noexcept = 0;
     virtual mmr::IMMR::Ptr GetKernelMMR() const noexcept = 0;
     virtual mmr::IMMR::Ptr GetOutputPMMR() const noexcept = 0;
     virtual mmr::IMMR::Ptr GetRangeProofPMMR() const noexcept = 0;
+    
+protected:
+    void ValidateMMRs(const mw::Header::CPtr& pHeader) const;
 
 private:
     mw::Header::CPtr m_pHeader;
@@ -94,17 +116,28 @@ private:
 class CoinsViewCache : public mw::ICoinsView
 {
 public:
-    CoinsViewCache(const ICoinsView::CPtr& pBase)
-        : m_pBase(pBase),
-        m_pLeafSet(std::make_shared<mmr::BackedLeafSet>(pBase->GetLeafSet())),
-        m_pKernelMMR(std::make_shared<mmr::MMRCache>(pBase->GetKernelMMR())),
-        m_pOutputPMMR(std::make_shared<mmr::MMRCache>(pBase->GetOutputPMMR())),
-        m_pRangeProofPMMR(std::make_shared<mmr::MMRCache>(pBase->GetRangeProofPMMR())),
+    using Ptr = std::shared_ptr<CoinsViewCache>;
+    using CPtr = std::shared_ptr<const CoinsViewCache>;
+
+    CoinsViewCache(const ICoinsView::Ptr& pBase)
+        : ICoinsView(pBase->GetBestHeader()),
+        m_pBase(pBase),
+        m_pLeafSet(std::make_unique<mmr::LeafSetCache>(pBase->GetLeafSet())),
+        m_pKernelMMR(std::make_unique<mmr::MMRCache>(pBase->GetKernelMMR())),
+        m_pOutputPMMR(std::make_unique<mmr::MMRCache>(pBase->GetOutputPMMR())),
+        m_pRangeProofPMMR(std::make_unique<mmr::MMRCache>(pBase->GetRangeProofPMMR())),
         m_pUpdates(std::make_shared<CoinsViewUpdates>()) { }
 
     std::vector<UTXO::CPtr> GetUTXOs(const Commitment& commitment) const final;
-    void ApplyUpdates(const TxBody& body) final;
-    void Flush(mw::db::IDBBatch& batch);
+    mw::BlockUndo::CPtr ApplyBlock(const mw::Block::Ptr& pBlock);
+    void UndoBlock(const mw::BlockUndo::CPtr& pUndo);
+    void WriteBatch(
+        const libmw::IDBBatch::UPtr& pBatch,
+        const CoinsViewUpdates& updates,
+        const mw::Header::CPtr& pHeader
+    ) final;
+    void Flush(const libmw::IDBBatch::UPtr& pBatch = nullptr);
+    mw::Block::Ptr BuildNextBlock(const uint64_t height, const std::vector<mw::Transaction::CPtr>& transactions);
 
     mmr::ILeafSet::Ptr GetLeafSet() const noexcept final { return m_pLeafSet; }
     mmr::IMMR::Ptr GetKernelMMR() const noexcept final { return m_pKernelMMR; }
@@ -112,12 +145,12 @@ public:
     mmr::IMMR::Ptr GetRangeProofPMMR() const noexcept final { return m_pRangeProofPMMR; }
 
 private:
-    void AddUTXO(const Output& output);
-    void SpendUTXO(const Commitment& commitment);
+    void AddUTXO(const uint64_t header_height, const Output& output);
+    UTXO SpendUTXO(const Commitment& commitment);
 
-    ICoinsView::CPtr m_pBase;
+    ICoinsView::Ptr m_pBase;
 
-    mmr::BackedLeafSet::Ptr m_pLeafSet;
+    mmr::LeafSetCache::Ptr m_pLeafSet;
     mmr::MMRCache::Ptr m_pKernelMMR;
     mmr::MMRCache::Ptr m_pOutputPMMR;
     mmr::MMRCache::Ptr m_pRangeProofPMMR;
@@ -130,20 +163,25 @@ class CoinsViewDB : public mw::ICoinsView
 {
 public:
     CoinsViewDB(
-        const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper,
+        const mw::Header::CPtr& pBestHeader,
+        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
         const mmr::LeafSet::Ptr& pLeafSet,
         const mmr::MMR::Ptr& pKernelMMR,
         const mmr::MMR::Ptr& pOutputPMMR,
         const mmr::MMR::Ptr& pRangeProofPMMR
-    ) : m_pDatabase(pDBWrapper),
+    ) : ICoinsView(pBestHeader),
+        m_pDatabase(pDBWrapper),
         m_pLeafSet(pLeafSet),
         m_pKernelMMR(pKernelMMR),
         m_pOutputPMMR(pOutputPMMR),
         m_pRangeProofPMMR(pRangeProofPMMR) { }
 
     std::vector<UTXO::CPtr> GetUTXOs(const Commitment& commitment) const final;
-    void ApplyUpdates(const TxBody& body) final;
-    void WriteBatch(mw::db::IDBBatch& batch, const TxBody& body);
+    void WriteBatch(
+        const libmw::IDBBatch::UPtr& pBatch,
+        const CoinsViewUpdates& updates,
+        const mw::Header::CPtr& pHeader
+    ) final;
 
     mmr::ILeafSet::Ptr GetLeafSet() const noexcept final { return m_pLeafSet; }
     mmr::IMMR::Ptr GetKernelMMR() const noexcept final { return m_pKernelMMR; }
@@ -151,11 +189,11 @@ public:
     mmr::IMMR::Ptr GetRangeProofPMMR() const noexcept final { return m_pRangeProofPMMR; }
 
 private:
-    void AddUTXO(mw::db::IDBBatch& batch, const Output& output);
-    void AddUTXO(mw::db::IDBBatch& batch, const UTXO::CPtr& pUTXO);
-    void SpendUTXO(mw::db::IDBBatch& batch, const Commitment& commitment);
+    void AddUTXO(CoinDB& coinDB, const Output& output);
+    void AddUTXO(CoinDB& coinDB, const UTXO::CPtr& pUTXO);
+    void SpendUTXO(CoinDB& coinDB, const Commitment& commitment);
 
-    std::shared_ptr<mw::db::IDBWrapper> m_pDatabase;
+    std::shared_ptr<libmw::IDBWrapper> m_pDatabase;
 
     mmr::LeafSet::Ptr m_pLeafSet;
     mmr::MMR::Ptr m_pKernelMMR;

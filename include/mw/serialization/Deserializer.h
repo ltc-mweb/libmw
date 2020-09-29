@@ -61,7 +61,7 @@ public:
         const uint64_t num_entries = Read<uint64_t>();
         std::vector<T> vec(num_entries);
         for (uint64_t i = 0; i < num_entries; i++) {
-            vec[i] = Read<T>();
+            vec[i] = T::Deserialize(*this);
         }
 
         return vec;

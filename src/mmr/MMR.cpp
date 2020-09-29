@@ -10,6 +10,11 @@ LeafIndex MMR::AddLeaf(std::vector<uint8_t>&& data)
     return leafIdx;
 }
 
+uint64_t MMR::GetNumLeaves() const noexcept
+{
+    return m_pBackend->GetNumLeaves();
+}
+
 uint64_t MMR::GetNumNodes() const noexcept
 {
     const uint64_t numLeaves = m_pBackend->GetNumLeaves();

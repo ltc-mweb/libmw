@@ -66,6 +66,9 @@ public:
         return m_mmap.size();
     }
 
+    const File& GetFile() const noexcept { return m_file; }
+    File& GetFile() noexcept { return m_file; }
+
 private:
     File m_file;
     mio::mmap_source m_mmap;

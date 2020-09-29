@@ -20,6 +20,7 @@ class IMMR
 public:
     using Ptr = std::shared_ptr<IMMR>;
     using CPtr = std::shared_ptr<const IMMR>;
+    using UPtr = std::unique_ptr<IMMR>;
 
     virtual LeafIndex AddLeaf(std::vector<uint8_t>&& data) = 0;
     LeafIndex Add(const std::vector<uint8_t>& data) { return AddLeaf(std::vector<uint8_t>(data)); }
@@ -101,6 +102,7 @@ public:
     mw::Hash GetHash(const Index& idx) const final { return m_pBackend->GetHash(idx); }
     LeafIndex GetNextLeafIdx() const noexcept final { return m_pBackend->GetNextLeaf(); }
 
+    uint64_t GetNumLeaves() const noexcept;
     uint64_t GetNumNodes() const noexcept;
     void Rewind(const uint64_t numNodes) final;
 
@@ -118,10 +120,11 @@ private:
 class MMRCache : public IMMR
 {
 public:
+    using Ptr = std::shared_ptr<MMRCache>;
     using UPtr = std::unique_ptr<MMRCache>;
 
     MMRCache(const IMMR::Ptr& pBacked)
-        : m_pBase(pBacked) { }
+        : m_pBase(pBacked), m_firstLeaf(pBacked->GetNextLeafIdx()){ }
 
     LeafIndex AddLeaf(std::vector<uint8_t>&& data) final
     {
@@ -155,7 +158,7 @@ public:
         const uint64_t cacheIdx = leafIdx.GetLeafIndex() - m_firstLeaf.GetLeafIndex();
         if (cacheIdx > m_leaves.size()) {
             // TODO: Throw out of bounds exception
-            std::exception();
+            throw std::exception();
         }
 
         return m_leaves[cacheIdx];

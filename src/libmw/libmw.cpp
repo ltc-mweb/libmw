@@ -1,40 +1,53 @@
-#include <ext/libmw.h>
+#include <libmw/libmw.h>
 
 #include "Transformers.h"
 #include "BlockStoreWrapper.h"
 #include "State.h"
 
 #include <mw/models/block/Block.h>
+#include <mw/models/block/BlockUndo.h>
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/tx/UTXO.h>
 #include <mw/node/INode.h>
 
 static mw::INode::Ptr NODE = nullptr;
 
-MW_NAMESPACE
+LIBMW_NAMESPACE
 
-EXPORT mw::HeaderRef DeserializeHeader(std::vector<uint8_t>&& bytes)
+EXPORT libmw::HeaderRef DeserializeHeader(std::vector<uint8_t>&& bytes)
 {
     Deserializer deserializer{ std::move(bytes) };
     auto pHeader = std::make_shared<mw::Header>(mw::Header::Deserialize(deserializer));
-    return mw::HeaderRef{ pHeader };
+    return libmw::HeaderRef{ pHeader };
 }
 
-EXPORT std::vector<uint8_t> SerializeHeader(const mw::HeaderRef& header)
+EXPORT std::vector<uint8_t> SerializeHeader(const libmw::HeaderRef& header)
 {
     return header.pHeader->Serialized();
 }
 
-EXPORT mw::BlockRef DeserializeBlock(std::vector<uint8_t>&& bytes)
+EXPORT libmw::BlockRef DeserializeBlock(std::vector<uint8_t>&& bytes)
 {
     Deserializer deserializer{ std::move(bytes) };
     auto pBlock = std::make_shared<mw::Block>(mw::Block::Deserialize(deserializer));
-    return mw::BlockRef{ pBlock };
+    return libmw::BlockRef{ pBlock };
 }
 
-EXPORT std::vector<uint8_t> SerializeBlock(const mw::BlockRef& block)
+EXPORT std::vector<uint8_t> SerializeBlock(const libmw::BlockRef& block)
 {
     return block.pBlock->Serialized();
+}
+
+EXPORT libmw::BlockUndoRef DeserializeBlockUndo(std::vector<uint8_t>&& bytes)
+{
+    Deserializer deserializer{ std::move(bytes) };
+    auto pBlockUndo = std::make_shared<mw::BlockUndo>(mw::BlockUndo::Deserialize(deserializer));
+    return libmw::BlockUndoRef{ pBlockUndo };
+}
+
+EXPORT std::vector<uint8_t> SerializeBlockUndo(const libmw::BlockUndoRef& blockUndo)
+{
+    return blockUndo.pUndo->Serialized();
 }
 
 EXPORT uint64_t TxRef::GetTotalFee() const noexcept
@@ -42,92 +55,118 @@ EXPORT uint64_t TxRef::GetTotalFee() const noexcept
     return pTransaction->GetTotalFee();
 }
 
-EXPORT mw::TxRef DeserializeTx(std::vector<uint8_t>&& bytes)
+EXPORT libmw::TxRef DeserializeTx(std::vector<uint8_t>&& bytes)
 {
     Deserializer deserializer{ bytes };
     auto pTx = std::make_shared<mw::Transaction>(mw::Transaction::Deserialize(deserializer));
-    return mw::TxRef{ pTx };
+    return libmw::TxRef{ pTx };
 }
 
-EXPORT std::vector<uint8_t> SerializeTx(const mw::TxRef& tx)
+EXPORT std::vector<uint8_t> SerializeTx(const libmw::TxRef& tx)
 {
     return tx.pTransaction->Serialized();
 }
 
-EXPORT CoinsViewRef CoinsViewRef::CreateCache() const
+EXPORT libmw::CoinsViewRef CoinsViewRef::CreateCache() const
 {
     if (pCoinsView == nullptr) {
-        return CoinsViewRef{ nullptr };
+        return libmw::CoinsViewRef{ nullptr };
     }
 
-    return CoinsViewRef{ std::make_shared<mw::CoinsViewCache>(pCoinsView) };
+    return libmw::CoinsViewRef{ std::make_shared<mw::CoinsViewCache>(pCoinsView) };
 }
 
 NODE_NAMESPACE
 
-EXPORT mw::CoinsViewRef Initialize(const std::string& datadir, const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper)
+EXPORT libmw::CoinsViewRef Initialize(
+    const libmw::ChainParams& chainParams,
+    const libmw::HeaderRef& header,
+    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
 {
-    NODE = mw::InitializeNode(FilePath{ datadir }, pDBWrapper);
+    NODE = mw::InitializeNode(FilePath{ chainParams.dataDirectory }, chainParams.hrp, header.pHeader, pDBWrapper);
 
-    return mw::CoinsViewRef{ NODE->GetDBView() };
+    return libmw::CoinsViewRef{ NODE->GetDBView() };
 }
 
-EXPORT mw::CoinsViewRef ApplyState(
-    const std::string& datadir,
-    const mw::db::IBlockStore* pBlockStore,
-    const mw::BlockHash& firstMWHeaderHash,
-    const mw::BlockHash& stateHeaderHash,
-    const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper,
-    const mw::State& state)
+EXPORT libmw::CoinsViewRef ApplyState(
+    const libmw::IBlockStore::Ptr& pBlockStore,
+    const libmw::IDBWrapper::Ptr& pCoinsDB,
+    const libmw::BlockHash& firstMWHeaderHash,
+    const libmw::BlockHash& stateHeaderHash,
+    const libmw::StateRef& state)
 {
-    BlockStoreWrapper blockStore(pBlockStore);
+    BlockStoreWrapper blockStore(pBlockStore.get());
     auto pCoinsViewDB = NODE->ApplyState(
-        pDBWrapper,
+        pCoinsDB,
         blockStore,
         mw::Hash{ firstMWHeaderHash },
         mw::Hash{ stateHeaderHash },
-        state.utxos,
-        state.kernels
+        state.pState->utxos,
+        state.pState->kernels
     );
 
-    return mw::CoinsViewRef{ pCoinsViewDB };
+    return libmw::CoinsViewRef{ pCoinsViewDB };
 }
 
-EXPORT void CheckBlock(const mw::BlockRef& block, const std::vector<mw::PegIn>& pegInCoins, const std::vector<mw::PegOut>& pegOutCoins)
+EXPORT void CheckBlock(const libmw::BlockRef& block, const std::vector<libmw::PegIn>& pegInCoins, const std::vector<libmw::PegOut>& pegOutCoins)
 {
     auto pegins = TransformPegIns(pegInCoins);
     auto pegouts = TransformPegOuts(pegOutCoins);
     NODE->ValidateBlock(block.pBlock, pegins, pegouts);
 }
 
-EXPORT void ConnectBlock(const mw::BlockRef& block, const CoinsViewRef& view)
+EXPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const CoinsViewRef& view)
 {
-    NODE->ConnectBlock(block.pBlock, view.pCoinsView);
+    return libmw::BlockUndoRef{ NODE->ConnectBlock(block.pBlock, view.pCoinsView) };
 }
 
-EXPORT void DisconnectBlock(const mw::BlockRef& block, const CoinsViewRef& view)
+EXPORT void DisconnectBlock(const libmw::BlockUndoRef& undoData, const CoinsViewRef& view)
 {
-    NODE->DisconnectBlock(block.pBlock, view.pCoinsView);
+    NODE->DisconnectBlock(undoData.pUndo, view.pCoinsView);
 }
 
-EXPORT mw::StateRef DeserializeState(std::vector<uint8_t>&& bytes)
+EXPORT libmw::BlockRef BuildNextBlock(
+    const uint64_t height,
+    const libmw::CoinsViewRef& view,
+    const std::vector<libmw::TxRef>& transactions,
+    const std::vector<libmw::PegIn>& pegInCoins,
+    const std::vector<libmw::PegOut>& pegOutCoins)
+{
+    auto pViewCache = dynamic_cast<mw::CoinsViewCache*>(view.pCoinsView.get());
+    assert(pViewCache != nullptr);
+
+    auto txs = TransformTxs(transactions);
+    auto pBlock = pViewCache->BuildNextBlock(height, txs);
+
+    return libmw::BlockRef{ pBlock };
+}
+
+EXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch)
+{
+    auto pViewCache = dynamic_cast<mw::CoinsViewCache*>(view.pCoinsView.get());
+    assert(pViewCache != nullptr);
+
+    pViewCache->Flush(pBatch);
+}
+
+EXPORT libmw::StateRef DeserializeState(std::vector<uint8_t>&& bytes)
 {
     Deserializer deserializer{ std::move(bytes) };
     mw::State state = mw::State::Deserialize(deserializer);
     return { std::make_shared<mw::State>(std::move(state)) };
 }
 
-EXPORT std::vector<uint8_t> SerializeState(const mw::StateRef& state)
+EXPORT std::vector<uint8_t> SerializeState(const libmw::StateRef& state)
 {
     return state.pState->Serialized();
 }
 
-EXPORT mw::StateRef SnapshotState(const mw::CoinsViewRef& view, const mw::BlockHash& block_hash)
+EXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view, const libmw::BlockHash& block_hash)
 {
     return { nullptr }; // TODO: Implement
 }
 
-EXPORT void CheckTransaction(const mw::TxRef& transaction)
+EXPORT void CheckTransaction(const libmw::TxRef& transaction)
 {
     // TODO: Implement
 }

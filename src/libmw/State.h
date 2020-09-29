@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ext/libmw.h>
+#include <libmw/libmw.h>
 #include <mw/models/block/Header.h>
 #include <mw/models/tx/Kernel.h>
 #include <mw/models/tx/UTXO.h>

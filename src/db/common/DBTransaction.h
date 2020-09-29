@@ -7,7 +7,7 @@
 #include <mw/exceptions/DatabaseException.h>
 #include <mw/serialization/Serializer.h>
 #include <mw/traits/Serializable.h>
-#include <ext/interfaces.h>
+#include <libmw/interfaces.h>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -18,7 +18,7 @@ class DBTransaction
 public:
     using UPtr = std::unique_ptr<DBTransaction>;
 
-    DBTransaction(mw::db::IDBWrapper* pDB, mw::db::IDBBatch* pBatch)
+    DBTransaction(libmw::IDBWrapper* pDB, libmw::IDBBatch* pBatch)
         : m_pDB(pDB), m_pBatch(pBatch) { }
 
     template<typename T,
@@ -71,7 +71,7 @@ public:
     }
 
 private:
-    mw::db::IDBWrapper* m_pDB;
-    mw::db::IDBBatch* m_pBatch;
+    libmw::IDBWrapper* m_pDB;
+    libmw::IDBBatch* m_pBatch;
     OrderedMultimap<std::string, Traits::ISerializable> m_added;
 };

@@ -3,7 +3,7 @@
 
 static const DBTable UTXO_TABLE = { 'U', DBTable::Options({ true /* allowDuplicates */ }) };
 
-CoinDB::CoinDB(mw::db::IDBWrapper* pDBWrapper, mw::db::IDBBatch* pBatch)
+CoinDB::CoinDB(libmw::IDBWrapper* pDBWrapper, libmw::IDBBatch* pBatch)
     : m_pDatabase(std::make_unique<Database>(pDBWrapper, pBatch))
 {
 

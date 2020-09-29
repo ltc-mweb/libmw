@@ -151,7 +151,7 @@ private:
     }
 
     File m_file;
-    std::map<uint64_t, uint8_t> m_modifiedBytes;
+    std::unordered_map<uint64_t, uint8_t> m_modifiedBytes;
     MemMap m_memmap;
 
     static const bool s_true{ false };

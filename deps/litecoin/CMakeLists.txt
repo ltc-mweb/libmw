@@ -4,7 +4,7 @@ file(GLOB SOURCE_CODE
     bech32.cpp
     chainparamsbase.cpp
     clientversion.cpp
-    dbwrapper.cpp
+    #dbwrapper.cpp
     fs.cpp
     hash.cpp
     logging.cpp
@@ -50,4 +50,4 @@ target_compile_definitions(${TARGET_NAME} PUBLIC
     COPYRIGHT_YEAR=2018
     HAVE_WORKING_BOOST_SLEEP_FOR
 )
-target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_LIST_DIR}/leveldb/helpers/memenv ${CMAKE_CURRENT_LIST_DIR}/leveldb)
+target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})# ${CMAKE_CURRENT_LIST_DIR}/leveldb/helpers/memenv ${CMAKE_CURRENT_LIST_DIR}/leveldb)

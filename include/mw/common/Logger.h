@@ -31,6 +31,7 @@ namespace LoggerAPI
     };
 
     LOGGER_API void Initialize(const FilePath& logDirectory, const std::string& logLevel);
+    LOGGER_API void Shutdown();
     LOGGER_API void Flush();
 
     LOGGER_API LogLevel GetLogLevel(const LogFile file) noexcept;

@@ -3,97 +3,93 @@
 
 MMR_NAMESPACE
 
-void LeafSet::Add(const LeafIndex& idx)
+LeafSet::Ptr LeafSet::Open(const FilePath& leafset_dir)
 {
-    uint8_t byte = GetByte(idx.GetLeafIndex() / 8);
-    byte |= BitToByte(idx.GetLeafIndex() % 8);
-    m_modifiedBytes[idx.GetLeafIndex() / 8] = byte;
+	File file = leafset_dir.GetChild("leafset.bin");
+    if (!file.Exists()) {
+        file.Create();
+    }
+
+    mmr::LeafIndex nextLeafIdx = mmr::LeafIndex::At(0);
+    if (file.GetSize() < 8) {
+        file.Write(Serializer().Append<uint64_t>(0).vec());
+    } else {
+        Deserializer deserializer{ file.ReadBytes(0, 8) };
+        nextLeafIdx = mmr::LeafIndex::At(deserializer.Read<uint64_t>());
+    }
+
+    MemMap mappedFile{ file };
+    mappedFile.Map();
+	return std::shared_ptr<LeafSet>(new LeafSet{ std::move(mappedFile), nextLeafIdx });
 }
 
-void LeafSet::Remove(const LeafIndex& idx)
+//uint64_t LeafSet::GetSize() const
+//{
+//	size_t size = m_mmap.size();
+//	for (auto iter = m_modifiedBytes.cbegin(); iter != m_modifiedBytes.cend(); iter++)
+//	{
+//		if (iter->first >= size) {
+//			size = iter->first + 1;
+//		}
+//	}
+//
+//	return size * 8;
+//}
+
+void LeafSet::ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unordered_map<uint64_t, uint8_t>& modifiedBytes)
 {
-    uint8_t byte = GetByte(idx.GetLeafIndex() / 8);
-    byte &= (0xff ^ BitToByte(idx.GetLeafIndex() % 8));
-    m_modifiedBytes[idx.GetLeafIndex() / 8] = byte;
+	for (auto byte : modifiedBytes) {
+		m_modifiedBytes[byte.first + 8] = byte.second;
+	}
+
+    // In case of rewind, make sure to clear everything above the new next
+    for (size_t idx = nextLeafIdx.Get(); idx < m_nextLeafIdx.Get(); idx++) {
+        Remove(mmr::LeafIndex::At(idx));
+    }
+
+    m_nextLeafIdx = nextLeafIdx;
+
+    Flush();
 }
 
-bool LeafSet::Contains(const LeafIndex& idx) const noexcept
+void LeafSet::Flush()
 {
-    return GetByte(idx.GetLeafIndex() / 8) & BitToByte(idx.GetLeafIndex() % 8);
-}
+    m_mmap.Unmap();
 
-mw::Hash LeafSet::Root(const uint64_t numLeaves) const
-{
-	uint8_t bitsToClear = 0;
-	uint64_t numBytes = (numLeaves / 8);
-	if (numLeaves % 8 != 0) {
-		++numBytes;
-		bitsToClear = 8 - (numLeaves % 8);
-	}
+    std::vector<uint8_t> nextLeafIdxBytes = Serializer().Append<uint64_t>(m_nextLeafIdx.Get()).vec();
+    assert(nextLeafIdxBytes.size() == 8);
 
-	std::vector<uint8_t> bytes(numBytes);
-	for (uint64_t byte_idx = 0; byte_idx < numBytes; byte_idx++)
-	{
-		uint8_t byte = GetByte(byte_idx);
-		if (byte_idx == (numBytes - 1)) {
-			for (uint8_t bit = 0; bit < bitsToClear; bit++)
-			{
-				byte &= ~(1 << bit);
-			}
-		}
-		bytes[byte_idx] = byte;
-	}
+    for (uint8_t i = 0; i < 8; i++) {
+        m_modifiedBytes[i] = nextLeafIdxBytes[i];
+    }
 
-	return Hashed(bytes);
-}
+    m_mmap.GetFile().WriteBytes(m_modifiedBytes);
+    m_mmap.Map();
 
-uint64_t LeafSet::GetSize() const
-{
-	size_t size = m_mmap.size();
-	for (auto iter = m_modifiedBytes.cbegin(); iter != m_modifiedBytes.cend(); iter++)
-	{
-		if (iter->first >= size) {
-			size = iter->first + 1;
-		}
-	}
-
-	return size * 8;
-}
-
-void LeafSet::Rewind(const uint64_t numLeaves, const std::vector<LeafIndex>& leavesToAdd)
-{
-	for (const LeafIndex& idx : leavesToAdd)
-	{
-		Add(idx);
-	}
-
-	size_t currentSize = GetSize();
-	for (size_t i = numLeaves; i < currentSize; i++)
-	{
-		Remove(LeafIndex::At(i));
-	}
+    m_modifiedBytes.clear();
 }
 
 uint8_t LeafSet::GetByte(const uint64_t byteIdx) const
 {
-    auto iter = m_modifiedBytes.find(byteIdx);
+    // Offset by 8 bytes, since first 8 bytes in file represent the next leaf index
+    const uint64_t byteIdxWithOffset = byteIdx + 8;
+
+    auto iter = m_modifiedBytes.find(byteIdxWithOffset);
     if (iter != m_modifiedBytes.cend())
     {
         return iter->second;
     }
-    else if (byteIdx < m_mmap.size())
+    else if (byteIdxWithOffset < m_mmap.size())
     {
-        return m_mmap.ReadByte(byteIdx);
+        return m_mmap.ReadByte(byteIdxWithOffset);
     }
 
     return 0;
 }
 
-// Returns a byte with the given bit (0-7) set.
-// Example: BitToByte(2) returns 32 (00100000).
-uint8_t LeafSet::BitToByte(const uint8_t bit) const
+void LeafSet::SetByte(const uint64_t byteIdx, const uint8_t value)
 {
-    return 1 << (7 - bit);
+	m_modifiedBytes[byteIdx + 8] = value;
 }
 
 END_NAMESPACE

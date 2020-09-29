@@ -28,6 +28,11 @@ void File::Create()
     }
 }
 
+bool File::Exists() const
+{
+    return m_path.Exists() && !m_path.IsDirectory();
+}
+
 void File::Truncate(const uint64_t size)
 {
     bool success = false;
@@ -112,6 +117,31 @@ std::vector<uint8_t> File::ReadBytes() const
     return bytes;
 }
 
+std::vector<uint8_t> File::ReadBytes(const size_t startIndex, const size_t numBytes) const
+{
+    std::error_code ec;
+    if (!filesystem::exists(m_path.m_path, ec) || ec) {
+        ThrowFile_F("{} not found", *this);
+    }
+
+    std::ifstream file(m_path.m_path, std::ios::in | std::ios::binary);
+    if (!file.is_open()) {
+        ThrowFile_F("Failed to open {} for reading", *this);
+    }
+
+    const size_t size = (size_t)filesystem::file_size(m_path.m_path, ec);
+    if (size < (startIndex + numBytes)) {
+        ThrowFile_F("Failed to read {} bytes from {}.", numBytes, *this);
+    }
+
+    std::vector<uint8_t> bytes((size_t)numBytes);
+    file.seekg(startIndex, std::ios::beg);
+    file.read((char*)bytes.data(), numBytes);
+    file.close();
+
+    return bytes;
+}
+
 void File::Write(const std::vector<uint8_t>& bytes)
 {
     std::ofstream file(m_path.m_path, std::ios::out | std::ios::binary | std::ios::app);
@@ -128,7 +158,7 @@ void File::Write(const size_t startIndex, const std::vector<uint8_t>& bytes, con
 {
     if (!bytes.empty())
     {
-        std::ofstream file(m_path.m_path, std::ios::out | std::ios::binary | std::ios::app);
+        std::fstream file(m_path.m_path, std::ios::out | std::ios::binary | std::ios::app);
         if (!file.is_open())
         {
             ThrowFile_F("Failed to write to file: {}", m_path);
@@ -145,9 +175,9 @@ void File::Write(const size_t startIndex, const std::vector<uint8_t>& bytes, con
     }
 }
 
-void File::WriteBytes(const std::map<uint64_t, uint8_t>& bytes)
+void File::WriteBytes(const std::unordered_map<uint64_t, uint8_t>& bytes)
 {
-    std::ofstream file(m_path.m_path, std::ios_base::binary | std::ios_base::out | std::ios_base::in);
+    std::fstream file(m_path.m_path, std::ios_base::binary | std::ios_base::out | std::ios_base::in);
 
     for (auto iter : bytes)
     {
@@ -160,6 +190,10 @@ void File::WriteBytes(const std::map<uint64_t, uint8_t>& bytes)
 
 size_t File::GetSize() const
 {
+    if (!m_path.Exists()) {
+        return 0;
+    }
+
     std::error_code ec;
     const size_t size = (size_t)filesystem::file_size(m_path.m_path, ec);
     if (ec)

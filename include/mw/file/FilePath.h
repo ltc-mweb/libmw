@@ -106,7 +106,7 @@ public:
         return filesystem::is_directory(m_path, ec);
     }
 
-    void CreateDirIfMissing() const
+    FilePath CreateDirIfMissing() const
     {
         std::error_code ec;
         filesystem::create_directories(m_path, ec);
@@ -114,13 +114,15 @@ public:
         {
             ThrowFile_F("Error ({}) while trying to create directory {}", ec.message(), *this);
         }
+
+        return *this;
     }
 
     void Remove() const
     {
         std::error_code ec;
         filesystem::remove_all(m_path, ec);
-        if (ec)
+        if (ec && Exists_Safe())
         {
             ThrowFile_F("Error ({}) while trying to remove {}", ec.message(), *this);
         }

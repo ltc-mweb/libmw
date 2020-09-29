@@ -13,6 +13,8 @@ public:
         const spdlog::level::level_enum& logLevel
     );
 
+    void StopLogger();
+
     void Log(
         const LoggerAPI::LogFile file,
         const LoggerAPI::LogLevel logLevel,

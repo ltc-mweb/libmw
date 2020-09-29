@@ -10,7 +10,7 @@ static const size_t KERNEL_BATCH_SIZE = 512;
 static const size_t PROOF_BATCH_SIZE = 512;
 
 mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
-	const std::shared_ptr<mw::db::IDBWrapper>& pDBWrapper,
+	const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
 	const mw::IBlockStore& blockStore,
     const FilePath& chainDir,
 	const mw::Hash& firstMWHeaderHash,
@@ -64,7 +64,14 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	coinDB.AddUTXOs(utxos);
 	pBatch->Commit();
 
-	return std::make_shared<mw::CoinsViewDB>(pDBWrapper, pLeafSet, pKernelMMR, pOutputMMR, pRangeProofMMR);
+	return std::make_shared<mw::CoinsViewDB>(
+		pStateHeader,
+		pDBWrapper,
+		pLeafSet,
+		pKernelMMR,
+		pOutputMMR,
+		pRangeProofMMR
+	);
 }
 
 // TODO: Also validate peg-in/peg-out transactions
@@ -132,13 +139,13 @@ mmr::LeafSet::Ptr CoinsViewFactory::BuildAndValidateLeafSet(
 	const std::vector<UTXO::CPtr>& utxos)
 {
 	File file(chainDir.GetChild("leafset.bin"));
-	auto pLeafSet = std::make_shared<mmr::LeafSet>(MemMap{ file });
+	auto pLeafSet = mmr::LeafSet::Open(chainDir);
 	for (const UTXO::CPtr& pUTXO : utxos)
 	{
 		pLeafSet->Add(pUTXO->GetLeafIndex());
 	}
 
-	if (pLeafSet->Root(pStateHeader->GetNumTXOs()) != pStateHeader->GetLeafsetRoot()) {
+	if (pLeafSet->Root() != pStateHeader->GetLeafsetRoot()) {
 		ThrowValidation(EConsensusError::MMR_MISMATCH);
 	}
 

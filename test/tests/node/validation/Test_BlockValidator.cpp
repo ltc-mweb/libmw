@@ -1,10 +1,15 @@
 #include <catch.hpp>
 
-#include <test_framework/Node.h>
+#include <mw/node/INode.h>
+#include <mw/file/ScopedFileRemover.h>
 #include <test_framework/Miner.h>
+#include <test_framework/TestNode.h>
 
 TEST_CASE("BlockValidator")
 {
+    FilePath datadir = test::TestUtil::GetTempDir();
+    ScopedFileRemover remover(datadir); // Removes the directory when this goes out of scope.
+
     test::Miner miner;
 
     // Block 10
@@ -18,6 +23,9 @@ TEST_CASE("BlockValidator")
     std::vector<PegOutCoin> pegOutCoins;
     test::MinedBlock block_10 = miner.MineBlock(10, block_10_txs);
 
-    test::Node::Ptr pNode = test::Node::Create();
+    mw::INode::Ptr pNode = test::CreateNode(datadir);
+
+    REQUIRE_FALSE(block_10.GetBlock()->WasValidated());
     pNode->ValidateBlock(block_10.GetBlock(), pegInCoins, pegOutCoins);
+    REQUIRE(block_10.GetBlock()->WasValidated());
 }

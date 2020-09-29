@@ -5,10 +5,12 @@
 #include <mw/models/tx/Transaction.h>
 #include <mw/consensus/Aggregation.h>
 #include <mw/mmr/MMR.h>
+#include <mw/mmr/LeafSet.h>
 #include <mw/mmr/backends/VectorBackend.h>
 
 #include <test_framework/models/MinedBlock.h>
 #include <test_framework/models/Tx.h>
+#include <test_framework/TestLeafSet.h>
 
 #include <iostream>
 
@@ -38,16 +40,17 @@ public:
         auto kernelMMR = GetKernelMMR(pTransaction->GetKernels());
         auto outputMMR = GetOutputMMR(pTransaction->GetOutputs());
         auto rangeProofMMR = GetRangeProofMMR(pTransaction->GetOutputs());
+        auto pLeafSet = GetLeafSet(pTransaction->GetInputs(), pTransaction->GetOutputs());
 
         auto pHeader = std::make_shared<mw::Header>(
             height,
             outputMMR.Root(),
             rangeProofMMR.Root(),
             kernelMMR.Root(),
-			mw::Hash(), // TODO: Add LeafSet root
+            pLeafSet->Root(),
             std::move(offset),
-            outputMMR.GetNumNodes(),
-            kernelMMR.GetNumNodes()
+            outputMMR.GetNumLeaves(),
+            kernelMMR.GetNumLeaves()
         );
 
         std::cout << "Mined Block: " << pHeader->GetHeight() << " - " << pHeader->Format() << std::endl;
@@ -119,6 +122,36 @@ private:
         }
 
         return mmr;
+    }
+
+    TestLeafSet::Ptr GetLeafSet(const std::vector<Input>& additionalInputs = {}, const std::vector<Output>& additionalOutputs = {})
+    {
+        std::vector<TestLeafSet::BlockInfo> blockInfos;
+        for (const MinedBlock& block : m_blocks) {
+            TestLeafSet::BlockInfo blockInfo;
+            for (const Input& input : block.GetBlock()->GetInputs()) {
+                blockInfo.inputs.push_back(input.GetCommitment());
+            }
+
+            for (const Output& output : block.GetBlock()->GetOutputs()) {
+                blockInfo.outputs.push_back(output.GetCommitment());
+            }
+
+            blockInfos.push_back(blockInfo);
+        }
+
+        TestLeafSet::BlockInfo blockInfo;
+        for (const Input& input : additionalInputs) {
+            blockInfo.inputs.push_back(input.GetCommitment());
+        }
+
+        for (const Output& output : additionalOutputs) {
+            blockInfo.outputs.push_back(output.GetCommitment());
+        }
+
+        blockInfos.push_back(blockInfo);
+
+        return TestLeafSet::Create(blockInfos);
     }
 
     std::vector<MinedBlock> m_blocks;

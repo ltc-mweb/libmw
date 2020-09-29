@@ -2,6 +2,7 @@
 
 #include <mw/common/Macros.h>
 #include <mw/models/tx/Transaction.h>
+#include <mw/models/tx/PegInCoin.h>
 #include <mw/crypto/Random.h>
 #include <mw/crypto/Hasher.h>
 
@@ -79,6 +80,13 @@ public:
     }
 
     const mw::Transaction::CPtr& GetTransaction() const noexcept { return m_pTransaction; }
+    const std::vector<Output>& GetOutputs() const noexcept { return m_pTransaction->GetOutputs(); }
+
+    PegInCoin GetPegInCoin() const
+    {
+        const auto& kernel = m_pTransaction->GetKernels().front();
+        return PegInCoin(kernel.GetAmount(), kernel.GetCommitment());
+    }
 
 private:
     mw::Transaction::CPtr m_pTransaction;

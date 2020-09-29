@@ -96,5 +96,3 @@ public:
 
     virtual ~CompactSignature() = default;
 };
-
-// TODO: Create RawSignature
