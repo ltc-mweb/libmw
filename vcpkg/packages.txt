@@ -4,3 +4,4 @@ leveldb
 fmt
 asio
 Catch2
+spdlog
