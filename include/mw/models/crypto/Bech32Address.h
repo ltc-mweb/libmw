@@ -23,6 +23,11 @@ public:
         return Bech32Address(decoded.first, decoded.second);
     }
 
+    std::string ToString() const
+    {
+        return bech32::Encode(m_hrp, m_address);
+    }
+
     //
     // Operators
     //

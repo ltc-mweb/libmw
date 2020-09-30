@@ -14,9 +14,9 @@ static mw::INode::Ptr NODE = nullptr;
 
 LIBMW_NAMESPACE
 
-EXPORT libmw::HeaderRef DeserializeHeader(std::vector<uint8_t>&& bytes)
+EXPORT libmw::HeaderRef DeserializeHeader(const std::vector<uint8_t>& bytes)
 {
-    Deserializer deserializer{ std::move(bytes) };
+    Deserializer deserializer{ bytes };
     auto pHeader = std::make_shared<mw::Header>(mw::Header::Deserialize(deserializer));
     return libmw::HeaderRef{ pHeader };
 }
@@ -26,9 +26,9 @@ EXPORT std::vector<uint8_t> SerializeHeader(const libmw::HeaderRef& header)
     return header.pHeader->Serialized();
 }
 
-EXPORT libmw::BlockRef DeserializeBlock(std::vector<uint8_t>&& bytes)
+EXPORT libmw::BlockRef DeserializeBlock(const std::vector<uint8_t>& bytes)
 {
-    Deserializer deserializer{ std::move(bytes) };
+    Deserializer deserializer{ bytes };
     auto pBlock = std::make_shared<mw::Block>(mw::Block::Deserialize(deserializer));
     return libmw::BlockRef{ pBlock };
 }
@@ -38,9 +38,9 @@ EXPORT std::vector<uint8_t> SerializeBlock(const libmw::BlockRef& block)
     return block.pBlock->Serialized();
 }
 
-EXPORT libmw::BlockUndoRef DeserializeBlockUndo(std::vector<uint8_t>&& bytes)
+EXPORT libmw::BlockUndoRef DeserializeBlockUndo(const std::vector<uint8_t>& bytes)
 {
-    Deserializer deserializer{ std::move(bytes) };
+    Deserializer deserializer{ bytes };
     auto pBlockUndo = std::make_shared<mw::BlockUndo>(mw::BlockUndo::Deserialize(deserializer));
     return libmw::BlockUndoRef{ pBlockUndo };
 }
@@ -50,12 +50,27 @@ EXPORT std::vector<uint8_t> SerializeBlockUndo(const libmw::BlockUndoRef& blockU
     return blockUndo.pUndo->Serialized();
 }
 
+EXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
+{
+    std::vector<PegOut> pegouts;
+    for (const Kernel& kernel : pTransaction->GetKernels()) {
+        if (kernel.IsPegOut()) {
+            PegOut pegout;
+            pegout.amount = kernel.GetPeggedOut();
+            pegout.address = kernel.GetAddress().value().ToString();
+            pegouts.emplace_back(std::move(pegout));
+        }
+    }
+
+    return pegouts;
+}
+
 EXPORT uint64_t TxRef::GetTotalFee() const noexcept
 {
     return pTransaction->GetTotalFee();
 }
 
-EXPORT libmw::TxRef DeserializeTx(std::vector<uint8_t>&& bytes)
+EXPORT libmw::TxRef DeserializeTx(const std::vector<uint8_t>& bytes)
 {
     Deserializer deserializer{ bytes };
     auto pTx = std::make_shared<mw::Transaction>(mw::Transaction::Deserialize(deserializer));
@@ -149,9 +164,9 @@ EXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<li
     pViewCache->Flush(pBatch);
 }
 
-EXPORT libmw::StateRef DeserializeState(std::vector<uint8_t>&& bytes)
+EXPORT libmw::StateRef DeserializeState(const std::vector<uint8_t>& bytes)
 {
-    Deserializer deserializer{ std::move(bytes) };
+    Deserializer deserializer{ bytes };
     mw::State state = mw::State::Deserialize(deserializer);
     return { std::make_shared<mw::State>(std::move(state)) };
 }

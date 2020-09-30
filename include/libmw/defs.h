@@ -76,6 +76,7 @@ struct BlockUndoRef
 
 struct TxRef
 {
+    IMPORT std::vector<PegOut> GetPegouts() const noexcept;
     IMPORT uint64_t GetTotalFee() const noexcept;
 
     std::shared_ptr<mw::Transaction> pTransaction;

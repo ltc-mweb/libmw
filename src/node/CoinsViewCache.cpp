@@ -24,6 +24,8 @@ std::vector<UTXO::CPtr> CoinsViewCache::GetUTXOs(const Commitment& commitment) c
 
 mw::BlockUndo::CPtr CoinsViewCache::ApplyBlock(const mw::Block::Ptr& pBlock)
 {
+    assert(pBlock != nullptr);
+
     auto pPreviousHeader = GetBestHeader();
     SetBestHeader(pBlock->GetHeader());
 
@@ -57,6 +59,8 @@ mw::BlockUndo::CPtr CoinsViewCache::ApplyBlock(const mw::Block::Ptr& pBlock)
 
 void CoinsViewCache::UndoBlock(const mw::BlockUndo::CPtr& pUndo)
 {
+    assert(pUndo != nullptr);
+
     for (const Commitment& coinToRemove : pUndo->GetCoinsAdded()) {
         m_pUpdates->SpendUTXO(coinToRemove);
     }

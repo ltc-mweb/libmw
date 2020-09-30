@@ -55,8 +55,8 @@ jobs:
         working-directory: vcpkg
         if: ${{ failure() }}
         run: |
-          cat /Users/runner/work/libmw-ltc/libmw-ltc/vcpkg/buildtrees/python3/make-build-x64-osx-release-out.log
-          cat /Users/runner/work/libmw-ltc/libmw-ltc/vcpkg/buildtrees/python3/make-build-x64-osx-release-err.log
+          cat /Users/runner/work/libmw-ltc/libmw-ltc/vcpkg/buildtrees/python3/make-build-x64-osx-libmw-release-out.log
+          cat /Users/runner/work/libmw-ltc/libmw-ltc/vcpkg/buildtrees/python3/make-build-x64-osx-libmw-release-err.log
       - name: 'Run CMake'
         uses: lukka/run-cmake@v2
         with:

@@ -10,10 +10,14 @@ MW_NAMESPACE
 
 std::vector<UTXO::CPtr> CoinsViewDB::GetUTXOs(const Commitment& commitment) const
 {
+    CoinDB coinDB(m_pDatabase.get(), nullptr);
+    return GetUTXOs(coinDB, commitment);
+}
+
+std::vector<UTXO::CPtr> CoinsViewDB::GetUTXOs(const CoinDB& coinDB, const Commitment& commitment) const
+{
     std::vector<uint8_t> value;
 
-    // TODO: Need to read from batch first
-    CoinDB coinDB(m_pDatabase.get(), nullptr);
     auto utxos_by_commitment = coinDB.GetUTXOs({ commitment });
     auto iter = utxos_by_commitment.find(commitment);
     if (iter != utxos_by_commitment.cend()) {
@@ -37,7 +41,7 @@ void CoinsViewDB::AddUTXO(CoinDB& coinDB, const Output& output)
 void CoinsViewDB::AddUTXO(CoinDB& coinDB, const UTXO::CPtr& pUTXO)
 {
     const Commitment& commitment = pUTXO->GetOutput().GetCommitment();
-    std::vector<UTXO::CPtr> utxos = GetUTXOs(commitment);
+    std::vector<UTXO::CPtr> utxos = GetUTXOs(coinDB, commitment);
     utxos.push_back(pUTXO);
 
     coinDB.AddUTXOs(std::vector<UTXO::CPtr>{ pUTXO });
@@ -45,7 +49,7 @@ void CoinsViewDB::AddUTXO(CoinDB& coinDB, const UTXO::CPtr& pUTXO)
 
 void CoinsViewDB::SpendUTXO(CoinDB& coinDB, const Commitment& commitment)
 {
-    std::vector<UTXO::CPtr> utxos = GetUTXOs(commitment);
+    std::vector<UTXO::CPtr> utxos = GetUTXOs(coinDB, commitment);
     if (utxos.empty()) {
 		ThrowValidation(EConsensusError::UTXO_MISSING);
     }

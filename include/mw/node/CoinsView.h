@@ -192,6 +192,7 @@ private:
     void AddUTXO(CoinDB& coinDB, const Output& output);
     void AddUTXO(CoinDB& coinDB, const UTXO::CPtr& pUTXO);
     void SpendUTXO(CoinDB& coinDB, const Commitment& commitment);
+    std::vector<UTXO::CPtr> GetUTXOs(const CoinDB& coinDB, const Commitment& commitment) const;
 
     std::shared_ptr<libmw::IDBWrapper> m_pDatabase;
 

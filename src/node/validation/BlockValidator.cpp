@@ -7,6 +7,8 @@ void BlockValidator::Validate(
     const std::vector<PegInCoin>& pegInCoins,
     const std::vector<PegOutCoin>& pegOutCoins)
 {
+    assert(pBlock != nullptr);
+
     if (pBlock->WasValidated()) {
         return;
     }

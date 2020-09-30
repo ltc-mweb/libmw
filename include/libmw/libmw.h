@@ -19,16 +19,16 @@ LIBMW_NAMESPACE
 
 // TODO: Thoroughly document usage
 
-IMPORT libmw::HeaderRef DeserializeHeader(std::vector<uint8_t>&& bytes);
+IMPORT libmw::HeaderRef DeserializeHeader(const std::vector<uint8_t>& bytes);
 IMPORT std::vector<uint8_t> SerializeHeader(const libmw::HeaderRef& header);
 
-IMPORT libmw::BlockRef DeserializeBlock(std::vector<uint8_t>&& bytes);
+IMPORT libmw::BlockRef DeserializeBlock(const std::vector<uint8_t>& bytes);
 IMPORT std::vector<uint8_t> SerializeBlock(const libmw::BlockRef& block);
 
-IMPORT libmw::BlockUndoRef DeserializeBlockUndo(std::vector<uint8_t>&& bytes);
+IMPORT libmw::BlockUndoRef DeserializeBlockUndo(const std::vector<uint8_t>& bytes);
 IMPORT std::vector<uint8_t> SerializeBlockUndo(const libmw::BlockUndoRef& blockUndo);
 
-IMPORT libmw::TxRef DeserializeTx(std::vector<uint8_t>&& bytes);
+IMPORT libmw::TxRef DeserializeTx(const std::vector<uint8_t>& bytes);
 IMPORT std::vector<uint8_t> SerializeTx(const libmw::TxRef& tx);
 
 NODE_NAMESPACE
@@ -74,7 +74,7 @@ IMPORT libmw::BlockRef BuildNextBlock(
 IMPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr);
 
 // State
-IMPORT libmw::StateRef DeserializeState(std::vector<uint8_t>&& bytes);
+IMPORT libmw::StateRef DeserializeState(const std::vector<uint8_t>& bytes);
 IMPORT std::vector<uint8_t> SerializeState(const libmw::StateRef& state);
 IMPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view, const libmw::BlockHash& block_hash);
 

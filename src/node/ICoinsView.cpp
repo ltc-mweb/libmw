@@ -4,6 +4,8 @@ MW_NAMESPACE
 
 void ICoinsView::ValidateMMRs(const mw::Header::CPtr& pHeader) const
 {
+    assert(pHeader != nullptr);
+
     if (pHeader->GetKernelRoot() != GetKernelMMR()->Root()
         || pHeader->GetNumKernels() != GetKernelMMR()->GetNumLeaves()
         || pHeader->GetOutputRoot() != GetOutputPMMR()->Root()
