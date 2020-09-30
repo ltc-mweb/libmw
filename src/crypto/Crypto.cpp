@@ -2,13 +2,13 @@
 #include <mw/exceptions/CryptoException.h>
 #include <mw/common/Logger.h>
 
-//#include <Crypto/Blake2.h>
-#include <Crypto/sha256.h>
-#include <Crypto/ripemd160.h>
-#include <Crypto/hmac_sha256.h>
-#include <Crypto/hmac_sha512.h>
-#include <Crypto/aes.h>
-#include <Crypto/siphash.h>
+//#include <crypto/Blake2.h>
+#include <crypto/sha256.h>
+#include <crypto/ripemd160.h>
+#include <crypto/hmac_sha256.h>
+#include <crypto/hmac_sha512.h>
+#include <crypto/aes.h>
+#include <crypto/siphash.h>
 #include <cassert>
 
 // Secp256k1

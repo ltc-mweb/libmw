@@ -40,17 +40,17 @@ jobs:
           repository: microsoft/vcpkg
           path: vcpkg
           ref: '2020.06'
-      - name: Cache vcpkg artifacts
-        uses: actions/cache@v2
-        with:
-          path: ${{ github.workspace }}/vcpkg/
-          key: ${{ hashFiles( '.git/HEAD' ) }}--${{ hashFiles( '../libmw/vcpkg/*' ) }}${{ runner.os }}
       - name: Run vcpkg
-        uses: lukka/run-vcpkg@v3
+        uses: lukka/run-vcpkg@v4
         with:
+          # Response file stored in source control, it provides the list of ports and triplet(s).
           vcpkgArguments: '--triplet ${{ matrix.vcpkg_triplet }} @${{ github.workspace }}/libmw/vcpkg/packages.txt'
+          # Location of the vcpkg as submodule of the repository.
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgGitCommitId: '6185aa76504a5025f36754324abf307cc776f3da'
+          # Since the cache must be invalidated when content of the response file changes, let's
+          # compute its hash and append this to the computed cache's key.
+          appendedCacheKey: ${{ hashFiles('${{ github.workspace }}/libmw/vcpkg/packages.txt') }}
       - name: 'Run CMake'
         uses: lukka/run-cmake@v2
         with:
