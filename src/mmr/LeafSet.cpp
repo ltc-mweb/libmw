@@ -23,19 +23,6 @@ LeafSet::Ptr LeafSet::Open(const FilePath& leafset_dir)
 	return std::shared_ptr<LeafSet>(new LeafSet{ std::move(mappedFile), nextLeafIdx });
 }
 
-//uint64_t LeafSet::GetSize() const
-//{
-//	size_t size = m_mmap.size();
-//	for (auto iter = m_modifiedBytes.cbegin(); iter != m_modifiedBytes.cend(); iter++)
-//	{
-//		if (iter->first >= size) {
-//			size = iter->first + 1;
-//		}
-//	}
-//
-//	return size * 8;
-//}
-
 void LeafSet::ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unordered_map<uint64_t, uint8_t>& modifiedBytes)
 {
 	for (auto byte : modifiedBytes) {
