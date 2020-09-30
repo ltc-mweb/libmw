@@ -16,7 +16,7 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/caches/include)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/ghc/include)
 
 # crypto
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/crypto)
+#add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/crypto)
 
 # secp256k1-zkp
 include_directories(${CMAKE_CURRENT_LIST_DIR}/secp256k1-zkp/include)
