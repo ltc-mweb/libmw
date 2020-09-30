@@ -34,8 +34,6 @@ file(GLOB SOURCE_CODE
 add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})
 
 if (WIN32)
-    #target_sources(${TARGET_NAME} PRIVATE leveldb/port/port_win.cc)
-    #target_compile_definitions(${TARGET_NAME} PRIVATE LEVELDB_PLATFORM_WINDOWS)
     target_link_libraries(${TARGET_NAME} PUBLIC Ws2_32)
 endif()
 

@@ -14,12 +14,6 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(mio CONFIG REQUIRED)
 #target_link_libraries(main PRIVATE mio::mio mio::mio_base mio::mio_full_winapi)
 
-if (MW_TESTS)
-    # leveldb # TODO: Add Snappy dependency
-    find_package(leveldb CONFIG REQUIRED)
-    #target_link_libraries(main PRIVATE leveldb::leveldb)
-endif()
-
 #add_definitions(-DUNICODE)
 find_package(fmt CONFIG REQUIRED)
 #target_link_libraries(main PRIVATE fmt::fmt fmt::fmt-header-only)

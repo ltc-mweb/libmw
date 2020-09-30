@@ -40,14 +40,27 @@ jobs:
           repository: microsoft/vcpkg
           path: vcpkg
           ref: '2020.06'
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/vcpkg/
+          key: ${{ hashFiles( '.git/HEAD' ) }}--${{ hashFiles( '../libmw/vcpkg/*' ) }}${{ runner.os }}
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v3
         with:
           vcpkgArguments: '--triplet ${{ matrix.vcpkg_triplet }} @${{ github.workspace }}/libmw/vcpkg/packages.txt'
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgGitCommitId: '6185aa76504a5025f36754324abf307cc776f3da'
-      - name: make build directory
-        run: |
-            cd ${{ github.workspace }}/libmw && mkdir build && cd build
-            cmake -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} -DCMAKE_BUILD_TYPE=Release ..
-            cmake --build . --config Release
+      - name: 'Run CMake'
+        uses: lukka/run-cmake@v2
+        with:
+          cmakeGenerator: ${{ matrix.cmake_generator }}
+          cmakeBuildType: 'Release'
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+          cmakeListsTxtPath: '${{ github.workspace }}/libmw/CMakeLists.txt'
+          useVcpkgToolchainFile: true
+          vcpkgTriplet: '${{ matrix.vcpkg_triplet }}'
+          buildDirectory: '${{ github.workspace }}/build'
+          cmakeAppendedArgs: ' ${{ matrix.cmake_platform_args }} -DCMAKE_BUILD_TYPE=Release'
+          buildWithCMake: true
+          buildWithCMakeArgs: '--config Release'
