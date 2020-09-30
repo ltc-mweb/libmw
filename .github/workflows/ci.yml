@@ -21,7 +21,9 @@ jobs:
             os: windows-latest
             vcpkg_triplet: x64-windows-static
     steps:
-      - uses: actions/checkout@v1
+        uses: actions/checkout@v2
+        with:
+          path: libmw
       - name: setup macos environment
         if: runner.os == 'macOS'
         run: |
@@ -40,13 +42,11 @@ jobs:
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v3
         with:
-          vcpkgArguments: '--triplet ${{ matrix.vcpkg_triplet }} @${{ github.workspace }}/libmw-ltc/vcpkg/packages.txt'
+          vcpkgArguments: '--triplet ${{ matrix.vcpkg_triplet }} @${{ github.workspace }}/libmw/vcpkg/packages.txt'
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgGitCommitId: '6185aa76504a5025f36754324abf307cc776f3da'
       - name: make build directory
-        run: mkdir build
-      - name: configure and compile
-        working-directory: build
         run: |
-          cmake -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} -DCMAKE_BUILD_TYPE=Release ..
-          cmake --build . --config Release
+            cd ${{ github.workspace }}/libmw && mkdir build && cd build
+            cmake -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} -DCMAKE_BUILD_TYPE=Release ..
+            cmake --build . --config Release
