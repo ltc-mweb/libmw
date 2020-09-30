@@ -15,5 +15,5 @@ add_library(MW::${TARGET_NAME} ALIAS ${TARGET_NAME})
 
 target_compile_definitions(${TARGET_NAME} PRIVATE MW_CRYPTO)
 
-add_dependencies(${TARGET_NAME} crypto_deps secp256k1-zkp fmt::fmt MW::Common MW::Traits)
-target_link_libraries(${TARGET_NAME} PUBLIC crypto_deps secp256k1-zkp fmt::fmt MW::Common MW::Traits)
+add_dependencies(${TARGET_NAME} secp256k1-zkp fmt::fmt MW::Common MW::Traits)
+target_link_libraries(${TARGET_NAME} PUBLIC secp256k1-zkp fmt::fmt MW::Common MW::Traits)
