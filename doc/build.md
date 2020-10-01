@@ -3,7 +3,7 @@
 ### Pre-requisites
 * CMake 3.8+
 * Compiler with C++ 17 support (we recommend g++ 8 or later)
-* Ubuntu/Debian: `sudo apt-get update && sudo apt-get install build-essential tar curl zip unzip`
+* Ubuntu/Debian: `sudo apt-get update && sudo apt-get install build-essential tar curl zip unzip pkg-config`
 
 ### Building (Linux)
 
