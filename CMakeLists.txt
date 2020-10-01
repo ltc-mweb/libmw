@@ -36,15 +36,10 @@ endif()
 
 add_subdirectory(src)
 
-# Install includes & libs
+# Install includes
 install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/libmw/
     DESTINATION include/libmw
-)
-
-install(
-    TARGETS libmw
-    LIBRARY DESTINATION lib
 )
 
 if(MW_TESTS AND NOT LINUX)
