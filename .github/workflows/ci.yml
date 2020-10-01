@@ -23,47 +23,29 @@ jobs:
     steps:
       - name: Checkout libmw-ltc
         uses: actions/checkout@v2
-        with:
-          path: libmw
       - name: setup macos environment
         if: runner.os == 'macOS'
         run: |
           brew install gcc cmake
           echo "::set-env name=CC::gcc-${{ matrix.version }}"
           echo "::set-env name=CXX::g++-${{ matrix.version }}"
-      - name: setup ubuntu environment
-        if: runner.os == 'Linux'
-        run: sudo apt install uuid-dev
-      - name: Checkout vcpkg
-        uses: actions/checkout@v2
-        with:
-          repository: microsoft/vcpkg
-          path: vcpkg
-          ref: '2020.06'
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v4
         with:
           # Response file stored in source control, it provides the list of ports and triplet(s).
-          vcpkgArguments: '--debug --overlay-triplets=${{ github.workspace }}/libmw/vcpkg/triplets --triplet ${{ matrix.vcpkg_triplet }} @${{ github.workspace }}/libmw/vcpkg/packages.txt'
+          vcpkgArguments: '--debug --overlay-triplets=${{ github.workspace }}/vcpkg/triplets --triplet ${{ matrix.vcpkg_triplet }} @${{ github.workspace }}/vcpkg/packages.txt'
           # Location of the vcpkg as submodule of the repository.
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          vcpkgGitCommitId: '56fffbe49dfb4dd8fae0940f272c5fd2b86be991'
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg/vcpkg'
           # Since the cache must be invalidated when content of the response file changes, let's
           # compute its hash and append this to the computed cache's key.
-          appendedCacheKey: ${{ hashFiles('${{ github.workspace }}/libmw/vcpkg/packages.txt') }}
-      - name: Print Error Logs
-        working-directory: vcpkg
-        if: ${{ failure() }}
-        run: |
-          cat /Users/runner/work/libmw-ltc/libmw-ltc/vcpkg/buildtrees/python3/make-build-x64-osx-libmw-release-out.log
-          cat /Users/runner/work/libmw-ltc/libmw-ltc/vcpkg/buildtrees/python3/make-build-x64-osx-libmw-release-err.log
+          appendedCacheKey: ${{ hashFiles('${{ github.workspace }}/vcpkg/packages.txt') }}
       - name: 'Run CMake'
         uses: lukka/run-cmake@v2
         with:
           cmakeGenerator: ${{ matrix.cmake_generator }}
           cmakeBuildType: 'Release'
           cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-          cmakeListsTxtPath: '${{ github.workspace }}/libmw/CMakeLists.txt'
+          cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
           useVcpkgToolchainFile: true
           vcpkgTriplet: '${{ matrix.vcpkg_triplet }}'
           buildDirectory: '${{ github.workspace }}/build'
