@@ -24,7 +24,8 @@ TEST_CASE("Plain Kernel")
         REQUIRE(Commitment::Deserialize(deserializer) == excess);
         REQUIRE(Signature::Deserialize(deserializer) == signature);
 
-        REQUIRE(kernel == Kernel::Deserialize(Deserializer(serialized)));
+        Deserializer deserializer2(serialized);
+        REQUIRE(kernel == Kernel::Deserialize(deserializer2));
     }
 
     //
@@ -88,7 +89,8 @@ TEST_CASE("Peg-In Kernel")
         REQUIRE(Commitment::Deserialize(deserializer) == excess);
         REQUIRE(Signature::Deserialize(deserializer) == signature);
 
-        REQUIRE(kernel == Kernel::Deserialize(Deserializer(serialized)));
+        Deserializer deserializer2(serialized);
+        REQUIRE(kernel == Kernel::Deserialize(deserializer2));
     }
 
     //
@@ -156,7 +158,8 @@ TEST_CASE("Peg-Out Kernel")
         REQUIRE(Commitment::Deserialize(deserializer) == excess);
         REQUIRE(Signature::Deserialize(deserializer) == signature);
 
-        REQUIRE(kernel == Kernel::Deserialize(Deserializer(serialized)));
+        Deserializer deserializer2(serialized);
+        REQUIRE(kernel == Kernel::Deserialize(deserializer2));
     }
 
     //
@@ -226,7 +229,8 @@ TEST_CASE("Height-Locked")
         REQUIRE(Commitment::Deserialize(deserializer) == excess);
         REQUIRE(Signature::Deserialize(deserializer) == signature);
 
-        REQUIRE(kernel == Kernel::Deserialize(Deserializer(serialized)));
+        Deserializer deserializer2(serialized);
+        REQUIRE(kernel == Kernel::Deserialize(deserializer2));
     }
 
     //
