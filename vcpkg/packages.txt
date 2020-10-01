@@ -1,7 +1,10 @@
 nlohmann-json
 mio
 fmt
-asio
 Catch2
 spdlog
-boost
+boost-filesystem
+boost-optional
+boost-container-hash
+boost-thread
+openssl

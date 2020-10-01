@@ -18,10 +18,6 @@ find_package(mio CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 #target_link_libraries(main PRIVATE fmt::fmt fmt::fmt-header-only)
 
-add_definitions(-DASIO_STANDALONE)
-find_package(asio CONFIG REQUIRED)
-#target_link_libraries(main PRIVATE asio asio::asio)
-
 find_package(Catch2 CONFIG REQUIRED)
 #target_link_libraries(main PRIVATE Catch2::Catch2)
 
@@ -31,5 +27,5 @@ find_package(OpenSSL REQUIRED)
 
 if (MSVC)
     # VCPKG directories on Windows
-    include_directories (${VCPKG_ROOT}/installed/x64-windows-static/include/)
+    include_directories(${VCPKG_ROOT}/installed/x64-windows-static/include/)
 endif (MSVC)
