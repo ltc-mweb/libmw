@@ -2,6 +2,7 @@
 
 #include <mw/traits/Jsonable.h>
 #include <mw/traits/Printable.h>
+#include <mw/exceptions/DeserializationException.h>
 #include <boost/optional.hpp>
 #include <type_traits>
 

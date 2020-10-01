@@ -4,10 +4,6 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/vcpkg/scripts/buildsy
 
 project(LIBMW-LTC)
 
-if(UNIX AND NOT APPLE)
-	set(LINUX TRUE)
-endif()
-
 option(MW_TESTS "Build tests" true)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetOutputDir.cmake)
@@ -43,6 +39,6 @@ install(
     DESTINATION include/libmw
 )
 
-if(MW_TESTS AND NOT LINUX)
+if(MW_TESTS)
 	add_subdirectory(test)
-endif(MW_TESTS AND NOT LINUX)
+endif()
