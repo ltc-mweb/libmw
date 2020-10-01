@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout libmw-ltc
         uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
       - name: setup macos environment
         if: runner.os == 'macOS'
         run: |
