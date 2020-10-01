@@ -4,7 +4,8 @@ add_dependencies(libmw litecoin MW::Common MW::Crypto MW::Database MW::File MW::
 target_link_libraries(libmw PRIVATE litecoin MW::Common MW::Crypto MW::Database MW::File MW::MMR MW::Traits MW::Node)
 set_target_properties(libmw PROPERTIES
     CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN 1)
+    VISIBILITY_INLINES_HIDDEN 1
+    PREFIX "")
     
 # Install library
 install(
