@@ -56,7 +56,7 @@ public:
     const std::vector<uint8_t>& GetExtraData() const noexcept { return m_extraData; }
     const RangeProof::CPtr& GetRangeProof() const noexcept { return m_pProof; }
 
-    bool IsCoinbase() const noexcept { return (m_features & EOutputFeatures::COINBASE_OUTPUT) == EOutputFeatures::COINBASE_OUTPUT; }
+    bool IsPeggedIn() const noexcept { return (m_features & EOutputFeatures::PEGGED_IN) == EOutputFeatures::PEGGED_IN; }
 
     OutputId ToIdentifier() const noexcept { return OutputId(m_features, m_commitment); }
 

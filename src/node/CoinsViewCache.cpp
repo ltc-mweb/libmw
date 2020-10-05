@@ -72,6 +72,15 @@ void CoinsViewCache::UndoBlock(const mw::BlockUndo::CPtr& pUndo)
     }
 
     auto pHeader = pUndo->GetPreviousHeader();
+    if (pHeader == nullptr) {
+        m_pLeafSet->Rewind(0, {});
+        m_pKernelMMR->Rewind(0);
+        m_pOutputPMMR->Rewind(0);
+        m_pRangeProofPMMR->Rewind(0);
+        SetBestHeader(nullptr);
+        return;
+    }
+
     m_pLeafSet->Rewind(pHeader->GetNumTXOs(), leavesToAdd);
     m_pKernelMMR->Rewind(pHeader->GetNumKernels());
     m_pOutputPMMR->Rewind(pHeader->GetNumTXOs());

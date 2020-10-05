@@ -14,7 +14,6 @@
 
 MW_NAMESPACE
 
-// TODO: This should contain peg-in and peg-out info.
 class Block final :
     public Traits::IPrintable,
     public Traits::ISerializable,
@@ -97,18 +96,20 @@ public:
     //
     Serializer& Serialize(Serializer& serializer) const noexcept final
     {
+        assert(m_pHeader != nullptr);
         return serializer.Append(m_pHeader).Append(m_body);
     }
 
     static Block Deserialize(Deserializer& deserializer)
     {
         mw::Header::CPtr pHeader = std::make_shared<mw::Header>(mw::Header::Deserialize(deserializer));
-        TxBody body = deserializer.Read<TxBody>();
+        TxBody body = TxBody::Deserialize(deserializer);
         return Block{ pHeader, std::move(body) };
     }
 
     json ToJSON() const noexcept final
     {
+        assert(m_pHeader != nullptr);
         return json({
             { "header", m_pHeader->ToJSON() },
             { "body", m_body }
@@ -134,7 +135,6 @@ public:
     //
     void Validate() const
     {
-        m_pHeader->Validate();
         m_body.Validate();
     }
 

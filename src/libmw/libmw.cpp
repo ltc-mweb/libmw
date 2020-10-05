@@ -9,6 +9,7 @@
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/tx/UTXO.h>
 #include <mw/node/INode.h>
+#include <mw/wallet/Wallet.h>
 
 static mw::INode::Ptr NODE = nullptr;
 
@@ -23,6 +24,7 @@ EXPORT libmw::HeaderRef DeserializeHeader(const std::vector<uint8_t>& bytes)
 
 EXPORT std::vector<uint8_t> SerializeHeader(const libmw::HeaderRef& header)
 {
+    assert(header.pHeader != nullptr);
     return header.pHeader->Serialized();
 }
 
@@ -35,11 +37,23 @@ EXPORT libmw::BlockRef DeserializeBlock(const std::vector<uint8_t>& bytes)
 
 EXPORT std::vector<uint8_t> SerializeBlock(const libmw::BlockRef& block)
 {
+    assert(block.pBlock != nullptr);
     return block.pBlock->Serialized();
+}
+
+EXPORT libmw::HeaderRef BlockRef::GetHeader() const
+{
+    if (pBlock == nullptr) {
+        return libmw::HeaderRef{ nullptr };
+    }
+
+    return libmw::HeaderRef{ pBlock->GetHeader() };
 }
 
 EXPORT libmw::BlockUndoRef DeserializeBlockUndo(const std::vector<uint8_t>& bytes)
 {
+    LOG_TRACE("Deserializing BlockUndo");
+
     Deserializer deserializer{ bytes };
     auto pBlockUndo = std::make_shared<mw::BlockUndo>(mw::BlockUndo::Deserialize(deserializer));
     return libmw::BlockUndoRef{ pBlockUndo };
@@ -47,6 +61,8 @@ EXPORT libmw::BlockUndoRef DeserializeBlockUndo(const std::vector<uint8_t>& byte
 
 EXPORT std::vector<uint8_t> SerializeBlockUndo(const libmw::BlockUndoRef& blockUndo)
 {
+    assert(blockUndo.pUndo != nullptr);
+    LOG_TRACE_F("Serializing BlockUndo for {}", blockUndo.pUndo->GetPreviousHeader());
     return blockUndo.pUndo->Serialized();
 }
 
@@ -72,6 +88,7 @@ EXPORT uint64_t TxRef::GetTotalFee() const noexcept
 
 EXPORT libmw::TxRef DeserializeTx(const std::vector<uint8_t>& bytes)
 {
+    LOG_TRACE("Deserializing tx");
     Deserializer deserializer{ bytes };
     auto pTx = std::make_shared<mw::Transaction>(mw::Transaction::Deserialize(deserializer));
     return libmw::TxRef{ pTx };
@@ -147,21 +164,26 @@ EXPORT libmw::BlockRef BuildNextBlock(
     const std::vector<libmw::PegIn>& pegInCoins,
     const std::vector<libmw::PegOut>& pegOutCoins)
 {
-    auto pViewCache = dynamic_cast<mw::CoinsViewCache*>(view.pCoinsView.get());
-    assert(pViewCache != nullptr);
+    mw::CoinsViewCache viewCache(view.pCoinsView);
+    //auto pViewCache = dynamic_cast<mw::CoinsViewCache*>(view.pCoinsView.get());
+    //assert(pViewCache != nullptr);
 
+    LOG_TRACE_F("Building block with {} txs", transactions.size());
     auto txs = TransformTxs(transactions);
-    auto pBlock = pViewCache->BuildNextBlock(height, txs);
+    auto pBlock = viewCache.BuildNextBlock(height, txs);
+    LOG_DEBUG_F("Next block built: {}", Json(pBlock->ToJSON()));
 
     return libmw::BlockRef{ pBlock };
 }
 
 EXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch)
 {
+    LOG_TRACE("Flushing cache");
     auto pViewCache = dynamic_cast<mw::CoinsViewCache*>(view.pCoinsView.get());
     assert(pViewCache != nullptr);
 
     pViewCache->Flush(pBatch);
+    LOG_TRACE("Cache flushed");
 }
 
 EXPORT libmw::StateRef DeserializeState(const std::vector<uint8_t>& bytes)
@@ -186,5 +208,27 @@ EXPORT void CheckTransaction(const libmw::TxRef& transaction)
     // TODO: Implement
 }
 
-END_NAMESPACE
-END_NAMESPACE
+END_NAMESPACE // node
+
+WALLET_NAMESPACE
+
+EXPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(const libmw::IWallet::Ptr& pWallet, const uint64_t amount)
+{
+    mw::Transaction::CPtr pTx = Wallet(pWallet).CreatePegInTx(amount);
+
+    assert(!pTx->GetKernels().empty());
+    libmw::Commitment commit = pTx->GetKernels().front().GetCommitment().array();
+    return std::make_pair(libmw::TxRef{ pTx }, libmw::PegIn{ amount, commit });
+}
+
+EXPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
+    const libmw::IWallet::Ptr& pWallet,
+    const uint64_t amount,
+    const std::string& address)
+{
+    mw::Transaction::CPtr pTx = Wallet(pWallet).CreatePegOutTx(amount, Bech32Address::FromString(address));
+    return std::make_pair(libmw::TxRef{ pTx }, libmw::PegOut{ amount, address });
+}
+
+END_NAMESPACE // wallet
+END_NAMESPACE // libmw

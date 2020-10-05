@@ -23,6 +23,7 @@
 #define LIBMW_NAMESPACE namespace libmw {
 #define NODE_NAMESPACE namespace node {
 #define DB_NAMESPACE namespace db {
+#define WALLET_NAMESPACE namespace wallet {
 #define END_NAMESPACE }
 
 // Forward Declarations
@@ -39,6 +40,9 @@ namespace mw
 LIBMW_NAMESPACE
 
 typedef std::array<uint8_t, 32> BlockHash;
+typedef std::array<uint8_t, 32> Offset;
+typedef std::array<uint8_t, 32> BlindingFactor;
+typedef std::array<uint8_t, 33> Commitment;
 
 struct PegIn
 {
@@ -66,6 +70,8 @@ struct HeaderAndPegsRef
 
 struct BlockRef
 {
+    IMPORT libmw::HeaderRef GetHeader() const;
+
     std::shared_ptr<mw::Block> pBlock;
 };
 
@@ -79,7 +85,7 @@ struct TxRef
     IMPORT std::vector<PegOut> GetPegouts() const noexcept;
     IMPORT uint64_t GetTotalFee() const noexcept;
 
-    std::shared_ptr<mw::Transaction> pTransaction;
+    std::shared_ptr<const mw::Transaction> pTransaction;
 };
 
 struct CoinsViewRef
@@ -101,6 +107,19 @@ struct ChainParams
 {
     std::string dataDirectory;
     std::string hrp;
+};
+
+struct PrivateKey
+{
+    std::string bip32Path;
+    libmw::BlindingFactor keyBytes;
+};
+
+struct Coin
+{
+    PrivateKey key;
+    uint64_t amount;
+    libmw::Commitment commitment;
 };
 
 END_NAMESPACE

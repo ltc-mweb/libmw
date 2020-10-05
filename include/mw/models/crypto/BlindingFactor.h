@@ -40,6 +40,7 @@ public:
     //
     const BigInt<32>& GetBigInt() const noexcept { return m_value; }
     const std::vector<uint8_t>& vec() const noexcept { return m_value.vec(); }
+    std::array<uint8_t, 32> array() const noexcept { return m_value.ToArray(); }
     const uint8_t* data() const noexcept { return m_value.data(); }
     uint8_t* data() noexcept { return m_value.data(); }
     size_t size() const noexcept { return m_value.size(); }

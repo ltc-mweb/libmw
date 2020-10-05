@@ -20,8 +20,6 @@ class Kernel :
     public Traits::IJsonable
 {
 public:
-    using CPtr = std::shared_ptr<const Kernel>;
-
     Kernel() = default;
     Kernel(
         const uint8_t features,

@@ -10,7 +10,6 @@ public:
 
     static NodeConfig::Ptr Create(const FilePath& datadir, std::unordered_map<std::string, std::string>&& options)
     {
-        // TODO: Validate provided options
         auto mwdir = datadir.GetChild("mw");
         mwdir.GetChild("chain").CreateDirIfMissing();
 

@@ -49,10 +49,3 @@ std::vector<OutputType> transform_if(
     );
     return transformed;
 }
-
-//return transform_if<IKernel::CPtr, Kernel::CPtr>(
-//    m_pBlock->GetKernels(),
-//    [](const auto& pKernel) -> boost::optional<Kernel::CPtr> {
-//        return pKernel->IsCoinbase() ? boost::make_optional(std::dynamic_pointer_cast<const Kernel>(pKernel)) : tl::nullopt;
-//    }
-//);

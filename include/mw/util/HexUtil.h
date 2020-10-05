@@ -32,7 +32,7 @@ public:
     static std::vector<uint8_t> FromHex(const std::string& hex)
     {
         assert(IsValidHex(hex));
-        // TODO: Support '0x' prefix
+
         std::vector<uint8_t> data((hex.size() + 1) / 2);
         for (size_t i = 0; i < hex.length(); i += 2)
         {

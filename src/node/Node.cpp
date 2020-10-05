@@ -63,8 +63,8 @@ void Node::ValidateBlock(
     const std::vector<PegOutCoin>& pegOutCoins) const
 {
     LOG_TRACE_F("Validating block {}", pBlock);
-
     BlockValidator().Validate(pBlock, pegInCoins, pegOutCoins);
+    LOG_TRACE_F("Block {} validated", pBlock);
 }
 
 mw::BlockUndo::CPtr Node::ConnectBlock(const mw::Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView)
@@ -75,16 +75,22 @@ mw::BlockUndo::CPtr Node::ConnectBlock(const mw::Block::Ptr& pBlock, const mw::I
     auto pUndo = pCache->ApplyBlock(pBlock);
     pCache->Flush(nullptr);
 
+    LOG_TRACE_F("Block {} connected", pBlock);
     return pUndo;
 }
 
 void Node::DisconnectBlock(const mw::BlockUndo::CPtr& pUndoData, const mw::ICoinsView::Ptr& pView)
 {
-    LOG_TRACE_F("Disconnecting block {}", pView->GetBestHeader());
+    auto pHeader = pView->GetBestHeader();
+    //assert(pHeader != nullptr);
+
+    LOG_TRACE_F("Disconnecting block {}", pHeader);
 
     mw::CoinsViewCache::Ptr pCache = std::make_shared<mw::CoinsViewCache>(pView);
     pCache->UndoBlock(pUndoData);
     pCache->Flush(nullptr);
+
+    LOG_TRACE_F("Block {} disconnected. New tip: {}", pHeader, pView->GetBestHeader());
 }
 
 mw::ICoinsView::Ptr Node::ApplyState(

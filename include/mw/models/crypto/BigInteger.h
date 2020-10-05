@@ -22,7 +22,9 @@
 #pragma warning(disable: 4505)
 
 template<size_t NUM_BYTES, class ALLOC = std::allocator<uint8_t>>
-class BigInt : public Traits::IPrintable, public Traits::ISerializable
+class BigInt :
+    public Traits::IPrintable,
+    public Traits::ISerializable
 {
 public:
     //

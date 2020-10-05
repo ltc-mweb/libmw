@@ -45,7 +45,7 @@ public:
     EOutputFeatures GetFeatures() const noexcept { return m_features; }
     const Commitment& GetCommitment() const noexcept final { return m_commitment; }
 
-    bool IsCoinbase() const noexcept { return (m_features & EOutputFeatures::COINBASE_OUTPUT) == EOutputFeatures::COINBASE_OUTPUT; }
+    bool IsPeggedIn() const noexcept { return (m_features & EOutputFeatures::PEGGED_IN) == EOutputFeatures::PEGGED_IN; }
 
     //
     // Serialization/Deserialization

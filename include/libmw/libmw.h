@@ -7,6 +7,7 @@
 
 #include "defs.h"
 #include "interfaces.h"
+#include "interfaces/wallet.h"
 
 #include <array>
 #include <vector>
@@ -82,4 +83,19 @@ IMPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view, const libm
 IMPORT void CheckTransaction(const libmw::TxRef& transaction);
 
 END_NAMESPACE // node
+
+WALLET_NAMESPACE
+
+IMPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(
+    const libmw::IWallet::Ptr& pWallet,
+    const uint64_t amount
+);
+
+IMPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
+    const libmw::IWallet::Ptr& pWallet,
+    const uint64_t amount,
+    const std::string& address
+);
+
+END_NAMESPACE // wallet
 END_NAMESPACE // libmw

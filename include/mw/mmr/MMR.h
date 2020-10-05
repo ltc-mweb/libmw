@@ -5,6 +5,7 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
 #include <mw/common/Macros.h>
+#include <mw/common/Logger.h>
 #include <mw/models/crypto/Hash.h>
 #include <mw/traits/Batchable.h>
 #include <mw/traits/Serializable.h>
@@ -31,8 +32,8 @@ public:
     virtual LeafIndex GetNextLeafIdx() const noexcept = 0;
     uint64_t GetNumLeaves() const noexcept { return GetNextLeafIdx().GetLeafIndex(); }
 
-    virtual void Rewind(const uint64_t numNodes) = 0;
-    void Rewind(const LeafIndex& nextLeaf) { Rewind(nextLeaf.GetPosition()); }
+    virtual void Rewind(const uint64_t numLeaves) = 0;
+    void Rewind(const LeafIndex& nextLeaf) { Rewind(nextLeaf.GetLeafIndex()); }
 
     //
     // Unlike a Merkle tree, a MMR generally has no single root so we need a method to compute one.
@@ -104,7 +105,7 @@ public:
 
     uint64_t GetNumLeaves() const noexcept;
     uint64_t GetNumNodes() const noexcept;
-    void Rewind(const uint64_t numNodes) final;
+    void Rewind(const uint64_t numLeaves) final;
 
     //mw::Hash Root() const final;
 
@@ -157,8 +158,7 @@ public:
 
         const uint64_t cacheIdx = leafIdx.GetLeafIndex() - m_firstLeaf.GetLeafIndex();
         if (cacheIdx > m_leaves.size()) {
-            // TODO: Throw out of bounds exception
-            throw std::exception();
+            throw std::out_of_range("Attempting to access non-existent leaf");
         }
 
         return m_leaves[cacheIdx];
@@ -186,6 +186,8 @@ public:
 
     void Rewind(const uint64_t numLeaves) final
     {
+        LOG_TRACE_F("MMRCache: Rewinding to {}", numLeaves);
+
         LeafIndex nextLeaf = LeafIndex::At(numLeaves);
         if (nextLeaf <= m_firstLeaf) {
             m_firstLeaf = nextLeaf;
@@ -210,6 +212,7 @@ public:
 
     void BatchWrite(const LeafIndex& firstLeafIdx, const std::vector<Leaf>& leaves) final
     {
+        LOG_TRACE_F("MMRCache: Writing batch {}", firstLeafIdx.GetLeafIndex());
         Rewind(firstLeafIdx.GetLeafIndex());
         for (const Leaf& leaf : leaves)
         {
@@ -219,6 +222,7 @@ public:
 
     void Flush()
     {
+        LOG_TRACE_F("MMRCache: Flushing {} leaves at {}", m_leaves.size(), m_firstLeaf.GetLeafIndex());
         m_pBase->BatchWrite(m_firstLeaf, m_leaves);
         m_firstLeaf = GetNextLeafIdx();
         m_leaves.clear();

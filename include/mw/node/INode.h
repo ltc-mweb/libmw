@@ -12,7 +12,6 @@
 #include <mw/models/tx/PegInCoin.h>
 #include <mw/models/tx/PegOutCoin.h>
 #include <mw/models/tx/UTXO.h>
-#include <mw/models/chain/ChainStatus.h>
 #include <libmw/interfaces.h>
 #include <functional>
 #include <vector>

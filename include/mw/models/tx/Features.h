@@ -25,8 +25,8 @@ enum EOutputFeatures
     // No Flags
     DEFAULT_OUTPUT = 0,
 
-    // Output is a coinbase output, must not be spent until maturity
-    COINBASE_OUTPUT = 1
+    // Output is a pegged-in output, must not be spent until maturity
+    PEGGED_IN = 1
 };
 
 namespace OutputFeatures
@@ -37,8 +37,8 @@ namespace OutputFeatures
         {
             case DEFAULT_OUTPUT:
                 return "Plain";
-            case COINBASE_OUTPUT:
-                return "Coinbase";
+            case PEGGED_IN:
+                return "PeggedIn";
         }
 
         return "";
@@ -50,9 +50,9 @@ namespace OutputFeatures
         {
             return EOutputFeatures::DEFAULT_OUTPUT;
         }
-        else if (string == "Coinbase")
+        else if (string == "PeggedIn")
         {
-            return EOutputFeatures::COINBASE_OUTPUT;
+            return EOutputFeatures::PEGGED_IN;
         }
 
         ThrowDeserialization_F("Failed to deserialize output feature: {}", string);

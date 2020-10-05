@@ -20,7 +20,7 @@ public:
     Deserializer(const std::vector<uint8_t>& bytes) : m_index(0), m_bytes(bytes) { }
     Deserializer(std::vector<uint8_t>&& bytes) : m_index(0), m_bytes(std::move(bytes)) { }
 
-    template<typename T>
+    template <class T, typename SFINAE = std::enable_if_t<std::is_fundamental_v<T>>>
     T Read()
     {
         T value;
@@ -28,7 +28,7 @@ public:
         return value;
     }
 
-    template<typename T>
+    template <class T, typename SFINAE = std::enable_if_t<std::is_fundamental_v<T>>>
     T ReadLE()
     {
         T value;

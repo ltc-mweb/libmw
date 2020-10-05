@@ -14,7 +14,7 @@ struct State
         const uint64_t num_utxos = deserializer.Read<uint64_t>();
         std::vector<UTXO::CPtr> utxos(num_utxos);
         for (uint64_t i = 0; i < num_utxos; i++) {
-            utxos[i] = std::make_shared<UTXO>(deserializer.Read<UTXO>());
+            utxos[i] = std::make_shared<UTXO>(UTXO::Deserialize(deserializer));
         }
 
         std::vector<Kernel> kernels = deserializer.ReadVec<Kernel>();

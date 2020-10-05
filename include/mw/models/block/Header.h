@@ -125,22 +125,30 @@ public:
 
     json ToJSON() const noexcept final
     {
-        // TODO: Implement
-        return json();
+        return json({
+            { "height", m_height },
+            { "output_root", m_outputRoot.ToHex() },
+            { "proof_root", m_rangeProofRoot.ToHex() },
+            { "kernel_root", m_kernelRoot.ToHex() },
+            { "leafset_root", m_leafsetRoot.ToHex() },
+            { "offset", m_offset.ToHex() },
+            { "num_outputs", m_outputMMRSize },
+            { "num_kernels", m_kernelMMRSize }
+        });
     }
 
     static Header FromJSON(const Json& json)
     {
-        // TODO: Implement
-        throw std::exception();
-    }
-
-    //
-    // Context-free validation of the header.
-    //
-    void Validate() const
-    {
-        // TODO: There may not be anything to validate
+        return Header{
+            json.GetRequired<uint64_t>("height"),
+            mw::Hash::FromHex(json.GetRequired<std::string>("output_root")),
+            mw::Hash::FromHex(json.GetRequired<std::string>("proof_root")),
+            mw::Hash::FromHex(json.GetRequired<std::string>("kernel_root")),
+            mw::Hash::FromHex(json.GetRequired<std::string>("leafset_root")),
+            BlindingFactor::FromHex(json.GetRequired<std::string>("offset")),
+            json.GetRequired<uint64_t>("num_outputs"),
+            json.GetRequired<uint64_t>("num_kernels")
+        };
     }
 
 private:

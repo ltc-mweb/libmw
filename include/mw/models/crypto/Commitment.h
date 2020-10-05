@@ -49,6 +49,7 @@ public:
     //
     const BigInt<SIZE>& GetBigInt() const noexcept { return m_bytes; }
     const std::vector<uint8_t>& vec() const noexcept { return m_bytes.vec(); }
+    std::array<uint8_t, 33> array() const noexcept { return m_bytes.ToArray(); }
     const uint8_t* data() const noexcept { return m_bytes.data(); }
     uint8_t* data() noexcept { return m_bytes.data(); }
     size_t size() const noexcept { return m_bytes.size(); }

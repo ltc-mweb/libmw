@@ -83,7 +83,7 @@ public:
             m_pPositionFile->Rewind(nextLeafIndex.GetLeafIndex() * PosEntry::LENGTH);
             m_pDataFile->Rewind(posEntry.position + posEntry.size);
         } else {
-            m_pDataFile->Rewind(nextLeafIndex.GetPosition() * m_fixedLength);
+            m_pDataFile->Rewind(nextLeafIndex.GetLeafIndex() * m_fixedLength);
         }
 
         m_pHashFile->Rewind(nextLeafIndex.GetPosition() * 32);

@@ -8,8 +8,8 @@ TEST_CASE("Serializer")
     {
         REQUIRE(std::vector<uint8_t>({ 0, 0, 0, 0, 73, 150, 2, 210 }) == Serializer().Append(1234567890ull).vec());
         REQUIRE(std::vector<uint8_t>({ 255, 255, 255, 255, 255, 255, 255, 202 }) == Serializer().Append(-54ll).vec());
-        REQUIRE(std::vector<uint8_t>({ 73, 150, 2, 210 }) == Serializer().Append(1234567890ul).vec());
-        REQUIRE(std::vector<uint8_t>({ 255, 255, 255, 202 }) == Serializer().Append(-54l).vec());
+        REQUIRE(std::vector<uint8_t>({ 73, 150, 2, 210 }) == Serializer().Append((uint32_t)1234567890ul).vec());
+        REQUIRE(std::vector<uint8_t>({ 255, 255, 255, 202 }) == Serializer().Append((int32_t)-54l).vec());
         REQUIRE(std::vector<uint8_t>({ 48, 57 }) == Serializer().Append((uint16_t)12345).vec());
         REQUIRE(std::vector<uint8_t>({ 255, 202 }) == Serializer().Append((int16_t)-54).vec());
         REQUIRE(std::vector<uint8_t>({ 25 }) == Serializer().Append((uint8_t)25).vec());
@@ -20,8 +20,8 @@ TEST_CASE("Serializer")
     {
         REQUIRE(std::vector<uint8_t>({ 210, 2, 150, 73, 0, 0, 0, 0 }) == Serializer().AppendLE(1234567890ull).vec());
         REQUIRE(std::vector<uint8_t>({ 202, 255, 255, 255, 255, 255, 255, 255 }) == Serializer().AppendLE(-54ll).vec());
-        REQUIRE(std::vector<uint8_t>({ 210, 2, 150, 73 }) == Serializer().AppendLE(1234567890ul).vec());
-        REQUIRE(std::vector<uint8_t>({ 202, 255, 255, 255 }) == Serializer().AppendLE(-54l).vec());
+        REQUIRE(std::vector<uint8_t>({ 210, 2, 150, 73 }) == Serializer().AppendLE((uint32_t)1234567890ul).vec());
+        REQUIRE(std::vector<uint8_t>({ 202, 255, 255, 255 }) == Serializer().AppendLE((int32_t)-54l).vec());
         REQUIRE(std::vector<uint8_t>({ 57, 48 }) == Serializer().AppendLE((uint16_t)12345).vec());
         REQUIRE(std::vector<uint8_t>({ 202, 255  }) == Serializer().AppendLE((int16_t)-54).vec());
         REQUIRE(std::vector<uint8_t>({ 25 }) == Serializer().AppendLE((uint8_t)25).vec());

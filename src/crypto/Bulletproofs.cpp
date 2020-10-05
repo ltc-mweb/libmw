@@ -11,7 +11,7 @@ const size_t SCRATCH_SPACE_SIZE = 256 * MAX_WIDTH;
 bool Bulletproofs::VerifyBulletproofs(const std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>>& rangeProofs) const
 {
     const size_t numBits = 64;
-    const size_t proofLength = std::get<1>(rangeProofs.front())->size();
+    //const size_t proofLength = std::get<1>(rangeProofs.front())->size();
 
     std::vector<Commitment> commitments;
     std::vector<secp256k1_pedersen_commitment> secpCommitments;
@@ -67,7 +67,7 @@ bool Bulletproofs::VerifyBulletproofs(const std::vector<std::tuple<Commitment, R
         m_context.Read()->GetGenerators(),
         bulletproofPointers.data(),
         commitments.size(),
-        proofLength,
+        675,//proofLength,
         NULL,
         commitmentPointers.data(),
         1,
