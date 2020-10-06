@@ -9,15 +9,15 @@
 
 #if defined(_MSC_VER)
 //  Microsoft 
-#define EXPORT __declspec(dllexport)
-#define IMPORT __declspec(dllimport)
+#define MWEXPORT __declspec(dllexport)
+#define MWIMPORT __declspec(dllimport)
 #elif defined(__GNUC__)
 //  GCC
-#define EXPORT __attribute__((visibility("default")))
-#define IMPORT 
+#define MWEXPORT __attribute__((visibility("default")))
+#define MWIMPORT 
 #else
-#define EXPORT
-#define IMPORT
+#define MWEXPORT
+#define MWIMPORT
 #endif
 
 #define LIBMW_NAMESPACE namespace libmw {
@@ -70,7 +70,7 @@ struct HeaderAndPegsRef
 
 struct BlockRef
 {
-    IMPORT libmw::HeaderRef GetHeader() const;
+    MWIMPORT libmw::HeaderRef GetHeader() const;
 
     std::shared_ptr<mw::Block> pBlock;
 };
@@ -82,8 +82,8 @@ struct BlockUndoRef
 
 struct TxRef
 {
-    IMPORT std::vector<PegOut> GetPegouts() const noexcept;
-    IMPORT uint64_t GetTotalFee() const noexcept;
+    MWIMPORT std::vector<PegOut> GetPegouts() const noexcept;
+    MWIMPORT uint64_t GetTotalFee() const noexcept;
 
     std::shared_ptr<const mw::Transaction> pTransaction;
 };
@@ -93,7 +93,7 @@ struct CoinsViewRef
     //
     // Creates a new CoinsViewCache on top of this CoinsView.
     //
-    IMPORT CoinsViewRef CreateCache() const;
+    MWIMPORT CoinsViewRef CreateCache() const;
 
     std::shared_ptr<mw::ICoinsView> pCoinsView;
 };

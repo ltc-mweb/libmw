@@ -5,9 +5,9 @@
 #include <mw/file/FilePath.h>
 
 //#ifdef MW_COMMON
-//#define LOGGER_API EXPORT
+//#define LOGGER_API MWEXPORT
 //#else
-//#define LOGGER_API IMPORT
+//#define LOGGER_API MWIMPORT
 //#endif
 
 #define LOGGER_API

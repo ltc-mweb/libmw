@@ -15,33 +15,33 @@ static mw::INode::Ptr NODE = nullptr;
 
 LIBMW_NAMESPACE
 
-EXPORT libmw::HeaderRef DeserializeHeader(const std::vector<uint8_t>& bytes)
+MWEXPORT libmw::HeaderRef DeserializeHeader(const std::vector<uint8_t>& bytes)
 {
     Deserializer deserializer{ bytes };
     auto pHeader = std::make_shared<mw::Header>(mw::Header::Deserialize(deserializer));
     return libmw::HeaderRef{ pHeader };
 }
 
-EXPORT std::vector<uint8_t> SerializeHeader(const libmw::HeaderRef& header)
+MWEXPORT std::vector<uint8_t> SerializeHeader(const libmw::HeaderRef& header)
 {
     assert(header.pHeader != nullptr);
     return header.pHeader->Serialized();
 }
 
-EXPORT libmw::BlockRef DeserializeBlock(const std::vector<uint8_t>& bytes)
+MWEXPORT libmw::BlockRef DeserializeBlock(const std::vector<uint8_t>& bytes)
 {
     Deserializer deserializer{ bytes };
     auto pBlock = std::make_shared<mw::Block>(mw::Block::Deserialize(deserializer));
     return libmw::BlockRef{ pBlock };
 }
 
-EXPORT std::vector<uint8_t> SerializeBlock(const libmw::BlockRef& block)
+MWEXPORT std::vector<uint8_t> SerializeBlock(const libmw::BlockRef& block)
 {
     assert(block.pBlock != nullptr);
     return block.pBlock->Serialized();
 }
 
-EXPORT libmw::HeaderRef BlockRef::GetHeader() const
+MWEXPORT libmw::HeaderRef BlockRef::GetHeader() const
 {
     if (pBlock == nullptr) {
         return libmw::HeaderRef{ nullptr };
@@ -50,7 +50,7 @@ EXPORT libmw::HeaderRef BlockRef::GetHeader() const
     return libmw::HeaderRef{ pBlock->GetHeader() };
 }
 
-EXPORT libmw::BlockUndoRef DeserializeBlockUndo(const std::vector<uint8_t>& bytes)
+MWEXPORT libmw::BlockUndoRef DeserializeBlockUndo(const std::vector<uint8_t>& bytes)
 {
     LOG_TRACE("Deserializing BlockUndo");
 
@@ -59,14 +59,14 @@ EXPORT libmw::BlockUndoRef DeserializeBlockUndo(const std::vector<uint8_t>& byte
     return libmw::BlockUndoRef{ pBlockUndo };
 }
 
-EXPORT std::vector<uint8_t> SerializeBlockUndo(const libmw::BlockUndoRef& blockUndo)
+MWEXPORT std::vector<uint8_t> SerializeBlockUndo(const libmw::BlockUndoRef& blockUndo)
 {
     assert(blockUndo.pUndo != nullptr);
     LOG_TRACE_F("Serializing BlockUndo for {}", blockUndo.pUndo->GetPreviousHeader());
     return blockUndo.pUndo->Serialized();
 }
 
-EXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
+MWEXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
 {
     std::vector<PegOut> pegouts;
     for (const Kernel& kernel : pTransaction->GetKernels()) {
@@ -81,12 +81,12 @@ EXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
     return pegouts;
 }
 
-EXPORT uint64_t TxRef::GetTotalFee() const noexcept
+MWEXPORT uint64_t TxRef::GetTotalFee() const noexcept
 {
     return pTransaction->GetTotalFee();
 }
 
-EXPORT libmw::TxRef DeserializeTx(const std::vector<uint8_t>& bytes)
+MWEXPORT libmw::TxRef DeserializeTx(const std::vector<uint8_t>& bytes)
 {
     LOG_TRACE("Deserializing tx");
     Deserializer deserializer{ bytes };
@@ -94,12 +94,12 @@ EXPORT libmw::TxRef DeserializeTx(const std::vector<uint8_t>& bytes)
     return libmw::TxRef{ pTx };
 }
 
-EXPORT std::vector<uint8_t> SerializeTx(const libmw::TxRef& tx)
+MWEXPORT std::vector<uint8_t> SerializeTx(const libmw::TxRef& tx)
 {
     return tx.pTransaction->Serialized();
 }
 
-EXPORT libmw::CoinsViewRef CoinsViewRef::CreateCache() const
+MWEXPORT libmw::CoinsViewRef CoinsViewRef::CreateCache() const
 {
     if (pCoinsView == nullptr) {
         return libmw::CoinsViewRef{ nullptr };
@@ -110,7 +110,7 @@ EXPORT libmw::CoinsViewRef CoinsViewRef::CreateCache() const
 
 NODE_NAMESPACE
 
-EXPORT libmw::CoinsViewRef Initialize(
+MWEXPORT libmw::CoinsViewRef Initialize(
     const libmw::ChainParams& chainParams,
     const libmw::HeaderRef& header,
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
@@ -120,7 +120,7 @@ EXPORT libmw::CoinsViewRef Initialize(
     return libmw::CoinsViewRef{ NODE->GetDBView() };
 }
 
-EXPORT libmw::CoinsViewRef ApplyState(
+MWEXPORT libmw::CoinsViewRef ApplyState(
     const libmw::IBlockStore::Ptr& pBlockStore,
     const libmw::IDBWrapper::Ptr& pCoinsDB,
     const libmw::BlockHash& firstMWHeaderHash,
@@ -140,24 +140,24 @@ EXPORT libmw::CoinsViewRef ApplyState(
     return libmw::CoinsViewRef{ pCoinsViewDB };
 }
 
-EXPORT void CheckBlock(const libmw::BlockRef& block, const std::vector<libmw::PegIn>& pegInCoins, const std::vector<libmw::PegOut>& pegOutCoins)
+MWEXPORT void CheckBlock(const libmw::BlockRef& block, const std::vector<libmw::PegIn>& pegInCoins, const std::vector<libmw::PegOut>& pegOutCoins)
 {
     auto pegins = TransformPegIns(pegInCoins);
     auto pegouts = TransformPegOuts(pegOutCoins);
     NODE->ValidateBlock(block.pBlock, pegins, pegouts);
 }
 
-EXPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const CoinsViewRef& view)
+MWEXPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const CoinsViewRef& view)
 {
     return libmw::BlockUndoRef{ NODE->ConnectBlock(block.pBlock, view.pCoinsView) };
 }
 
-EXPORT void DisconnectBlock(const libmw::BlockUndoRef& undoData, const CoinsViewRef& view)
+MWEXPORT void DisconnectBlock(const libmw::BlockUndoRef& undoData, const CoinsViewRef& view)
 {
     NODE->DisconnectBlock(undoData.pUndo, view.pCoinsView);
 }
 
-EXPORT libmw::BlockRef BuildNextBlock(
+MWEXPORT libmw::BlockRef BuildNextBlock(
     const uint64_t height,
     const libmw::CoinsViewRef& view,
     const std::vector<libmw::TxRef>& transactions,
@@ -176,7 +176,7 @@ EXPORT libmw::BlockRef BuildNextBlock(
     return libmw::BlockRef{ pBlock };
 }
 
-EXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch)
+MWEXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch)
 {
     LOG_TRACE("Flushing cache");
     auto pViewCache = dynamic_cast<mw::CoinsViewCache*>(view.pCoinsView.get());
@@ -186,24 +186,24 @@ EXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<li
     LOG_TRACE("Cache flushed");
 }
 
-EXPORT libmw::StateRef DeserializeState(const std::vector<uint8_t>& bytes)
+MWEXPORT libmw::StateRef DeserializeState(const std::vector<uint8_t>& bytes)
 {
     Deserializer deserializer{ bytes };
     mw::State state = mw::State::Deserialize(deserializer);
     return { std::make_shared<mw::State>(std::move(state)) };
 }
 
-EXPORT std::vector<uint8_t> SerializeState(const libmw::StateRef& state)
+MWEXPORT std::vector<uint8_t> SerializeState(const libmw::StateRef& state)
 {
     return state.pState->Serialized();
 }
 
-EXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view, const libmw::BlockHash& block_hash)
+MWEXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view, const libmw::BlockHash& block_hash)
 {
     return { nullptr }; // TODO: Implement
 }
 
-EXPORT void CheckTransaction(const libmw::TxRef& transaction)
+MWEXPORT void CheckTransaction(const libmw::TxRef& transaction)
 {
     // TODO: Implement
 }
@@ -212,7 +212,7 @@ END_NAMESPACE // node
 
 WALLET_NAMESPACE
 
-EXPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(const libmw::IWallet::Ptr& pWallet, const uint64_t amount)
+MWEXPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(const libmw::IWallet::Ptr& pWallet, const uint64_t amount)
 {
     mw::Transaction::CPtr pTx = Wallet(pWallet).CreatePegInTx(amount);
 
@@ -221,7 +221,7 @@ EXPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(const libmw::IWallet:
     return std::make_pair(libmw::TxRef{ pTx }, libmw::PegIn{ amount, commit });
 }
 
-EXPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
+MWEXPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
     const libmw::IWallet::Ptr& pWallet,
     const uint64_t amount,
     const std::string& address)
