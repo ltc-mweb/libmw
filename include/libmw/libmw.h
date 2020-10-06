@@ -20,17 +20,17 @@ LIBMW_NAMESPACE
 
 // TODO: Thoroughly document usage
 
-IMPORT libmw::HeaderRef DeserializeHeader(const std::vector<uint8_t>& bytes);
-IMPORT std::vector<uint8_t> SerializeHeader(const libmw::HeaderRef& header);
+MWIMPORT libmw::HeaderRef DeserializeHeader(const std::vector<uint8_t>& bytes);
+MWIMPORT std::vector<uint8_t> SerializeHeader(const libmw::HeaderRef& header);
 
-IMPORT libmw::BlockRef DeserializeBlock(const std::vector<uint8_t>& bytes);
-IMPORT std::vector<uint8_t> SerializeBlock(const libmw::BlockRef& block);
+MWIMPORT libmw::BlockRef DeserializeBlock(const std::vector<uint8_t>& bytes);
+MWIMPORT std::vector<uint8_t> SerializeBlock(const libmw::BlockRef& block);
 
-IMPORT libmw::BlockUndoRef DeserializeBlockUndo(const std::vector<uint8_t>& bytes);
-IMPORT std::vector<uint8_t> SerializeBlockUndo(const libmw::BlockUndoRef& blockUndo);
+MWIMPORT libmw::BlockUndoRef DeserializeBlockUndo(const std::vector<uint8_t>& bytes);
+MWIMPORT std::vector<uint8_t> SerializeBlockUndo(const libmw::BlockUndoRef& blockUndo);
 
-IMPORT libmw::TxRef DeserializeTx(const std::vector<uint8_t>& bytes);
-IMPORT std::vector<uint8_t> SerializeTx(const libmw::TxRef& tx);
+MWIMPORT libmw::TxRef DeserializeTx(const std::vector<uint8_t>& bytes);
+MWIMPORT std::vector<uint8_t> SerializeTx(const libmw::TxRef& tx);
 
 NODE_NAMESPACE
 
@@ -39,7 +39,7 @@ NODE_NAMESPACE
 // If successful, the CoinsViewDB will be returned which represents the state of the active chain.
 // TODO: Document exceptions thrown.
 //
-IMPORT libmw::CoinsViewRef Initialize(
+MWIMPORT libmw::CoinsViewRef Initialize(
     const libmw::ChainParams& chainParams,
     const libmw::HeaderRef& header,
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper
@@ -49,7 +49,7 @@ IMPORT libmw::CoinsViewRef Initialize(
 // Validates the given state and replaces the existing state if valid.
 // Use during initial sync.
 //
-IMPORT libmw::CoinsViewRef ApplyState(
+MWIMPORT libmw::CoinsViewRef ApplyState(
     const libmw::IBlockStore::Ptr& pBlockStore,
     const libmw::IDBWrapper::Ptr& pCoinsDB,
     const libmw::BlockHash& firstMWHeaderHash,
@@ -57,41 +57,41 @@ IMPORT libmw::CoinsViewRef ApplyState(
     const libmw::StateRef& state
 );
 
-IMPORT void CheckBlock(
+MWIMPORT void CheckBlock(
     const libmw::BlockRef& block,
     const std::vector<libmw::PegIn>& pegInCoins,
     const std::vector<libmw::PegOut>& pegOutCoins
 );
 
-IMPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const libmw::CoinsViewRef& view);
-IMPORT void DisconnectBlock(const libmw::BlockUndoRef& undoData, const libmw::CoinsViewRef& view);
-IMPORT libmw::BlockRef BuildNextBlock(
+MWIMPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const libmw::CoinsViewRef& view);
+MWIMPORT void DisconnectBlock(const libmw::BlockUndoRef& undoData, const libmw::CoinsViewRef& view);
+MWIMPORT libmw::BlockRef BuildNextBlock(
     const uint64_t height,
     const libmw::CoinsViewRef& view,
     const std::vector<libmw::TxRef>& transactions,
     const std::vector<libmw::PegIn>& pegInCoins,
     const std::vector<libmw::PegOut>& pegOutCoins
 );
-IMPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr);
+MWIMPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr);
 
 // State
-IMPORT libmw::StateRef DeserializeState(const std::vector<uint8_t>& bytes);
-IMPORT std::vector<uint8_t> SerializeState(const libmw::StateRef& state);
-IMPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view, const libmw::BlockHash& block_hash);
+MWIMPORT libmw::StateRef DeserializeState(const std::vector<uint8_t>& bytes);
+MWIMPORT std::vector<uint8_t> SerializeState(const libmw::StateRef& state);
+MWIMPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view, const libmw::BlockHash& block_hash);
 
 // Mempool
-IMPORT void CheckTransaction(const libmw::TxRef& transaction);
+MWIMPORT void CheckTransaction(const libmw::TxRef& transaction);
 
 END_NAMESPACE // node
 
 WALLET_NAMESPACE
 
-IMPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(
+MWIMPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(
     const libmw::IWallet::Ptr& pWallet,
     const uint64_t amount
 );
 
-IMPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
+MWIMPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
     const libmw::IWallet::Ptr& pWallet,
     const uint64_t amount,
     const std::string& address

@@ -7,7 +7,7 @@
 //#ifdef MW_COMMON
 //#define LOGGER_API EXPORT
 //#else
-//#define LOGGER_API IMPORT
+//#define LOGGER_API MWIMPORT
 //#endif
 
 #define LOGGER_API

@@ -3,12 +3,12 @@
 #if defined(_MSC_VER)
     //  Microsoft 
     #define EXPORT __declspec(dllexport)
-    #define IMPORT __declspec(dllimport)
+    #define MWIMPORT __declspec(dllimport)
 #elif defined(__GNUC__)
     //  GCC
     #define EXPORT __attribute__((visibility("default")))
-    #define IMPORT
+    #define MWIMPORT
 #else
     #define EXPORT
-    #define IMPORT
+    #define MWIMPORT
 #endif

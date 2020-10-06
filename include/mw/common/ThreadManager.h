@@ -7,7 +7,7 @@
 //#ifdef MW_COMMON
 //#define THREAD_MANAGER_API EXPORT
 //#else
-//#define THREAD_MANAGER_API IMPORT
+//#define THREAD_MANAGER_API MWIMPORT
 //#endif
 #define THREAD_MANAGER_API
 

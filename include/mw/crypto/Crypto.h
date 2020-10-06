@@ -21,7 +21,7 @@
 //#ifdef MW_CRYPTO
 //#define CRYPTO_API EXPORT
 //#else
-//#define CRYPTO_API IMPORT
+//#define CRYPTO_API MWIMPORT
 //#endif
 #define CRYPTO_API
 
