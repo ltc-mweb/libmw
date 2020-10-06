@@ -10,13 +10,13 @@
 #include <test_framework/Miner.h>
 #include <test_framework/TestUtil.h>
 
-TEST_CASE("mw::CoinsViewDB")
+TEST_CASE("Mine Chain")
 {
     FilePath datadir = test::TestUtil::GetTempDir();
     ScopedFileRemover remover(datadir); // Removes the directory when this goes out of scope.
 
     auto pDatabase = std::make_shared<TestDBWrapper>();
-    auto pNode = mw::InitializeNode(datadir, "unittest", nullptr, pDatabase);
+    auto pNode = mw::InitializeNode(datadir, "test", nullptr, pDatabase);
     REQUIRE(pNode != nullptr);
 
     auto pDBView = pNode->GetDBView();
