@@ -5,7 +5,7 @@
 #include <thread>
 
 //#ifdef MW_COMMON
-//#define THREAD_MANAGER_API EXPORT
+//#define THREAD_MANAGER_API MWEXPORT
 //#else
 //#define THREAD_MANAGER_API MWIMPORT
 //#endif

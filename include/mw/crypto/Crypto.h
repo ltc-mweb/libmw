@@ -19,7 +19,7 @@
 #include <support/allocators/secure.h>
 
 //#ifdef MW_CRYPTO
-//#define CRYPTO_API EXPORT
+//#define CRYPTO_API MWEXPORT
 //#else
 //#define CRYPTO_API MWIMPORT
 //#endif
