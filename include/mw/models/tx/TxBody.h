@@ -49,6 +49,14 @@ public:
     TxBody& operator=(const TxBody& other) = default;
     TxBody& operator=(TxBody&& other) noexcept = default;
 
+    bool operator==(const TxBody& rhs) const noexcept
+    {
+        return
+            m_inputs == rhs.m_inputs &&
+            m_outputs == rhs.m_outputs &&
+            m_kernels == rhs.m_kernels;
+    }
+
     //
     // Getters
     //
