@@ -1,5 +1,5 @@
 name: ci
-on: [push]
+on: [push, pull_request]
 jobs:
   ci:
     name: ${{ matrix.name }}
@@ -53,4 +53,4 @@ jobs:
           buildDirectory: '${{ github.workspace }}/build'
           cmakeAppendedArgs: ' ${{ matrix.cmake_platform_args }} -DCMAKE_BUILD_TYPE=Release'
           buildWithCMake: true
-          buildWithCMakeArgs: '--config Release'
+          buildWithCMakeArgs: '--parallel --config Release'
