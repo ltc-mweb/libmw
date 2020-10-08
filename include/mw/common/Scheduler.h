@@ -63,9 +63,8 @@ public:
     ~Scheduler()
     {
         m_stop = true;
-        ThreadUtil::Join(m_scheduler);
-
         m_conditional.notify_all();
+        ThreadUtil::Join(m_scheduler);
         ThreadUtil::Join(m_workers);
     }
 
