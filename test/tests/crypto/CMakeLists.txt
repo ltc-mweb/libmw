@@ -1,6 +1,7 @@
 set(Crypto_Tests
     "Test_AddCommitments.cpp"
     "Test_AggSig.cpp"
+    "Test_RangeProofs.cpp"
 )
 
 list(TRANSFORM Crypto_Tests PREPEND ${CMAKE_CURRENT_LIST_DIR}/)

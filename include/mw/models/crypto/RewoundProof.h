@@ -20,6 +20,14 @@ public:
     const std::unique_ptr<SecretKey>& GetBlindingFactor() const { return m_pBlindingFactor; }
     const ProofMessage& GetProofMessage() const { return m_proofMessage; }
 
+    bool operator==(const RewoundProof& rhs) const noexcept
+    {
+        return
+            m_amount == rhs.m_amount &&
+            m_pBlindingFactor->GetBigInt() == rhs.m_pBlindingFactor->GetBigInt() &&
+            m_proofMessage.GetBytes() == rhs.m_proofMessage.GetBytes();
+    }
+
 private:
     uint64_t m_amount;
     std::unique_ptr<SecretKey> m_pBlindingFactor;
