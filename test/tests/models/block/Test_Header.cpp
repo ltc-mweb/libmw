@@ -35,7 +35,7 @@ TEST_CASE("Header")
         kernelMMRSize
     );
 
-    REQUIRE(header != header2);
+    REQUIRE_FALSE(header == header2);
     REQUIRE(header.GetHeight() == height);
     REQUIRE(header.GetOutputRoot() == outputRoot);
     REQUIRE(header.GetRangeProofRoot() == rangeProofRoot);
@@ -47,6 +47,6 @@ TEST_CASE("Header")
     REQUIRE(header.Format() == "5cce9d8b13823e676e3d2e4a08a261f1f000c1bf9a29143b96f955f2ab6d4539");
 
     Deserializer deserializer = header.Serialized();
-    REQUIRE_FALSE(header != mw::Header::Deserialize(deserializer));
-    REQUIRE_FALSE(header != mw::Header::FromJSON(header.ToJSON()));
+    REQUIRE(header == mw::Header::Deserialize(deserializer));
+    REQUIRE(header == mw::Header::FromJSON(header.ToJSON()));
 }
