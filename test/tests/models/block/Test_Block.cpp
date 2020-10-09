@@ -26,7 +26,7 @@ TEST_CASE("Block")
 
     mw::Block block(pHeader, pTransaction->GetBody());
 
-    REQUIRE_FALSE(*block.GetHeader() != *pHeader);
+    REQUIRE(*block.GetHeader() == *pHeader);
     REQUIRE(block.GetInputs() == pTransaction->GetInputs());
     REQUIRE(block.GetOutputs() == pTransaction->GetOutputs());
     REQUIRE(block.GetKernels() == pTransaction->GetKernels());
@@ -39,13 +39,14 @@ TEST_CASE("Block")
 
     Deserializer deserializer = block.Serialized();
     mw::Block block2 = mw::Block::Deserialize(deserializer);
-    REQUIRE_FALSE(*block.GetHeader() != *block2.GetHeader());
+    REQUIRE(*block.GetHeader() == *block2.GetHeader());
     REQUIRE(block.GetTxBody() == block2.GetTxBody());
 
     block2 = mw::Block::FromJSON(block.ToJSON());
-    REQUIRE_FALSE(*block.GetHeader() != *block2.GetHeader());
+    REQUIRE(*block.GetHeader() == *block2.GetHeader());
     REQUIRE(block.GetTxBody() == block2.GetTxBody());
 
+    REQUIRE_FALSE(block.WasValidated());
     block.Validate();
     block.MarkAsValidated();
     REQUIRE(block.WasValidated());
