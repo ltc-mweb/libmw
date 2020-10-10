@@ -55,7 +55,7 @@ public:
     //
     // Operators
     //
-    bool operator!=(const Header& rhs) const noexcept { return this->GetHash() != rhs.GetHash(); }
+    bool operator==(const Header& rhs) const noexcept { return this->GetHash() == rhs.GetHash(); }
 
     //
     // Getters
