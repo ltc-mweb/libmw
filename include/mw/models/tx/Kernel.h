@@ -112,6 +112,7 @@ public:
     uint64_t GetLockHeight() const noexcept { return m_lockHeight; }
     const Commitment& GetExcess() const noexcept { return m_excess; }
     const Signature& GetSignature() const noexcept { return m_signature; }
+    const std::vector<uint8_t>& GetExtraData() const noexcept { return m_extraData; }
 
     mw::Hash GetSignatureMessage() const
     {
@@ -300,6 +301,11 @@ public:
             {
                 json["fee"] = m_fee;
                 json["lock_height"] = m_lockHeight;
+                break;
+            }
+            default:
+            {
+                json["fee"] = m_fee;
                 break;
             }
         }

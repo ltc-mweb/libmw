@@ -60,7 +60,7 @@ public:
         BlindingFactor txOffset = Random().CSPRNG<32>();
 
         BlindingFactor outputBF = Random().CSPRNG<32>();
-        test::TxOutput output = test::TxOutput::Create(EOutputFeatures::DEFAULT_OUTPUT, outputBF, amount);
+        test::TxOutput output = test::TxOutput::Create(EOutputFeatures::PEGGED_IN, outputBF, amount);
 
         BlindingFactor kernelBF = Crypto::AddBlindingFactors({ outputBF }, { txOffset });
         Commitment kernelCommit = Crypto::CommitBlinded(0, kernelBF);

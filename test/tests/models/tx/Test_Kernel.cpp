@@ -276,4 +276,84 @@ TEST_CASE("Height-Locked")
     }
 }
 
-// TODO: Test unknown Kernel to ensure we can support soft-forking futre kernel types.
+TEST_CASE("Unknown Kernel")
+{
+    uint8_t features = 99;
+    uint64_t fee = 1000;
+    Commitment excess(Random::CSPRNG<33>().GetBigInt());
+    Signature signature(Random::CSPRNG<64>().GetBigInt());
+    std::vector<uint8_t> extraData = { 1, 2, 3 };
+
+    Kernel kernel(
+        features,     // Unknown type
+        fee,
+        0,
+        0,
+        boost::none,
+        std::vector<uint8_t>(extraData),
+        Commitment(excess),
+        Signature(signature)
+    );
+
+    //
+    // Serialization
+    //
+    {
+        std::vector<uint8_t> serialized = kernel.Serialized();
+        REQUIRE(serialized.size() == 110);
+
+        Deserializer deserializer(serialized);
+        REQUIRE(deserializer.Read<uint8_t>() == features);
+        REQUIRE(deserializer.Read<uint64_t>() == fee);
+        REQUIRE(deserializer.Read<uint8_t>() == extraData.size());
+        REQUIRE(deserializer.ReadVector(extraData.size()) == extraData);
+        REQUIRE(Commitment::Deserialize(deserializer) == excess);
+        REQUIRE(Signature::Deserialize(deserializer) == signature);
+
+        Deserializer deserializer2(serialized);
+        REQUIRE(kernel == Kernel::Deserialize(deserializer2));
+    }
+
+    //
+    // JSON
+    //
+    {
+        Json json(kernel.ToJSON());
+        REQUIRE(json.GetKeys() == std::vector<std::string>({ "excess", "fee", "signature", "type" }));
+        REQUIRE(json.GetRequired<Commitment>("excess") == excess);
+        REQUIRE(json.GetRequired<uint64_t>("fee") == fee);
+        REQUIRE(json.GetRequired<Signature>("signature") == signature);
+        REQUIRE(json.GetRequired<std::string>("type") == "UNKNOWN");
+
+        // Omitted due to unknown type
+        //REQUIRE(kernel == Kernel::FromJSON(json));
+    }
+
+    //
+    // Signature Message
+    //
+    {
+        mw::Hash hashed = kernel.GetSignatureMessage();
+        std::vector<uint8_t> message = Serializer()
+            .Append<uint8_t>(features)
+            .Append<uint64_t>(fee)
+            .Append(extraData)
+            .vec();
+        REQUIRE(hashed == Hashed(message));
+    }
+
+    //
+    // Getters
+    //
+    {
+        REQUIRE(!kernel.IsPegIn());
+        REQUIRE(!kernel.IsPegOut());
+        REQUIRE(kernel.GetPeggedIn() == 0);
+        REQUIRE(kernel.GetPeggedOut() == 0);
+        REQUIRE(kernel.GetLockHeight() == 0);
+        REQUIRE(kernel.GetFee() == fee);
+        REQUIRE(kernel.GetCommitment() == excess);
+        REQUIRE(kernel.GetSignature() == signature);
+        REQUIRE(kernel.GetExtraData() == extraData);
+    }
+}

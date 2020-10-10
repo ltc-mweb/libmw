@@ -54,8 +54,8 @@ struct KernelType
                 return "PEGOUT";
             case HEIGHT_LOCKED:
                 return "HEIGHT_LOCKED";
+            default:
+                return "UNKNOWN";
         }
-
-        ThrowDeserialization_F("Unknown kernel type: {}", type);
     }
 };
