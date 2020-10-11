@@ -44,6 +44,20 @@ public:
             return *this;
         }
 
+        Builder& AddPlainKernel(const uint64_t fee, const SecretKey& excess)
+        {
+            Commitment excess_commitment = Crypto::CommitBlinded(0, excess);
+            std::vector<uint8_t> kernel_message = Serializer()
+                .Append<uint8_t>(KernelType::PLAIN_KERNEL)
+                .Append<uint64_t>(fee)
+                .vec();
+
+            Signature signature = Crypto::BuildSignature(excess, Hashed(kernel_message));
+            Kernel kernel = Kernel::CreatePlain(fee, std::move(excess_commitment), std::move(signature));
+            kernels.push_back(std::move(kernel));
+            return *this;
+        }
+
         Tx Build() const
         {
             return Tx(
