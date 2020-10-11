@@ -24,6 +24,9 @@ TEST_CASE("BigInt")
     REQUIRE_FALSE(bigInt1 < bigInt1);
     REQUIRE_FALSE(bigInt1 > bigInt1);
     REQUIRE(bigInt1 >= bigInt1);
+    REQUIRE(bigInt1 <= bigInt1);
+    REQUIRE(bigInt1 == bigInt1);
+    REQUIRE_FALSE(bigInt1 != bigInt1);
 
     BigInt<8> bigInt4 = bigInt1;
     REQUIRE(bigInt1 == bigInt4);
