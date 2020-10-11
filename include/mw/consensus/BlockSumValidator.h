@@ -41,6 +41,8 @@ public:
 
                 total_mw_supply -= kernel.GetAmount();
             }
+
+            total_mw_supply -= kernel.GetFee();
         }
 
         Commitment total_utxo_commitment = Crypto::AddCommitments(
@@ -113,11 +115,13 @@ private:
         for (const Kernel& kernel : body.GetKernels())
         {
             if (kernel.IsPegIn()) {
-                coins_added += kernel.GetAmount();
+                coins_added += (int64_t)kernel.GetAmount();
             }
             else if (kernel.IsPegOut()) {
-                coins_added -= kernel.GetAmount();
+                coins_added -= (int64_t)kernel.GetAmount();
             }
+
+            coins_added -= (int64_t)kernel.GetFee();
         }
 
         if (coins_added > 0) {
@@ -140,7 +144,6 @@ private:
         }
 
         Commitment sum_excess_commitment = Crypto::AddCommitments(kernel_excess_commitments);
-
         if (sum_utxo_commitment != sum_excess_commitment) {
             LOG_ERROR_F(
                 "UTXO sum {} does not match kernel excess sum {}.",
