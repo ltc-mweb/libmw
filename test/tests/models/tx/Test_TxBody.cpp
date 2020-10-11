@@ -9,6 +9,7 @@
 TEST_CASE("Tx Body")
 {
     const uint64_t pegInAmount = 123;
+    const uint64_t fee = 5;
 
     BlindingFactor blind_a = Random::CSPRNG<32>().GetBigInt();
     BlindingFactor blind_b = Random::CSPRNG<32>().GetBigInt();
@@ -32,14 +33,14 @@ TEST_CASE("Tx Body")
 
         Serializer serializer;
         serializer.Append<uint8_t>((uint8_t)KernelType::PLAIN_KERNEL);
-        //TODO: anything else to append?
+        serializer.Append<uint64_t>(fee);
 
         Signature signature = Crypto::BuildSignature(
             kernelBF.ToSecretKey(),
             Hashed(serializer.vec())
         );
 
-        kernels.push_back(Kernel::CreatePlain(5, std::move(kernelCommit), std::move(signature)));
+        kernels.push_back(Kernel::CreatePlain(fee, std::move(kernelCommit), std::move(signature)));
     }
     {
         BlindingFactor kernelBF = Crypto::AddBlindingFactors({ blind_d }, { });
@@ -100,6 +101,6 @@ TEST_CASE("Tx Body")
         REQUIRE(txBody.GetInputs() == inputs);
         REQUIRE(txBody.GetOutputs() == outputs);
         REQUIRE(txBody.GetKernels() == kernels);
-        REQUIRE(txBody.GetTotalFee() == 5);
+        REQUIRE(txBody.GetTotalFee() == fee);
     }
 }
