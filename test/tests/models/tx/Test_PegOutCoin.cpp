@@ -6,7 +6,7 @@
 TEST_CASE("Tx Peg-Out Coin")
 {
     uint64_t amount = 123;
-    Bech32Address address = Bech32Address::FromString("bc1qc7slrfxkknqcq2jevvvkdgvrt8080852dfjewde450xdlk4ugp7szw5tk9");
+    Bech32Address address = Bech32Address::FromString("tltc1qh50sy0823vxn4l9zk2820w4fuj0q4fgv48ma6c");
     PegOutCoin pegOutCoin(amount, address);
 
     //
@@ -14,7 +14,7 @@ TEST_CASE("Tx Peg-Out Coin")
     //
     {
         std::vector<uint8_t> serialized = pegOutCoin.Serialized();
-        REQUIRE(serialized.size() == 62);
+        REQUIRE(serialized.size() == 42);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint64_t>() == amount);
