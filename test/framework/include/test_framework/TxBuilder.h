@@ -110,7 +110,7 @@ struct TxBuilder
         Kernel kernel = Kernel::CreatePegOut(amount, fee, std::move(ltc_address), std::move(excess_commitment), std::move(signature));
 
         m_kernels.push_back(std::move(kernel));
-        m_amount -= amount;
+        m_amount -= amount + fee;
         return *this;
     }
 
