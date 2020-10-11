@@ -1,6 +1,6 @@
 #include <catch.hpp>
 
-#include <mw/Consensus/BlockSumValidator.h>
+#include <mw/consensus/BlockSumValidator.h>
 #include <mw/consensus/Aggregation.h>
 #include <mw/crypto/Random.h>
 
