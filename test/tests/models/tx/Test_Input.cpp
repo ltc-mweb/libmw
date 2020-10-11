@@ -6,6 +6,7 @@
 
 TEST_CASE("Plain Tx Input")
 {
+    //TODO: use Commitment::FromHex instead
     Commitment commit(Random::CSPRNG<33>().GetBigInt());
     Input input(EOutputFeatures::DEFAULT_OUTPUT, Commitment(commit));
 
