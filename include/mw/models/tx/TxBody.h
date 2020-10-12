@@ -107,7 +107,7 @@ public:
         const uint64_t numOutputs = deserializer.Read<uint64_t>();
         const uint64_t numKernels = deserializer.Read<uint64_t>();
 
-        // Deserialize outputs
+        // Deserialize inputs
         std::vector<Input> inputs;
         inputs.reserve(numInputs);
         for (uint64_t i = 0; i < numInputs; i++)

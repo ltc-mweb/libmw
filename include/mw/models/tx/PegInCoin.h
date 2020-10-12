@@ -16,6 +16,11 @@ public:
     PegInCoin(const uint64_t amount, Commitment&& commitment)
         : m_amount(amount), m_commitment(std::move(commitment)) { }
 
+    bool operator==(const PegInCoin& rhs) const noexcept
+    {
+        return m_amount == rhs.m_amount && m_commitment == rhs.m_commitment;
+    }
+
     uint64_t GetAmount() const noexcept { return m_amount; }
     const Commitment& GetCommitment() const noexcept { return m_commitment; }
 

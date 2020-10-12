@@ -16,6 +16,11 @@ public:
     PegOutCoin(const uint64_t amount, Bech32Address&& address)
         : m_amount(amount), m_address(std::move(address)) { }
 
+    bool operator==(const PegOutCoin& rhs) const noexcept
+    {
+        return m_amount == rhs.m_amount && m_address == rhs.m_address;
+    }
+
     uint64_t GetAmount() const noexcept { return m_amount; }
     const Bech32Address& GetAddress() const noexcept { return m_address; }
 
