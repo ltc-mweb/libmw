@@ -7,7 +7,7 @@ set(MMR_Tests
     "Test_MMR.cpp"
 )
 
-list(TRANSFORM MMR_Tests PREPEND ${CMAKE_CURRENT_LIST_DIR}/)
+list_prepend(MMR_Tests ${CMAKE_CURRENT_LIST_DIR}/)
 
 list(APPEND test_sources ${MMR_Tests})
 set(test_sources ${test_sources} PARENT_SCOPE)
