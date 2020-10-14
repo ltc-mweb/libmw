@@ -13,7 +13,7 @@ set(Models_Tests
 	"tx/Test_UTXO.cpp"
 )
 
-list(TRANSFORM Models_Tests PREPEND ${CMAKE_CURRENT_LIST_DIR}/)
+list_prepend(Models_Tests ${CMAKE_CURRENT_LIST_DIR}/)
 
 list(APPEND test_sources ${Models_Tests})
 set(test_sources ${test_sources} PARENT_SCOPE)

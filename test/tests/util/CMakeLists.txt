@@ -8,7 +8,7 @@ set(Util_Tests
     "Test_TimeUtil.cpp"
 )
 
-list(TRANSFORM Util_Tests PREPEND ${CMAKE_CURRENT_LIST_DIR}/)
+list_prepend(Util_Tests ${CMAKE_CURRENT_LIST_DIR}/)
 
 list(APPEND test_sources ${Util_Tests})
 set(test_sources ${test_sources} PARENT_SCOPE)

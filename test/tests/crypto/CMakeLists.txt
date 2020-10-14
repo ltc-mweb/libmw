@@ -4,7 +4,7 @@ set(Crypto_Tests
     "Test_RangeProofs.cpp"
 )
 
-list(TRANSFORM Crypto_Tests PREPEND ${CMAKE_CURRENT_LIST_DIR}/)
+list_prepend(Crypto_Tests ${CMAKE_CURRENT_LIST_DIR}/)
 
 list(APPEND test_sources ${Crypto_Tests})
 set(test_sources ${test_sources} PARENT_SCOPE)

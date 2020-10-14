@@ -2,7 +2,7 @@ set(Consensus_Tests
     "Test_BlockSumValidator.cpp"
 )
 
-list(TRANSFORM Consensus_Tests PREPEND ${CMAKE_CURRENT_LIST_DIR}/)
+list_prepend(Consensus_Tests ${CMAKE_CURRENT_LIST_DIR}/)
 
 list(APPEND test_sources ${Consensus_Tests})
 set(test_sources ${test_sources} PARENT_SCOPE)
