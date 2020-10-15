@@ -94,6 +94,9 @@ void CoinsViewCache::UndoBlock(const mw::BlockUndo::CPtr& pUndo)
 mw::Block::Ptr CoinsViewCache::BuildNextBlock(const uint64_t height, const std::vector<mw::Transaction::CPtr>& transactions)
 {
     LOG_TRACE_F("Building block with {} transactions", transactions.size());
+
+    // TODO: Make sure all inputs are available before aggregating a transaction.
+
     auto pTransaction = Aggregation::Aggregate(transactions);
 
     std::for_each(

@@ -62,6 +62,8 @@ void Node::ValidateBlock(
     const std::vector<PegInCoin>& pegInCoins,
     const std::vector<PegOutCoin>& pegOutCoins) const
 {
+    assert(pBlock != nullptr);
+
     LOG_TRACE_F("Validating block {}", pBlock);
     BlockValidator().Validate(pBlock, pegInCoins, pegOutCoins);
     LOG_TRACE_F("Block {} validated", pBlock);
@@ -69,6 +71,9 @@ void Node::ValidateBlock(
 
 mw::BlockUndo::CPtr Node::ConnectBlock(const mw::Block::Ptr& pBlock, const mw::ICoinsView::Ptr& pView)
 {
+    assert(pBlock != nullptr);
+    assert(pView != nullptr);
+
     LOG_TRACE_F("Connecting block {}", pBlock);
 
     mw::CoinsViewCache::Ptr pCache = std::make_shared<mw::CoinsViewCache>(pView);
@@ -81,9 +86,10 @@ mw::BlockUndo::CPtr Node::ConnectBlock(const mw::Block::Ptr& pBlock, const mw::I
 
 void Node::DisconnectBlock(const mw::BlockUndo::CPtr& pUndoData, const mw::ICoinsView::Ptr& pView)
 {
-    auto pHeader = pView->GetBestHeader();
-    //assert(pHeader != nullptr);
+    assert(pUndoData != nullptr);
+    assert(pView != nullptr);
 
+    auto pHeader = pView->GetBestHeader();
     LOG_TRACE_F("Disconnecting block {}", pHeader);
 
     mw::CoinsViewCache::Ptr pCache = std::make_shared<mw::CoinsViewCache>(pView);

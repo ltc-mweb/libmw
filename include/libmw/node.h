@@ -3,25 +3,32 @@
 #include "defs.h"
 #include <libmw/interfaces/db_interface.h>
 
-// TODO: Document usage
 LIBMW_NAMESPACE
 NODE_NAMESPACE
 
-//
-// Loads the state (MMRs mostly) into memory, and validates the current UTXO set.
-// If successful, the CoinsViewDB will be returned which represents the state of the active chain.
-// TODO: Document exceptions thrown.
-//
+/// <summary>
+/// Loads the state (MMRs mostly) into memory, and validates the current UTXO set.
+/// </summary>
+/// <param name="chainParams">The chain parameters to use.</param>
+/// <param name="header">The possibly-null chain tip.</param>
+/// <param name="pDBWrapper">A wrapper around the node database. Must not be null.</param>
+/// <returns>The CoinsViewDB which represents the state of the flushed chain.</returns>
 MWIMPORT libmw::CoinsViewRef Initialize(
     const libmw::ChainParams& chainParams,
     const libmw::HeaderRef& header,
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper
-);
+); // TODO: Take in a BlockStore
 
-//
-// Validates the given state and replaces the existing state if valid.
-// Use during initial sync.
-//
+/// <summary>
+/// Validates the chainstate and replaces the existing state if valid.
+/// This should be used during initial sync, or when syncing from beyond the horizon.
+/// </summary>
+/// <param name="pBlockStore">A block store that provides access to MWEB headers and blocks. Must not be null.</param>
+/// <param name="pCoinsDB">A wrapper around the node database. Must not be null.</param>
+/// <param name="firstMWHeaderHash">The hash of the "genesis" MWEB header (first MWEB after activation).</param>
+/// <param name="stateHeaderHash">The hash of the MWEB header at the chain tip.</param>
+/// <param name="state">The chainstate to validate and apply. Must not be null.</param>
+/// <returns>The CoinsViewDB which represents the state of the flushed chain.</returns>
 MWIMPORT libmw::CoinsViewRef ApplyState(
     const libmw::IBlockStore::Ptr& pBlockStore,
     const libmw::IDBWrapper::Ptr& pCoinsDB,
@@ -30,27 +37,73 @@ MWIMPORT libmw::CoinsViewRef ApplyState(
     const libmw::StateRef& state
 );
 
+/// <summary>
+/// Context-free validation of the MW ext block.
+/// This performs all consensus checks that don't require knowledge of the state.
+/// </summary>
+/// <param name="block">The MW ext block to validate. Must not be null.</param>
+/// <param name="pegInCoins">The peg-in coins that are expected to be part of the MWEB.</param>
+/// <param name="pegOutCoins">The peg-out coins that are expected to be part of the MWEB.</param>
+/// <throws>ValidationException if consensus rules are not met.</throws>
 MWIMPORT void CheckBlock(
     const libmw::BlockRef& block,
     const std::vector<libmw::PegIn>& pegInCoins,
     const std::vector<libmw::PegOut>& pegOutCoins
 );
 
+/// <summary>
+/// Validates and connects the MW ext block to the end of the chain in the given CoinsView.
+/// </summary>
+/// <pre>Block must be validated via CheckBlock before connecting it to the chain.</pre>
+/// <param name="block">The block to connect. Must not be null.</param>
+/// <param name="view">The CoinsView to connect the block to. Must not be null.</param>
+/// <throws>ValidationException if consensus rules are not met.</throws>
 MWIMPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const libmw::CoinsViewRef& view);
+
+/// <summary>
+/// Removes a MW ext block from the end of the chain in the given CoinsView.
+/// </summary>
+/// <param name="undoData">The MW ext block undo data to apply. Must not be null.</param>
+/// <param name="view">The CoinsView to disconnect the block from. Must not be null.</param>
 MWIMPORT void DisconnectBlock(const libmw::BlockUndoRef& undoData, const libmw::CoinsViewRef& view);
-MWIMPORT libmw::BlockRef BuildNextBlock(
+
+/// <summary>
+/// Builds the next MW ext block on top of the given CoinsView. 
+/// </summary>
+/// <param name="height">The height of the block being built.</param>
+/// <param name="view">The CoinsView representing the latest state of the active chain. Must not be null.</param>
+/// <param name="transactions">The MWEB transactions to include. The block may not include all of them.</param>
+/// <returns>The non-null MW ext block with pegins and pegouts.</returns>
+MWIMPORT libmw::BlockAndPegs BuildNextBlock(
     const uint64_t height,
     const libmw::CoinsViewRef& view,
-    const std::vector<libmw::TxRef>& transactions,
-    const std::vector<libmw::PegIn>& pegInCoins,
-    const std::vector<libmw::PegOut>& pegOutCoins
+    const std::vector<libmw::TxRef>& transactions
 );
-MWIMPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr);
 
-// State
-MWIMPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view, const libmw::BlockHash& block_hash);
+/// <summary>
+/// Commits the changes from the cached CoinsView to the base CoinsView.
+/// Adds the cached updates to the database if the base CoinsView is a DB view.
+/// </summary>
+/// <param name="view">The CoinsView cache whose changes will be committed. Must not be null.</param>
+/// <param name="pBatch">The optional DB batch. This must be non-null when the base CoinsView is a DB view.</param>
+MWIMPORT void FlushCache(
+    const libmw::CoinsViewRef& view,
+    const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr
+);
 
-// Mempool
+/// <summary>
+/// Creates an in-memory snapshot of the chainstate in the given CoinsView.
+/// </summary>
+/// <param name="view">The CoinsView containing the chainstate to snapshot. Must not be null.</param>
+/// <returns>A non-null snapshot of the chainstate.</returns>
+MWIMPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view);
+
+/// <summary>
+/// Context-free validation of the MWEB transaction.
+/// This validates that the transaction is valid without checking for double-spends.
+/// </summary>
+/// <param name="transaction">The MWEB transaction to validate. Must not be null.</param>
+/// <throws>ValidationException if consensus rules are not met.</throws>
 MWIMPORT void CheckTransaction(const libmw::TxRef& transaction);
 
 END_NAMESPACE // node

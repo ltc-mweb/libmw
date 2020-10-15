@@ -48,6 +48,7 @@ public:
 //
 // Interface for looking up blocks and headers.
 // This must be implemented by the libmw consumer.
+// TODO: Get by height functions should be replaced with reverse iterators or get prev functions.
 //
 class IBlockStore
 {

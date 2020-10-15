@@ -76,6 +76,13 @@ struct BlockRef
     std::shared_ptr<mw::Block> pBlock;
 };
 
+struct BlockAndPegs
+{
+    std::shared_ptr<mw::Block> pBlock;
+    std::vector<PegIn> pegins;
+    std::vector<PegOut> pegouts;
+};
+
 struct BlockUndoRef
 {
     std::shared_ptr<const mw::BlockUndo> pUndo;

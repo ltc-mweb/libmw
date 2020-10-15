@@ -4,6 +4,7 @@
 #include "BlockStoreWrapper.h"
 #include "State.h"
 
+#include <mw/consensus/BlockSumValidator.h>
 #include <mw/models/block/Block.h>
 #include <mw/models/block/BlockUndo.h>
 #include <mw/models/tx/Transaction.h>
@@ -46,7 +47,10 @@ MWEXPORT libmw::CoinsViewRef ApplyState(
     return libmw::CoinsViewRef{ pCoinsViewDB };
 }
 
-MWEXPORT void CheckBlock(const libmw::BlockRef& block, const std::vector<libmw::PegIn>& pegInCoins, const std::vector<libmw::PegOut>& pegOutCoins)
+MWEXPORT void CheckBlock(
+    const libmw::BlockRef& block,
+    const std::vector<libmw::PegIn>& pegInCoins,
+    const std::vector<libmw::PegOut>& pegOutCoins)
 {
     auto pegins = TransformPegIns(pegInCoins);
     auto pegouts = TransformPegOuts(pegOutCoins);
@@ -63,21 +67,19 @@ MWEXPORT void DisconnectBlock(const libmw::BlockUndoRef& undoData, const CoinsVi
     NODE->DisconnectBlock(undoData.pUndo, view.pCoinsView);
 }
 
-MWEXPORT libmw::BlockRef BuildNextBlock(
+MWEXPORT libmw::BlockAndPegs BuildNextBlock(
     const uint64_t height,
     const libmw::CoinsViewRef& view,
-    const std::vector<libmw::TxRef>& transactions,
-    const std::vector<libmw::PegIn>& pegInCoins,
-    const std::vector<libmw::PegOut>& pegOutCoins)
+    const std::vector<libmw::TxRef>& transactions)
 {
     mw::CoinsViewCache viewCache(view.pCoinsView);
 
     LOG_TRACE_F("Building block with {} txs", transactions.size());
     auto txs = TransformTxs(transactions);
     auto pBlock = viewCache.BuildNextBlock(height, txs);
-    LOG_DEBUG_F("Next block built: {}", Json(pBlock->ToJSON()));
+    LOG_TRACE_F("Next block built: {}", Json(pBlock->ToJSON()));
 
-    return libmw::BlockRef{ pBlock };
+    return TransformBlock(pBlock);
 }
 
 MWEXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch)
@@ -90,14 +92,17 @@ MWEXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<
     LOG_TRACE("Cache flushed");
 }
 
-MWEXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view, const libmw::BlockHash& block_hash)
+MWEXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view)
 {
     return { nullptr }; // TODO: Implement
 }
 
 MWEXPORT void CheckTransaction(const libmw::TxRef& transaction)
 {
-    // TODO: Implement
+    assert(transaction.pTransaction != nullptr);
+
+    transaction.pTransaction->GetBody().Validate();
+    BlockSumValidator::ValidateForTx(*transaction.pTransaction);
 }
 
 END_NAMESPACE // node
