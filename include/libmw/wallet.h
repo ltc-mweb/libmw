@@ -31,6 +31,29 @@ MWIMPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
 );
 
 /// <summary>
+/// Initiates a send to the MWEB address specified.
+/// </summary>
+/// <param name="pWallet">The wallet to send from. Must not be null.</param>
+/// <param name="amount">The amount to send. Must be positive.</param>
+/// <param name="address">The address to send to.</param>
+/// <returns></returns>
+MWIMPORT PartialTransaction Send(
+    const libmw::IWallet::Ptr& pWallet,
+    const uint64_t amount,
+    const MWEBAddress& address
+);
+
+/// <summary>
+/// Receives coins by finishing a PartialTransaction.
+/// </summary>
+/// <param name="pWallet">The wallet to receive to. Must not be null.</param>
+/// <param name="partialTx">The partial transaction to finish.</param>
+MWIMPORT void Receive(
+    const libmw::IWallet::Ptr& pWallet,
+    const PartialTransaction& partialTx
+);
+
+/// <summary>
 /// Checks the transactions in the block to see if any belong to the wallet, updating the wallet accordingly.
 /// This should be called when connecting a block to the active chain.
 /// </summary>

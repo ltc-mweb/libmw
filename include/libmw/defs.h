@@ -44,6 +44,7 @@ typedef std::array<uint8_t, 32> Offset;
 typedef std::array<uint8_t, 32> BlindingFactor;
 typedef std::array<uint8_t, 33> Commitment;
 typedef std::string MWEBAddress;
+typedef std::string PartialTransaction;
 
 struct PegIn
 {
