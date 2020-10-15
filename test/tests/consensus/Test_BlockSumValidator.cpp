@@ -7,8 +7,39 @@
 #include <test_framework/models/Tx.h>
 #include <test_framework/TxBuilder.h>
 
-// TODO: Add tests for BlockSumValidator::ValidateState
 // FUTURE: Create official test vectors for the consensus rules being tested
+
+TEST_CASE("BlockSumValidator::ValidateState")
+{
+    mw::Transaction::CPtr tx = test::TxBuilder()
+        .AddPeginKernel(50)
+        .AddOutput(20)
+        .AddPlainKernel(10)
+        .AddPegoutKernel(15, 5)
+        .AddPeginKernel(30)
+        .AddOutput(30, EOutputFeatures::PEGGED_IN)
+        .Build();
+
+    const std::vector<Output>& outputs = tx->GetOutputs();
+    std::vector<UTXO::CPtr> utxos;
+
+    std::transform(
+        outputs.cbegin(), outputs.cend(),
+        std::back_inserter(utxos),
+        [](const Output& output) {
+            return std::make_shared<const UTXO>(
+                Random::FastRandom(),
+                mmr::LeafIndex::At(Random::FastRandom()),
+                output
+            );
+        }
+    );
+
+    REQUIRE(utxos.size() == 2);
+    REQUIRE(tx->GetKernels().size() == 4);
+
+    BlockSumValidator::ValidateState(utxos, tx->GetKernels(), tx->GetOffset());
+}
 
 TEST_CASE("BlockSumValidator::ValidateForBlock")
 {
