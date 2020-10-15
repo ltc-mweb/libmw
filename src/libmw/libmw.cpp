@@ -11,8 +11,6 @@
 #include <mw/node/INode.h>
 #include <mw/wallet/Wallet.h>
 
-static mw::INode::Ptr NODE = nullptr;
-
 LIBMW_NAMESPACE
 
 MWEXPORT libmw::HeaderRef DeserializeHeader(const std::vector<uint8_t>& bytes)
@@ -41,15 +39,6 @@ MWEXPORT std::vector<uint8_t> SerializeBlock(const libmw::BlockRef& block)
     return block.pBlock->Serialized();
 }
 
-MWEXPORT libmw::HeaderRef BlockRef::GetHeader() const
-{
-    if (pBlock == nullptr) {
-        return libmw::HeaderRef{ nullptr };
-    }
-
-    return libmw::HeaderRef{ pBlock->GetHeader() };
-}
-
 MWEXPORT libmw::BlockUndoRef DeserializeBlockUndo(const std::vector<uint8_t>& bytes)
 {
     LOG_TRACE("Deserializing BlockUndo");
@@ -66,24 +55,16 @@ MWEXPORT std::vector<uint8_t> SerializeBlockUndo(const libmw::BlockUndoRef& bloc
     return blockUndo.pUndo->Serialized();
 }
 
-MWEXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
+MWEXPORT libmw::StateRef DeserializeState(const std::vector<uint8_t>& bytes)
 {
-    std::vector<PegOut> pegouts;
-    for (const Kernel& kernel : pTransaction->GetKernels()) {
-        if (kernel.IsPegOut()) {
-            PegOut pegout;
-            pegout.amount = kernel.GetPeggedOut();
-            pegout.address = kernel.GetAddress().value().ToString();
-            pegouts.emplace_back(std::move(pegout));
-        }
-    }
-
-    return pegouts;
+    Deserializer deserializer{ bytes };
+    mw::State state = mw::State::Deserialize(deserializer);
+    return { std::make_shared<mw::State>(std::move(state)) };
 }
 
-MWEXPORT uint64_t TxRef::GetTotalFee() const noexcept
+MWEXPORT std::vector<uint8_t> SerializeState(const libmw::StateRef& state)
 {
-    return pTransaction->GetTotalFee();
+    return state.pState->Serialized();
 }
 
 MWEXPORT libmw::TxRef DeserializeTx(const std::vector<uint8_t>& bytes)
@@ -99,136 +80,4 @@ MWEXPORT std::vector<uint8_t> SerializeTx(const libmw::TxRef& tx)
     return tx.pTransaction->Serialized();
 }
 
-MWEXPORT libmw::CoinsViewRef CoinsViewRef::CreateCache() const
-{
-    if (pCoinsView == nullptr) {
-        return libmw::CoinsViewRef{ nullptr };
-    }
-
-    return libmw::CoinsViewRef{ std::make_shared<mw::CoinsViewCache>(pCoinsView) };
-}
-
-NODE_NAMESPACE
-
-MWEXPORT libmw::CoinsViewRef Initialize(
-    const libmw::ChainParams& chainParams,
-    const libmw::HeaderRef& header,
-    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
-{
-    NODE = mw::InitializeNode(FilePath{ chainParams.dataDirectory }, chainParams.hrp, header.pHeader, pDBWrapper);
-
-    return libmw::CoinsViewRef{ NODE->GetDBView() };
-}
-
-MWEXPORT libmw::CoinsViewRef ApplyState(
-    const libmw::IBlockStore::Ptr& pBlockStore,
-    const libmw::IDBWrapper::Ptr& pCoinsDB,
-    const libmw::BlockHash& firstMWHeaderHash,
-    const libmw::BlockHash& stateHeaderHash,
-    const libmw::StateRef& state)
-{
-    BlockStoreWrapper blockStore(pBlockStore.get());
-    auto pCoinsViewDB = NODE->ApplyState(
-        pCoinsDB,
-        blockStore,
-        mw::Hash{ firstMWHeaderHash },
-        mw::Hash{ stateHeaderHash },
-        state.pState->utxos,
-        state.pState->kernels
-    );
-
-    return libmw::CoinsViewRef{ pCoinsViewDB };
-}
-
-MWEXPORT void CheckBlock(const libmw::BlockRef& block, const std::vector<libmw::PegIn>& pegInCoins, const std::vector<libmw::PegOut>& pegOutCoins)
-{
-    auto pegins = TransformPegIns(pegInCoins);
-    auto pegouts = TransformPegOuts(pegOutCoins);
-    NODE->ValidateBlock(block.pBlock, pegins, pegouts);
-}
-
-MWEXPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const CoinsViewRef& view)
-{
-    return libmw::BlockUndoRef{ NODE->ConnectBlock(block.pBlock, view.pCoinsView) };
-}
-
-MWEXPORT void DisconnectBlock(const libmw::BlockUndoRef& undoData, const CoinsViewRef& view)
-{
-    NODE->DisconnectBlock(undoData.pUndo, view.pCoinsView);
-}
-
-MWEXPORT libmw::BlockRef BuildNextBlock(
-    const uint64_t height,
-    const libmw::CoinsViewRef& view,
-    const std::vector<libmw::TxRef>& transactions,
-    const std::vector<libmw::PegIn>& pegInCoins,
-    const std::vector<libmw::PegOut>& pegOutCoins)
-{
-    mw::CoinsViewCache viewCache(view.pCoinsView);
-    //auto pViewCache = dynamic_cast<mw::CoinsViewCache*>(view.pCoinsView.get());
-    //assert(pViewCache != nullptr);
-
-    LOG_TRACE_F("Building block with {} txs", transactions.size());
-    auto txs = TransformTxs(transactions);
-    auto pBlock = viewCache.BuildNextBlock(height, txs);
-    LOG_DEBUG_F("Next block built: {}", Json(pBlock->ToJSON()));
-
-    return libmw::BlockRef{ pBlock };
-}
-
-MWEXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch)
-{
-    LOG_TRACE("Flushing cache");
-    auto pViewCache = dynamic_cast<mw::CoinsViewCache*>(view.pCoinsView.get());
-    assert(pViewCache != nullptr);
-
-    pViewCache->Flush(pBatch);
-    LOG_TRACE("Cache flushed");
-}
-
-MWEXPORT libmw::StateRef DeserializeState(const std::vector<uint8_t>& bytes)
-{
-    Deserializer deserializer{ bytes };
-    mw::State state = mw::State::Deserialize(deserializer);
-    return { std::make_shared<mw::State>(std::move(state)) };
-}
-
-MWEXPORT std::vector<uint8_t> SerializeState(const libmw::StateRef& state)
-{
-    return state.pState->Serialized();
-}
-
-MWEXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view, const libmw::BlockHash& block_hash)
-{
-    return { nullptr }; // TODO: Implement
-}
-
-MWEXPORT void CheckTransaction(const libmw::TxRef& transaction)
-{
-    // TODO: Implement
-}
-
-END_NAMESPACE // node
-
-WALLET_NAMESPACE
-
-MWEXPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(const libmw::IWallet::Ptr& pWallet, const uint64_t amount)
-{
-    mw::Transaction::CPtr pTx = Wallet(pWallet).CreatePegInTx(amount);
-
-    assert(!pTx->GetKernels().empty());
-    libmw::Commitment commit = pTx->GetKernels().front().GetCommitment().array();
-    return std::make_pair(libmw::TxRef{ pTx }, libmw::PegIn{ amount, commit });
-}
-
-MWEXPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
-    const libmw::IWallet::Ptr& pWallet,
-    const uint64_t amount,
-    const std::string& address)
-{
-    mw::Transaction::CPtr pTx = Wallet(pWallet).CreatePegOutTx(amount, Bech32Address::FromString(address));
-    return std::make_pair(libmw::TxRef{ pTx }, libmw::PegOut{ amount, address });
-}
-
-END_NAMESPACE // wallet
 END_NAMESPACE // libmw

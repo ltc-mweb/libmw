@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libmw/interfaces/wallet.h>
+#include <libmw/interfaces/wallet_interface.h>
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/crypto/Bech32Address.h>
 

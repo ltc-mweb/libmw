@@ -2,7 +2,7 @@
 
 #include <mw/models/crypto/Commitment.h>
 #include <mw/models/tx/UTXO.h>
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 #include <unordered_map>
 
 // Forward Declarations

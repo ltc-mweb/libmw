@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 #include <map>
 
 class TestDBBatch : public libmw::IDBBatch

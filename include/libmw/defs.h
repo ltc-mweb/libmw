@@ -43,6 +43,7 @@ typedef std::array<uint8_t, 32> BlockHash;
 typedef std::array<uint8_t, 32> Offset;
 typedef std::array<uint8_t, 32> BlindingFactor;
 typedef std::array<uint8_t, 33> Commitment;
+typedef std::string MWEBAddress;
 
 struct PegIn
 {
@@ -121,5 +122,13 @@ struct Coin
     uint64_t amount;
     libmw::Commitment commitment;
 };
+
+struct WalletBalance
+{
+    uint64_t confirmed_balance = 0;
+    uint64_t unconfirmed_balance = 0;
+    uint64_t immature_balance = 0;
+};
+
 
 END_NAMESPACE

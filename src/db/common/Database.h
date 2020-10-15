@@ -6,7 +6,7 @@
 
 #include <mw/file/FilePath.h>
 
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 #include <vector>
 #include <cassert>
 #include <memory>

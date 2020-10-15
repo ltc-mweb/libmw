@@ -3,7 +3,7 @@
 
 mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount)
 {
-    libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewKey();
+    libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewHDKey();
     BlindingFactor blindingFactor(BigInt<32>{ private_key.keyBytes });
     BlindingFactor offset = Random::CSPRNG<32>();
 
@@ -27,7 +27,7 @@ mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount)
 
 mw::Transaction::CPtr Wallet::CreatePegOutTx(const uint64_t amount, const Bech32Address& address)
 {
-    libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewKey();
+    libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewHDKey();
     BlindingFactor blindingFactor(BigInt<32>{ private_key.keyBytes });
     BlindingFactor offset = Random::CSPRNG<32>();
 

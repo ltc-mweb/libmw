@@ -7,7 +7,7 @@
 #include <mw/exceptions/DatabaseException.h>
 #include <mw/serialization/Serializer.h>
 #include <mw/traits/Serializable.h>
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 #include <memory>
 #include <string>
 #include <unordered_map>

@@ -6,7 +6,7 @@
 #include <mw/file/FilePath.h>
 #include <mw/mmr/MMR.h>
 #include <mw/db/IBlockStore.h>
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 #include <functional>
 
 class CoinsViewFactory
