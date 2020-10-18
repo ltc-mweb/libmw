@@ -85,10 +85,10 @@ public:
         auto pBatch = m_pDB->CreateBatch();
 
         auto iter = m_pDB->NewIterator();
-        iter->Seek(std::to_string(table.GetPrefix()));
+        iter->Seek(table.GetPrefix());
         while (iter->Valid()) {
             std::string key;
-            if (iter->GetKey(key) && !key.empty() && key.front() == table.GetPrefix()) {
+            if (iter->GetKey(key) && key.rfind(table.GetPrefix(), 0) == 0) {
                 pBatch->Erase(key);
                 iter->Next();
             } else {

@@ -4,6 +4,8 @@
 #include <mw/models/tx/Kernel.h>
 #include <mw/crypto/Random.h>
 #include <mw/file/ScopedFileRemover.h>
+
+#include <test_framework/DBWrapper.h>
 #include <test_framework/TestUtil.h>
 
 using namespace mmr;
@@ -17,14 +19,17 @@ TEST_CASE("mmr::FileBackend")
 {
     FilePath tempDir = test::TestUtil::GetTempDir();// CreateTempDir();
     ScopedFileRemover remover(tempDir);
+    auto pDatabase = std::make_shared<TestDBWrapper>();
 
     {
-        auto pBackend = FileBackend::Open(tempDir, boost::none);
+        auto pBackend = FileBackend::Open("temp", tempDir, pDatabase);
         pBackend->AddLeaf(mmr::Leaf::Create(mmr::LeafIndex::At(0), { 0x05, 0x03, 0x07 }));
         pBackend->Commit();
     }
     {
-        auto pBackend = FileBackend::Open(tempDir, boost::none);
+        auto pBackend = FileBackend::Open("temp", tempDir, pDatabase);
         REQUIRE(pBackend->GetNumLeaves() == 1);
+        auto leaf = pBackend->GetLeaf(mmr::LeafIndex::At(0));
+        REQUIRE(leaf.vec() == std::vector<uint8_t>{ 0x05, 0x03, 0x07 });
     }
 }

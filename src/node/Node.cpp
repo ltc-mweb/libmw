@@ -22,19 +22,16 @@ mw::INode::Ptr InitializeNode(
 
     mw::ChainParams::Initialize(hrp);
 
-    auto chain_dir = pConfig->GetChainDir();
-    auto pLeafSet = mmr::LeafSet::Open(chain_dir);
+    auto chainDir = pConfig->GetChainDir();
+    auto pLeafSet = mmr::LeafSet::Open(chainDir);
 
-    auto kernels_path = chain_dir.GetChild("kernels").CreateDirIfMissing();
-    auto pKernelsBackend = mmr::FileBackend::Open(kernels_path, boost::none);
+    auto pKernelsBackend = mmr::FileBackend::Open("kernels", chainDir, pDBWrapper);
     mmr::MMR::Ptr pKernelsMMR = std::make_shared<mmr::MMR>(pKernelsBackend);
 
-    auto outputs_path = chain_dir.GetChild("outputs").CreateDirIfMissing();
-    auto pOutputBackend = mmr::FileBackend::Open(outputs_path, boost::optional<uint16_t>(34));
+    auto pOutputBackend = mmr::FileBackend::Open("outputs", chainDir, pDBWrapper);
     mmr::MMR::Ptr pOutputMMR = std::make_shared<mmr::MMR>(pOutputBackend);
 
-    auto rangeproof_path = chain_dir.GetChild("proofs").CreateDirIfMissing();
-    auto pRangeProofBackend = mmr::FileBackend::Open(rangeproof_path, boost::optional<uint16_t>(RangeProof::MAX_SIZE));
+    auto pRangeProofBackend = mmr::FileBackend::Open("proofs", chainDir, pDBWrapper);
     mmr::MMR::Ptr pRangeProofMMR = std::make_shared<mmr::MMR>(pRangeProofBackend);
 
     // TODO: Validate Current State

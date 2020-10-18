@@ -24,6 +24,7 @@ public:
 
 private:
     static mmr::MMR::Ptr BuildAndValidateKernelMMR(
+        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
         const mw::IBlockStore& blockStore,
         const FilePath& chainDir,
         const mw::Hash& firstMWHeaderHash,
@@ -38,12 +39,14 @@ private:
 	);
 
     static mmr::MMR::Ptr BuildAndValidateOutputMMR(
+        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
         const FilePath& chainDir,
         const mw::Header::CPtr& pStateHeader,
         const std::vector<UTXO::CPtr>& utxos
     );
 
 	static mmr::MMR::Ptr BuildAndValidateRangeProofMMR(
+        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
 		const FilePath& chainDir,
 		const mw::Header::CPtr& pStateHeader,
 		const std::vector<UTXO::CPtr>& utxos

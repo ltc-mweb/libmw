@@ -32,6 +32,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	);
 
     auto pKernelMMR = BuildAndValidateKernelMMR(
+		pDBWrapper,
         blockStore,
         chainDir,
 		firstMWHeaderHash,
@@ -40,12 +41,14 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
     );
 
 	auto pOutputMMR = BuildAndValidateOutputMMR(
+		pDBWrapper,
 		chainDir,
 		pStateHeader,
 		utxos
 	);
 
 	auto pRangeProofMMR = BuildAndValidateRangeProofMMR(
+		pDBWrapper,
 		chainDir,
 		pStateHeader,
 		utxos
@@ -76,14 +79,15 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 
 // TODO: Also validate peg-in/peg-out transactions
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
+	const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
 	const mw::IBlockStore& blockStore,
     const FilePath& chainDir,
     const mw::Hash& firstMWHeaderHash,
     const mw::Header::CPtr& pStateHeader,
     const std::vector<Kernel>& kernels)
 {
-    auto mmrPath = chainDir.GetChild("kernels");
-    mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(mmr::FileBackend::Open(mmrPath, boost::none));
+	auto pBackend = mmr::FileBackend::Open("kernels", chainDir, pDBWrapper);
+    mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
 
     auto pNextHeader = blockStore.GetHeader(firstMWHeaderHash);
 	assert(pNextHeader != nullptr);
@@ -153,12 +157,12 @@ mmr::LeafSet::Ptr CoinsViewFactory::BuildAndValidateLeafSet(
 }
 
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateOutputMMR(
+	const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
     const FilePath& chainDir,
     const mw::Header::CPtr& pStateHeader,
     const std::vector<UTXO::CPtr>& utxos)
 {
-    auto mmrPath = chainDir.GetChild("outputs");
-    auto pBackend = mmr::FileBackend::Open(mmrPath, boost::optional<uint16_t>(34));
+    auto pBackend = mmr::FileBackend::Open("outputs", chainDir, pDBWrapper);
     mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
 
 	// TODO: Need parent hashes
@@ -175,12 +179,12 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateOutputMMR(
 }
 
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
+	const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
 	const FilePath& chainDir,
 	const mw::Header::CPtr& pStateHeader,
 	const std::vector<UTXO::CPtr>& utxos)
 {
-	auto mmrPath = chainDir.GetChild("rangeproofs");
-	auto pBackend = mmr::FileBackend::Open(mmrPath, boost::optional<uint16_t>(RangeProof::MAX_SIZE));
+	auto pBackend = mmr::FileBackend::Open("rangeproofs", chainDir, pDBWrapper);
 	mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
 
 	std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>> proofs;
