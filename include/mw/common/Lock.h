@@ -6,6 +6,7 @@
 
 #include <mw/traits/Batchable.h>
 #include <mw/exceptions/UnimplementedException.h>
+#include <libmw/interfaces.h>
 #include <memory>
 #include <shared_mutex>
 #include <mutex>
@@ -132,14 +133,14 @@ class Writer : virtual public Reader<T>
             OnEndWrite();
         }
 
-        void Commit()
+        void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr)
         {
             Traits::IBatchable* pBatchable = GetBatchable(m_pObject);
             if (pBatchable != nullptr)
             {
                 if (pBatchable->IsDirty())
                 {
-                    pBatchable->Commit();
+                    pBatchable->Commit(pBatch);
                     pBatchable->SetDirty(false);
                 }
             }

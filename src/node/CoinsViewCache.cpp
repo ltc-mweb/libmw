@@ -188,9 +188,9 @@ void CoinsViewCache::Flush(const std::unique_ptr<libmw::IDBBatch>& pBatch)
     m_pBase->WriteBatch(pBatch, *m_pUpdates, GetBestHeader());
 
     m_pLeafSet->Flush();
-    m_pKernelMMR->Flush();
-    m_pOutputPMMR->Flush();
-    m_pRangeProofPMMR->Flush();
+    m_pKernelMMR->Flush(pBatch);
+    m_pOutputPMMR->Flush(pBatch);
+    m_pRangeProofPMMR->Flush(pBatch);
     m_pUpdates->Clear();
 }
 

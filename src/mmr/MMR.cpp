@@ -32,14 +32,17 @@ void MMR::Rewind(const uint64_t numLeaves)
     m_pBackend->Rewind(LeafIndex::At(numLeaves));
 }
 
-void MMR::BatchWrite(const LeafIndex& firstLeafIdx, const std::vector<Leaf>& leaves)
+void MMR::BatchWrite(
+    const LeafIndex& firstLeafIdx,
+    const std::vector<Leaf>& leaves,
+    const std::unique_ptr<libmw::IDBBatch>& pBatch)
 {
     LOG_TRACE_F("MMR: Writing batch {}", firstLeafIdx.GetLeafIndex());
-    m_pBackend->Rewind(firstLeafIdx);
+    m_pBackend->Rewind(firstLeafIdx, pBatch);
     for (const Leaf& leaf : leaves)
     {
         m_pBackend->AddLeaf(leaf);
     }
 
-    m_pBackend->Commit();
+    m_pBackend->Commit(pBatch);
 }

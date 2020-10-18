@@ -5,6 +5,7 @@
 #include <mw/file/MemMap.h>
 #include <mw/common/Logger.h>
 #include <mw/traits/Batchable.h>
+#include <libmw/interfaces.h>
 
 class AppendOnlyFile : public Traits::IBatchable
 {
@@ -31,7 +32,7 @@ public:
         return pAppendOnlyFile;
     }
 
-    void Commit() final
+    void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr) final
     {
         if (m_fileSize == m_bufferIndex && m_buffer.empty())
         {

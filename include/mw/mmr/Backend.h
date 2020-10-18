@@ -10,6 +10,7 @@
 #include <mw/mmr/Index.h>
 #include <mw/mmr/LeafIndex.h>
 #include <mw/mmr/Leaf.h>
+#include <libmw/interfaces.h>
 #include <memory>
 
 MMR_NAMESPACE
@@ -24,7 +25,7 @@ public:
 
     virtual void AddLeaf(const Leaf& leaf) = 0;
     virtual void AddHash(const mw::Hash& hash) = 0;
-    virtual void Rewind(const LeafIndex& nextLeafIndex) = 0;
+    virtual void Rewind(const LeafIndex& nextLeafIndex, const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr) = 0;
 
     virtual uint64_t GetNumLeaves() const noexcept = 0;
     virtual mw::Hash GetHash(const Index& idx) const = 0;

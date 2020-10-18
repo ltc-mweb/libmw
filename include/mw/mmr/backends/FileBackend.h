@@ -57,10 +57,10 @@ public:
 
     void AddHash(const mw::Hash& hash) final { m_pHashFile->Append(hash.vec()); }
 
-    void Rewind(const LeafIndex& nextLeafIndex) final
+    void Rewind(const LeafIndex& nextLeafIndex, const std::unique_ptr<libmw::IDBBatch>& pBatch) final
     {
         m_pHashFile->Rewind(nextLeafIndex.GetPosition() * 32);
-        VectorDB vectorDB(m_name, m_pDatabase.get(), nullptr);
+        VectorDB vectorDB(m_name, m_pDatabase.get(), pBatch.get());
         vectorDB.Rewind(nextLeafIndex.GetLeafIndex());
     }
 
@@ -92,10 +92,10 @@ public:
         return Leaf::Create(idx, std::move(data));
     }
 
-    void Commit() final
+    void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr) final
     {
         m_pHashFile->Commit();
-        VectorDB vectorDB(m_name, m_pDatabase.get(), nullptr);
+        VectorDB vectorDB(m_name, m_pDatabase.get(), pBatch.get());
         vectorDB.Add(std::move(m_leaves));
     }
 

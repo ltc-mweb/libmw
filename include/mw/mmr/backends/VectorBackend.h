@@ -36,7 +36,7 @@ public:
     }
 
     void AddHash(const mw::Hash& hash) final { m_nodes.push_back(hash); }
-    void Rewind(const LeafIndex& nextLeafIndex) final
+    void Rewind(const LeafIndex& nextLeafIndex, const std::unique_ptr<libmw::IDBBatch>& pBatch) final
     {
         m_leaves.resize(nextLeafIndex.GetLeafIndex());
         m_nodes.resize(nextLeafIndex.GetPosition());
@@ -48,7 +48,7 @@ public:
     Leaf GetLeaf(const LeafIndex& idx) const final { return m_leaves[idx.GetLeafIndex()]; }
 
     // Not supported yet
-    void Commit() final { }
+    void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch) final { }
     void Rollback() noexcept final { }
 
 private:
