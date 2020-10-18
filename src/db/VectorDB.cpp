@@ -3,7 +3,7 @@
 #include "common/Serializable.h"
 
 VectorDB::VectorDB(const std::string& name, libmw::IDBWrapper* pDBWrapper, libmw::IDBBatch* pBatch)
-    : m_name(name), m_pDatabase(std::make_unique<Database>(pDBWrapper, pBatch))
+    : m_name("V" + name), m_pDatabase(std::make_unique<Database>(pDBWrapper, pBatch))
 {
 }
 
