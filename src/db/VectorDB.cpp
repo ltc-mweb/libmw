@@ -27,6 +27,9 @@ std::string VectorDB::IndexToString(uint64_t index)
 
 std::unique_ptr<std::vector<uint8_t>> VectorDB::Get(uint64_t index) const
 {
+    if (index >= Size()) {
+        return nullptr;
+    }
     auto pItem = m_pDatabase->Get<SerializableVec>(m_name, IndexToString(index));
     if (pItem == nullptr) {
         return nullptr;
@@ -57,20 +60,13 @@ void VectorDB::Add(std::vector<std::vector<uint8_t>>&& items)
 
 void VectorDB::Rewind(uint64_t nextIndex)
 {
-    uint64_t size = Size();
-    while (size > nextIndex)
-    {
-        m_pDatabase->Delete(m_name, IndexToString(--size));
-    }
-
-    DBEntry<SerializableInt> entry("Size", size);
+    DBEntry<SerializableInt> entry("Size", nextIndex);
     m_pDatabase->Put(m_name, std::vector<DBEntry<SerializableInt>>{entry});
 }
 
 void VectorDB::RemoveAt(const std::vector<uint64_t>& indexes)
 {
-    for (uint64_t index : indexes)
-    {
+    for (uint64_t index : indexes) {
         m_pDatabase->Delete(m_name, IndexToString(index));
     }
 }

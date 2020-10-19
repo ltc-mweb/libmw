@@ -1,8 +1,9 @@
-#set(Database_Tests
-#    "Test_Database.cpp"
-#)
+set(Database_Tests
+#   "Test_Database.cpp"
+    "Test_VectorDB.cpp"
+)
 
-#list_prepend(Database_Tests ${CMAKE_CURRENT_LIST_DIR}/)
+list_prepend(Database_Tests ${CMAKE_CURRENT_LIST_DIR}/)
 
-#list(APPEND test_sources ${Database_Tests})
-#set(test_sources ${test_sources} PARENT_SCOPE)
+list(APPEND test_sources ${Database_Tests})
+set(test_sources ${test_sources} PARENT_SCOPE)
