@@ -113,7 +113,7 @@ public:
 
     //mw::Hash Root() const final;
 
-    void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch) final { m_pBackend->Commit(pBatch); }
+    void Commit() final { m_pBackend->Commit(); }
     void Rollback() noexcept final { m_pBackend->Rollback(); }
 
     void BatchWrite(

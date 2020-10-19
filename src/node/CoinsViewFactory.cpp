@@ -86,8 +86,8 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
     const mw::Header::CPtr& pStateHeader,
     const std::vector<Kernel>& kernels)
 {
-	auto pBackend = mmr::FileBackend::Open("kernels", chainDir, pDBWrapper);
-    mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
+    auto mmrPath = chainDir.GetChild("kernels");
+    mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(mmr::FileBackend::Open(mmrPath, pDBWrapper));
 
     auto pNextHeader = blockStore.GetHeader(firstMWHeaderHash);
 	assert(pNextHeader != nullptr);
@@ -162,7 +162,8 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateOutputMMR(
     const mw::Header::CPtr& pStateHeader,
     const std::vector<UTXO::CPtr>& utxos)
 {
-    auto pBackend = mmr::FileBackend::Open("outputs", chainDir, pDBWrapper);
+    auto mmrPath = chainDir.GetChild("outputs");
+    auto pBackend = mmr::FileBackend::Open(mmrPath, pDBWrapper);
     mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
 
 	// TODO: Need parent hashes
@@ -184,7 +185,8 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
 	const mw::Header::CPtr& pStateHeader,
 	const std::vector<UTXO::CPtr>& utxos)
 {
-	auto pBackend = mmr::FileBackend::Open("rangeproofs", chainDir, pDBWrapper);
+	auto mmrPath = chainDir.GetChild("rangeproofs");
+	auto pBackend = mmr::FileBackend::Open(mmrPath, pDBWrapper);
 	mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
 
 	std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>> proofs;

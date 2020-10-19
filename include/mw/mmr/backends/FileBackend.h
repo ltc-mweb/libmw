@@ -9,7 +9,7 @@
 #include <mw/mmr/Node.h>
 #include <mw/file/FilePath.h>
 #include <mw/file/AppendOnlyFile.h>
-#include <mw/db/VectorDB.h>
+#include <mw/db/LeafDB.h>
 #include <libmw/interfaces.h>
 
 MMR_NAMESPACE
@@ -19,27 +19,24 @@ class FileBackend : public IBackend
 {
 public:
     static std::shared_ptr<FileBackend> Open(
-        const std::string& name,
-        const FilePath& chainDir,
+        const FilePath& path,
         const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
     {
-        auto path = chainDir.GetChild(name).CreateDirIfMissing();
         return std::make_shared<FileBackend>(
-            name,
             AppendOnlyFile::Load(path.GetChild("pmmr_hash.bin")),
             pDBWrapper
         );
     }
 
     FileBackend(
-        const std::string& name,
         const AppendOnlyFile::Ptr& pHashFile,
         const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
-        : m_name(name), m_pHashFile(pHashFile), m_pDatabase(pDBWrapper) {}
+        : m_pHashFile(pHashFile), m_pDatabase(pDBWrapper) {}
 
     void AddLeaf(const Leaf& leaf) final
     {
-        m_leaves.push_back(leaf.vec());
+        m_leafMap[leaf.GetHash()] = m_leaves.size();
+        m_leaves.push_back(leaf);
         AddHash(leaf.GetHash());
 
         auto rightHash = leaf.GetHash();
@@ -57,17 +54,14 @@ public:
 
     void AddHash(const mw::Hash& hash) final { m_pHashFile->Append(hash.vec()); }
 
-    void Rewind(const LeafIndex& nextLeafIndex, const std::unique_ptr<libmw::IDBBatch>& pBatch) final
+    void Rewind(const LeafIndex& nextLeafIndex) final
     {
         m_pHashFile->Rewind(nextLeafIndex.GetPosition() * 32);
-        VectorDB vectorDB(m_name, m_pDatabase.get(), pBatch.get());
-        vectorDB.Rewind(nextLeafIndex.GetLeafIndex());
     }
 
     uint64_t GetNumLeaves() const noexcept final
     {
-        VectorDB vectorDB(m_name, m_pDatabase.get());
-        return vectorDB.Size() + m_leaves.size();
+        return Index::At(m_pHashFile->GetSize() / mw::Hash::size()).GetLeafIndex();
     }
 
     mw::Hash GetHash(const Index& idx) const final
@@ -77,38 +71,39 @@ public:
 
     Leaf GetLeaf(const LeafIndex& idx) const final
     {
-        const uint64_t leafIndex = idx.GetLeafIndex();
-        VectorDB vectorDB(m_name, m_pDatabase.get());
-        const uint64_t size = vectorDB.Size();
-        std::vector<uint8_t> data;
-        if (leafIndex < size) {
-            auto pData = vectorDB.Get(leafIndex);
-            if (pData) {
-                data = std::move(*pData);
-            }
-        } else {
-            data = m_leaves[leafIndex - size];
+        mw::Hash hash = GetHash(idx.GetNodeIndex());
+        auto it = m_leafMap.find(hash);
+        if (it != m_leafMap.end()) {
+            return m_leaves[it->second];
         }
-        return Leaf::Create(idx, std::move(data));
+        LeafDB ldb(m_pDatabase.get());
+        auto pLeaf = ldb.Get(idx, std::move(hash));
+        if (!pLeaf) {
+            return Leaf();  // pruned?
+        }
+        return std::move(*pLeaf);
     }
 
     void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr) final
     {
         m_pHashFile->Commit();
-        VectorDB vectorDB(m_name, m_pDatabase.get(), pBatch.get());
-        vectorDB.Add(std::move(m_leaves));
+        LeafDB ldb(m_pDatabase.get(), pBatch.get());
+        ldb.Add(m_leaves);
+        m_leaves.clear();
+        m_leafMap.clear();
     }
 
     void Rollback() noexcept final
     {
         m_pHashFile->Rollback();
         m_leaves.clear();
+        m_leafMap.clear();
     }
 
 private:
-    std::string m_name;
     AppendOnlyFile::Ptr m_pHashFile;
-    std::vector<std::vector<uint8_t>> m_leaves;
+    std::vector<Leaf> m_leaves;
+    std::map<mw::Hash, size_t> m_leafMap;
     std::shared_ptr<libmw::IDBWrapper> m_pDatabase;
 };
 

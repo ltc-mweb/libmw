@@ -1,6 +1,6 @@
 set(Database_Tests
 #   "Test_Database.cpp"
-    "Test_VectorDB.cpp"
+    "Test_LeafDB.cpp"
 )
 
 list_prepend(Database_Tests ${CMAKE_CURRENT_LIST_DIR}/)

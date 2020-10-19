@@ -1,0 +1,23 @@
+#pragma once
+
+#include <mw/mmr/Leaf.h>
+#include <mw/models/crypto/Hash.h>
+#include <libmw/interfaces.h>
+
+// Forward Declarations
+class Database;
+
+class LeafDB
+{
+public:
+    LeafDB(libmw::IDBWrapper* pDBWrapper, libmw::IDBBatch* pBatch = nullptr);
+    ~LeafDB();
+
+    std::unique_ptr<mmr::Leaf> Get(const mmr::LeafIndex& idx, mw::Hash&& hash) const;
+    void Add(const std::vector<mmr::Leaf>& leaves);
+    void Remove(const std::vector<mw::Hash>& hashes);
+    void RemoveAll();
+
+private:
+    std::unique_ptr<Database> m_pDatabase;
+};

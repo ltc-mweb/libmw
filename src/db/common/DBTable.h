@@ -16,7 +16,7 @@ public:
         bool allowDuplicates;
     };
 
-    DBTable(const std::string& prefix, const Options& options = Options::Default())
+    DBTable(const char prefix, const Options& options = Options::Default())
         : m_prefix(prefix), m_options(options) { }
 
     std::string BuildKey(const std::string& itemKey) const noexcept { return m_prefix + itemKey; }
@@ -25,9 +25,9 @@ public:
         typename SFINAE = typename std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
     std::string BuildKey(const DBEntry<T>& item) const noexcept { return BuildKey(item.key); }
 
-    std::string GetPrefix() const noexcept { return m_prefix; }
+    char GetPrefix() const noexcept { return m_prefix; }
 
 private:
-    std::string m_prefix;
+    char m_prefix;
     Options m_options;
 };

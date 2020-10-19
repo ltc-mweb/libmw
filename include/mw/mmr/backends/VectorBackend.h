@@ -36,7 +36,7 @@ public:
     }
 
     void AddHash(const mw::Hash& hash) final { m_nodes.push_back(hash); }
-    void Rewind(const LeafIndex& nextLeafIndex, const std::unique_ptr<libmw::IDBBatch>& pBatch) final
+    void Rewind(const LeafIndex& nextLeafIndex) final
     {
         m_leaves.resize(nextLeafIndex.GetLeafIndex());
         m_nodes.resize(nextLeafIndex.GetPosition());
