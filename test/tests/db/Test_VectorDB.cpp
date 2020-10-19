@@ -62,7 +62,16 @@ TEST_CASE("VectorDB")
     REQUIRE(vdb.Get(1) == nullptr);
     REQUIRE(vdb.Get(2) == nullptr);
 
+    vdb.Add({key2.vec()});
+    REQUIRE(vdb.Size() == 2);
+    REQUIRE(*vdb.Get(1) == key2.vec());
+
     vdb.RemoveAll();
     REQUIRE(vdb.Size() == 0);
     REQUIRE(vdb.Get(0) == nullptr);
+    REQUIRE(vdb.Get(1) == nullptr);
+
+    vdb.Add({key3.vec()});
+    REQUIRE(vdb.Size() == 1);
+    REQUIRE(*vdb.Get(0) == key3.vec());
 }
