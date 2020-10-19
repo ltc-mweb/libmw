@@ -66,7 +66,7 @@ public:
 
     uint64_t GetNumLeaves() const noexcept final
     {
-        VectorDB vectorDB(m_name, m_pDatabase.get(), nullptr);
+        VectorDB vectorDB(m_name, m_pDatabase.get());
         return vectorDB.Size() + m_leaves.size();
     }
 
@@ -77,9 +77,9 @@ public:
 
     Leaf GetLeaf(const LeafIndex& idx) const final
     {
-        uint64_t leafIndex = idx.GetLeafIndex();
-        VectorDB vectorDB(m_name, m_pDatabase.get(), nullptr);
-        uint64_t size = vectorDB.Size();
+        const uint64_t leafIndex = idx.GetLeafIndex();
+        VectorDB vectorDB(m_name, m_pDatabase.get());
+        const uint64_t size = vectorDB.Size();
         std::vector<uint8_t> data;
         if (leafIndex < size) {
             auto pData = vectorDB.Get(leafIndex);

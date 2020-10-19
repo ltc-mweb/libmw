@@ -36,6 +36,9 @@ std::unique_ptr<std::vector<uint8_t>> VectorDB::Get(uint64_t index) const
 
 void VectorDB::Add(std::vector<std::vector<uint8_t>>&& items)
 {
+    if (items.empty()) {
+        return;
+    }
     uint64_t size = Size();
     std::vector<DBEntry<SerializableVec>> entries;
     std::transform(
