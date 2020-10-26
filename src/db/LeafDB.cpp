@@ -17,7 +17,7 @@ std::unique_ptr<mmr::Leaf> LeafDB::Get(const mmr::LeafIndex& idx, mw::Hash&& has
     if (pVec == nullptr) {
         return nullptr;
     }
-    return std::make_unique<mmr::Leaf>(idx, std::move(hash), pVec->item->Get());
+    return std::make_unique<mmr::Leaf>(idx, std::move(hash), std::vector<uint8_t>(pVec->item->Get()));
 }
 
 void LeafDB::Add(const std::vector<mmr::Leaf>& leaves)
