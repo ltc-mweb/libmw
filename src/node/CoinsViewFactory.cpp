@@ -32,7 +32,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	);
 
     auto pKernelMMR = BuildAndValidateKernelMMR(
-		pDBWrapper,
+        pDBWrapper,
         blockStore,
         chainDir,
 		firstMWHeaderHash,
@@ -41,14 +41,14 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
     );
 
 	auto pOutputMMR = BuildAndValidateOutputMMR(
-		pDBWrapper,
+        pDBWrapper,
 		chainDir,
 		pStateHeader,
 		utxos
 	);
 
 	auto pRangeProofMMR = BuildAndValidateRangeProofMMR(
-		pDBWrapper,
+        pDBWrapper,
 		chainDir,
 		pStateHeader,
 		utxos
@@ -79,7 +79,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 
 // TODO: Also validate peg-in/peg-out transactions
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
-	const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
 	const mw::IBlockStore& blockStore,
     const FilePath& chainDir,
     const mw::Hash& firstMWHeaderHash,
@@ -157,7 +157,7 @@ mmr::LeafSet::Ptr CoinsViewFactory::BuildAndValidateLeafSet(
 }
 
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateOutputMMR(
-	const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
     const FilePath& chainDir,
     const mw::Header::CPtr& pStateHeader,
     const std::vector<UTXO::CPtr>& utxos)
@@ -180,13 +180,13 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateOutputMMR(
 }
 
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
-	const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
 	const FilePath& chainDir,
 	const mw::Header::CPtr& pStateHeader,
 	const std::vector<UTXO::CPtr>& utxos)
 {
-	auto mmrPath = chainDir.GetChild("rangeproofs");
-	auto pBackend = mmr::FileBackend::Open(mmrPath, pDBWrapper);
+    auto mmrPath = chainDir.GetChild("rangeproofs");
+    auto pBackend = mmr::FileBackend::Open(mmrPath, pDBWrapper);
 	mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
 
 	std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>> proofs;
