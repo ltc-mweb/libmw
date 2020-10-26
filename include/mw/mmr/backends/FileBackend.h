@@ -20,19 +20,22 @@ class FileBackend : public IBackend
 {
 public:
     static std::shared_ptr<FileBackend> Open(
+        const char dbPrefix,
         const FilePath& path,
         const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
     {
         return std::make_shared<FileBackend>(
+            dbPrefix,
             AppendOnlyFile::Load(path.GetChild("pmmr_hash.bin")),
             pDBWrapper
         );
     }
 
     FileBackend(
+        const char dbPrefix,
         const AppendOnlyFile::Ptr& pHashFile,
         const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
-        : m_pHashFile(pHashFile), m_pDatabase(pDBWrapper) {}
+        : m_dbPrefix(dbPrefix), m_pHashFile(pHashFile), m_pDatabase(pDBWrapper) {}
 
     void AddLeaf(const Leaf& leaf) final
     {
@@ -77,7 +80,7 @@ public:
         if (it != m_leafMap.end()) {
             return m_leaves[it->second];
         }
-        LeafDB ldb(m_pDatabase.get());
+        LeafDB ldb(m_dbPrefix, m_pDatabase.get());
         auto pLeaf = ldb.Get(idx, std::move(hash));
         if (!pLeaf) {
             ThrowNotFound_F("Can't get leaf at position {} with hash {}", idx.GetPosition(), hash);
@@ -88,7 +91,7 @@ public:
     void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr) final
     {
         m_pHashFile->Commit();
-        LeafDB ldb(m_pDatabase.get(), pBatch.get());
+        LeafDB ldb(m_dbPrefix, m_pDatabase.get(), pBatch.get());
         ldb.Add(m_leaves);
         m_leaves.clear();
         m_leafMap.clear();
@@ -102,6 +105,7 @@ public:
     }
 
 private:
+    char m_dbPrefix;
     AppendOnlyFile::Ptr m_pHashFile;
     std::vector<Leaf> m_leaves;
     std::map<mw::Hash, size_t> m_leafMap;

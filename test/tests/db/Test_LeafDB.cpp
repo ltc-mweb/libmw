@@ -7,7 +7,7 @@
 TEST_CASE("LeafDB")
 {
     auto pDatabase = std::make_shared<TestDBWrapper>();
-    LeafDB ldb(pDatabase.get());
+    LeafDB ldb('L', pDatabase.get());
 
     auto leaf1 = mmr::Leaf::Create(mmr::LeafIndex::At(0), { 0, 1, 2 });
     auto leaf2 = mmr::Leaf::Create(mmr::LeafIndex::At(1), { 1, 2, 3 });

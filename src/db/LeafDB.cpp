@@ -2,10 +2,8 @@
 #include "common/Database.h"
 #include "common/SerializableVec.h"
 
-static const DBTable LEAF_TABLE = { 'L' };
-
-LeafDB::LeafDB(libmw::IDBWrapper* pDBWrapper, libmw::IDBBatch* pBatch)
-    : m_pDatabase(std::make_unique<Database>(pDBWrapper, pBatch))
+LeafDB::LeafDB(const char prefix, libmw::IDBWrapper* pDBWrapper, libmw::IDBBatch* pBatch)
+    : m_prefix(prefix), m_pDatabase(std::make_unique<Database>(pDBWrapper, pBatch))
 {
 }
 
@@ -13,7 +11,7 @@ LeafDB::~LeafDB() {}
 
 std::unique_ptr<mmr::Leaf> LeafDB::Get(const mmr::LeafIndex& idx, mw::Hash&& hash) const
 {
-    auto pVec = m_pDatabase->Get<SerializableVec>(LEAF_TABLE, hash.ToHex());
+    auto pVec = m_pDatabase->Get<SerializableVec>(m_prefix, hash.ToHex());
     if (pVec == nullptr) {
         return nullptr;
     }
@@ -33,17 +31,17 @@ void LeafDB::Add(const std::vector<mmr::Leaf>& leaves)
             return DBEntry<SerializableVec>(leaf.GetHash().ToHex(), std::vector<uint8_t>(leaf.vec()));
         }
     );
-    m_pDatabase->Put(LEAF_TABLE, entries);
+    m_pDatabase->Put(m_prefix, entries);
 }
 
 void LeafDB::Remove(const std::vector<mw::Hash>& hashes)
 {
     for (const mw::Hash& hash : hashes) {
-        m_pDatabase->Delete(LEAF_TABLE, hash.ToHex());
+        m_pDatabase->Delete(m_prefix, hash.ToHex());
     }
 }
 
 void LeafDB::RemoveAll()
 {
-    m_pDatabase->DeleteAll(LEAF_TABLE);
+    m_pDatabase->DeleteAll(m_prefix);
 }

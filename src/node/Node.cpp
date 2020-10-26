@@ -26,15 +26,15 @@ mw::INode::Ptr InitializeNode(
     auto pLeafSet = mmr::LeafSet::Open(chain_dir);
 
     auto kernels_path = chain_dir.GetChild("kernels").CreateDirIfMissing();
-    auto pKernelsBackend = mmr::FileBackend::Open(kernels_path, pDBWrapper);
+    auto pKernelsBackend = mmr::FileBackend::Open('K', kernels_path, pDBWrapper);
     mmr::MMR::Ptr pKernelsMMR = std::make_shared<mmr::MMR>(pKernelsBackend);
 
     auto outputs_path = chain_dir.GetChild("outputs").CreateDirIfMissing();
-    auto pOutputBackend = mmr::FileBackend::Open(outputs_path, pDBWrapper);
+    auto pOutputBackend = mmr::FileBackend::Open('O', outputs_path, pDBWrapper);
     mmr::MMR::Ptr pOutputMMR = std::make_shared<mmr::MMR>(pOutputBackend);
 
     auto rangeproof_path = chain_dir.GetChild("proofs").CreateDirIfMissing();
-    auto pRangeProofBackend = mmr::FileBackend::Open(rangeproof_path, pDBWrapper);
+    auto pRangeProofBackend = mmr::FileBackend::Open('R', rangeproof_path, pDBWrapper);
     mmr::MMR::Ptr pRangeProofMMR = std::make_shared<mmr::MMR>(pRangeProofBackend);
 
     // TODO: Validate Current State
