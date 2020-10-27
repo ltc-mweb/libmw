@@ -13,6 +13,7 @@
 #include <mw/mmr/LeafIndex.h>
 #include <mw/mmr/Leaf.h>
 #include <mw/mmr/Node.h>
+#include <libmw/interfaces.h>
 
 MMR_NAMESPACE
 
@@ -86,7 +87,10 @@ public:
         return hash;
     }
 
-    virtual void BatchWrite(const LeafIndex& firstLeafIdx, const std::vector<Leaf>& leaves) = 0;
+    virtual void BatchWrite(
+        const LeafIndex& firstLeafIdx,
+        const std::vector<Leaf>& leaves,
+        const std::unique_ptr<libmw::IDBBatch>& pBatch) = 0;
 };
 
 class MMR : public Traits::IBatchable, public IMMR
@@ -112,7 +116,10 @@ public:
     void Commit() final { m_pBackend->Commit(); }
     void Rollback() noexcept final { m_pBackend->Rollback(); }
 
-    void BatchWrite(const LeafIndex& firstLeafIdx, const std::vector<Leaf>& leaves) final;
+    void BatchWrite(
+        const LeafIndex& firstLeafIdx,
+        const std::vector<Leaf>& leaves,
+        const std::unique_ptr<libmw::IDBBatch>& pBatch) final;
 
 private:
     IBackend::Ptr m_pBackend;
@@ -210,7 +217,10 @@ public:
         }
     }
 
-    void BatchWrite(const LeafIndex& firstLeafIdx, const std::vector<Leaf>& leaves) final
+    void BatchWrite(
+        const LeafIndex& firstLeafIdx,
+        const std::vector<Leaf>& leaves,
+        const std::unique_ptr<libmw::IDBBatch>& pBatch) final
     {
         LOG_TRACE_F("MMRCache: Writing batch {}", firstLeafIdx.GetLeafIndex());
         Rewind(firstLeafIdx.GetLeafIndex());
@@ -220,10 +230,10 @@ public:
         }
     }
 
-    void Flush()
+    void Flush(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr)
     {
         LOG_TRACE_F("MMRCache: Flushing {} leaves at {}", m_leaves.size(), m_firstLeaf.GetLeafIndex());
-        m_pBase->BatchWrite(m_firstLeaf, m_leaves);
+        m_pBase->BatchWrite(m_firstLeaf, m_leaves, pBatch);
         m_firstLeaf = GetNextLeafIdx();
         m_leaves.clear();
         m_nodes.clear();
