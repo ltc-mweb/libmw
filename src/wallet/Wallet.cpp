@@ -11,8 +11,8 @@ Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
 {
     assert(pWalletInterface != nullptr);
 
-    SecretKey master_key = pWalletInterface->GetHDKey("m/1/0/0").keyBytes;
-    PublicKey master_pub = Crypto::CalculatePublicKey(master_key);
+    SecretKey master_key(pWalletInterface->GetHDKey("m/1/0/0").keyBytes);
+    PublicKey master_pub(Crypto::CalculatePublicKey(master_key));
     return Wallet(pWalletInterface, std::move(master_key), std::move(master_pub));
 }
 
@@ -194,7 +194,7 @@ mw::Transaction::CPtr Wallet::Receive(const PartialTx& partial_tx)
 
 libmw::MWEBAddress Wallet::GetAddress() const
 {
-    SecretKey private_key = m_pWalletInterface->GetHDKey("m/1/0/100").keyBytes;
+    SecretKey private_key(m_pWalletInterface->GetHDKey("m/1/0/100").keyBytes);
     return Bech32Address("mweb", Crypto::CalculatePublicKey(private_key).vec()).ToString();
 }
 
