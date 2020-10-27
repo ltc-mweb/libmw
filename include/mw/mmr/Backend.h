@@ -6,15 +6,15 @@
 
 #include <mw/common/Macros.h>
 #include <mw/models/crypto/Hash.h>
-#include <mw/traits/Batchable.h>
 #include <mw/mmr/Index.h>
 #include <mw/mmr/LeafIndex.h>
 #include <mw/mmr/Leaf.h>
+#include <libmw/interfaces.h>
 #include <memory>
 
 MMR_NAMESPACE
 
-class IBackend : public Traits::IBatchable
+class IBackend
 {
 public:
     using Ptr = std::shared_ptr<IBackend>;
@@ -31,6 +31,9 @@ public:
     virtual Leaf GetLeaf(const LeafIndex& idx) const = 0;
 
     virtual LeafIndex GetNextLeaf() const noexcept { return LeafIndex::At(GetNumLeaves()); }
+
+    virtual void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr) = 0;
+    virtual void Rollback() noexcept = 0;
 };
 
 END_NAMESPACE

@@ -48,7 +48,7 @@ public:
     Leaf GetLeaf(const LeafIndex& idx) const final { return m_leaves[idx.GetLeafIndex()]; }
 
     // Not supported yet
-    void Commit() final { }
+    void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch) final { }
     void Rollback() noexcept final { }
 
 private:
