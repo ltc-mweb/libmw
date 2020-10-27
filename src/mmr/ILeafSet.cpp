@@ -28,21 +28,11 @@ bool ILeafSet::Contains(const LeafIndex& idx) const noexcept
 
 mw::Hash ILeafSet::Root() const
 {
-	//uint8_t bitsToClear = 0;
 	uint64_t numBytes = (m_nextLeafIdx.GetLeafIndex() + 7) / 8;
-	//if (numLeaves % 8 != 0) {
-	//	++numBytes;
-	//	//bitsToClear = 8 - (numLeaves % 8);
-	//}
 
 	std::vector<uint8_t> bytes(numBytes);
 	for (uint64_t byte_idx = 0; byte_idx < numBytes; byte_idx++) {
 		uint8_t byte = GetByte(byte_idx);
-		//if (byte_idx == (numBytes - 1)) {
-		//	for (uint8_t bit = 0; bit < bitsToClear; bit++) {
-		//		byte &= ~(1 << bit);
-		//	}
-		//}
 		bytes[byte_idx] = byte;
 	}
 

@@ -104,12 +104,12 @@ public:
         std::string copy = s;
 
         // trim from start
-        copy.erase(copy.begin(), std::find_if(copy.begin(), copy.end(), [](int ch) {
+        copy.erase(copy.begin(), std::find_if(copy.begin(), copy.end(), [](char ch) {
             return !IsSpace(ch);
         }));
 
         // trim from end (in place)
-        copy.erase(std::find_if(copy.rbegin(), copy.rend(), [](int ch) {
+        copy.erase(std::find_if(copy.rbegin(), copy.rend(), [](char ch) {
             return !IsSpace(ch) && ch != '\r' && ch != '\n';
         }).base(), copy.end());
 

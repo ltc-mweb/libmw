@@ -22,11 +22,13 @@ MWIMPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(
 /// </summary>
 /// <param name="pWallet">The wallet to create the transaction for. Must not be null.</param>
 /// <param name="amount">The amount to pegout. Must be positive.</param>
+/// <param name="fee_base">The base fee rate to be multiplied by transaction weight.</param>
 /// <param name="address">The LTC address to send the coins to. Must be a valid bech32 address.</param>
 /// <returns>The non-null libmw::TxRef and libmw::PegOut that were created.</returns>
 MWIMPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
     const libmw::IWallet::Ptr& pWallet,
     const uint64_t amount,
+    const uint64_t fee_base,
     const std::string& address
 );
 
@@ -35,12 +37,14 @@ MWIMPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
 /// </summary>
 /// <param name="pWallet">The wallet to send from. Must not be null.</param>
 /// <param name="amount">The amount to send. Must be positive.</param>
+/// <param name="fee_base">The base fee rate to be multiplied by transaction weight.</param>
 /// <param name="address">The address to send to.</param>
-/// <returns></returns>
-MWIMPORT PartialTransaction Send(
+/// <returns>A partial transaction to be finalized by the receiver.</returns>
+MWIMPORT libmw::PartialTransaction Send(
     const libmw::IWallet::Ptr& pWallet,
     const uint64_t amount,
-    const MWEBAddress& address
+    const uint64_t fee_base,
+    const libmw::MWEBAddress& address
 );
 
 /// <summary>
@@ -48,9 +52,10 @@ MWIMPORT PartialTransaction Send(
 /// </summary>
 /// <param name="pWallet">The wallet to receive to. Must not be null.</param>
 /// <param name="partialTx">The partial transaction to finish.</param>
-MWIMPORT void Receive(
+/// <returns>The finished transaction, ready to be broadcast.</returns>
+MWIMPORT libmw::TxRef Receive(
     const libmw::IWallet::Ptr& pWallet,
-    const PartialTransaction& partialTx
+    const libmw::PartialTransaction& partialTx
 );
 
 /// <summary>

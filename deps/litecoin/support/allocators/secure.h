@@ -6,6 +6,9 @@
 #ifndef BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
 #define BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
 
+#pragma warning(push)
+#pragma warning(disable: 4100)
+
 #include <support/lockedpool.h>
 #include <support/cleanse.h>
 
@@ -59,5 +62,7 @@ struct secure_allocator : public std::allocator<T> {
 // This is exactly like std::string, but with a custom allocator.
 typedef std::basic_string<char, std::char_traits<char>, secure_allocator<char>> SecureString;
 typedef std::vector<unsigned char, secure_allocator<unsigned char>> SecureVector;
+
+#pragma warning(pop)
 
 #endif // BITCOIN_SUPPORT_ALLOCATORS_SECURE_H

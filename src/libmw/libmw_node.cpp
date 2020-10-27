@@ -92,7 +92,7 @@ MWEXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<
     LOG_TRACE("Cache flushed");
 }
 
-MWEXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view)
+MWEXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef&)
 {
     return { nullptr }; // TODO: Implement
 }

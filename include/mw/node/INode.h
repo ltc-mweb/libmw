@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mw/common/Macros.h>
-#include <mw/common/ImportExport.h>
 #include <mw/db/IBlockStore.h>
 #include <mw/node/NodeConfig.h>
 #include <mw/node/CoinsView.h>

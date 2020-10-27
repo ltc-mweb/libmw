@@ -20,7 +20,7 @@ mw::INode::Ptr InitializeNode(
     auto pConfig = NodeConfig::Create(datadir, { });
     LoggerAPI::Initialize(pConfig->GetDataDir().GetChild("logs").CreateDirIfMissing(), "DEBUG"); // TODO: Read config
 
-    mw::ChainParams::Initialize(hrp);
+    mw::ChainParams::Initialize(hrp, 20); // TODO: Pass in pegin-maturity
 
     auto chain_dir = pConfig->GetChainDir();
     auto pLeafSet = mmr::LeafSet::Open(chain_dir);

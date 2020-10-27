@@ -32,7 +32,7 @@ public:
         auto pBackend = std::make_shared<FileBackend>(
             AppendOnlyFile::Load(path.GetChild("pmmr_hash.bin")),
             AppendOnlyFile::Load(path.GetChild("pmmr_data.bin")),
-            fixedLengthOpt.value_or(0)
+            fixedLengthOpt.value_or((uint16_t)0)
         );
 
         if (!fixedLengthOpt.has_value())

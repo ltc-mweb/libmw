@@ -4,7 +4,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-#include <mw/common/ImportExport.h>
 #include <mw/models/crypto/BigInteger.h>
 #include <mw/models/crypto/Commitment.h>
 #include <mw/models/crypto/RangeProof.h>
@@ -18,11 +17,6 @@
 #include <mw/models/crypto/ScryptParameters.h>
 #include <support/allocators/secure.h>
 
-//#ifdef MW_CRYPTO
-//#define CRYPTO_API MWEXPORT
-//#else
-//#define CRYPTO_API MWIMPORT
-//#endif
 #define CRYPTO_API
 
 //

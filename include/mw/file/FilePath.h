@@ -8,8 +8,11 @@
 #undef _GLIBCXX_HAVE_TIMESPEC_GET
 #endif
 
-
+#pragma warning(push)
+#pragma warning(disable: 4100 4127 4244)
 #include <ghc/filesystem.hpp>
+#pragma warning(pop)
+
 namespace filesystem = ghc::filesystem;
 
 #include <mw/exceptions/FileException.h>
