@@ -11,7 +11,7 @@
 #include <mw/file/AppendOnlyFile.h>
 #include <mw/db/LeafDB.h>
 #include <mw/exceptions/NotFoundException.h>
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 
 MMR_NAMESPACE
 

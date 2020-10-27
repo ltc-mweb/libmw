@@ -13,7 +13,7 @@
 #include <mw/mmr/LeafIndex.h>
 #include <mw/mmr/Leaf.h>
 #include <mw/mmr/Node.h>
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 
 MMR_NAMESPACE
 
@@ -220,7 +220,7 @@ public:
     void BatchWrite(
         const LeafIndex& firstLeafIdx,
         const std::vector<Leaf>& leaves,
-        const std::unique_ptr<libmw::IDBBatch>& pBatch) final
+        const std::unique_ptr<libmw::IDBBatch>&) final
     {
         LOG_TRACE_F("MMRCache: Writing batch {}", firstLeafIdx.GetLeafIndex());
         Rewind(firstLeafIdx.GetLeafIndex());
