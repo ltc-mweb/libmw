@@ -26,7 +26,7 @@ public:
     static Kernel CreatePegInKernel(const BlindingFactor& kernel_blind, const uint64_t amount)
     {
         Commitment kernel_commit = Crypto::CommitBlinded(0, kernel_blind);
-        mw::Hash sig_message = Serializer()
+        std::vector<uint8_t> sig_message = Serializer()
             .Append<uint8_t>(KernelType::PEGIN_KERNEL)
             .Append<uint64_t>(amount)
             .vec();

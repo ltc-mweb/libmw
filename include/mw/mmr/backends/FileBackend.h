@@ -80,11 +80,13 @@ public:
         if (it != m_leafMap.end()) {
             return m_leaves[it->second];
         }
+
         LeafDB ldb(m_dbPrefix, m_pDatabase.get());
         auto pLeaf = ldb.Get(idx, std::move(hash));
         if (!pLeaf) {
             ThrowNotFound_F("Can't get leaf at position {} with hash {}", idx.GetPosition(), hash);
         }
+
         return std::move(*pLeaf);
     }
 

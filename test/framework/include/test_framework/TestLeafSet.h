@@ -2,6 +2,7 @@
 
 #include <mw/mmr/LeafSet.h>
 #include <mw/models/crypto/Commitment.h>
+#include <mw/exceptions/NotFoundException.h>
 #include <test_framework/TestUtil.h>
 
 class TestLeafSet
@@ -27,7 +28,7 @@ public:
             for (const Commitment& input : block.inputs) {
                 auto iter = unspentLeaves.find(input);
                 if (iter == unspentLeaves.cend()) {
-                    throw std::exception();
+                    ThrowNotFound_F("Unspent leaf not found with input commitment {}", input);
                 }
 
                 pLeafSet->Remove(iter->second);
@@ -36,7 +37,7 @@ public:
             for (const Commitment& output : block.outputs) {
                 auto iter = unspentLeaves.find(output);
                 if (iter != unspentLeaves.cend()) {
-                    throw std::exception();
+                    ThrowNotFound_F("Unspent leaf not found with output commitment {}", output);
                 }
 
                 unspentLeaves.insert({ output, pTestLeafSet->m_nextLeafIdx });

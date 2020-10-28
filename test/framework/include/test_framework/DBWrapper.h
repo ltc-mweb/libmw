@@ -1,6 +1,7 @@
 #pragma once
 
 #include <libmw/interfaces/db_interface.h>
+#include <mw/exceptions/NotFoundException.h>
 #include <map>
 
 class TestDBBatch : public libmw::IDBBatch
@@ -37,7 +38,7 @@ public:
                 if (iter != m_kvp.end()) {
                     m_kvp.erase(iter);
                 } else {
-                    throw std::exception();
+                    ThrowNotFound_F("Key {} not found", action.key);
                 }
             } else {
                 m_kvp[action.key] = action.value;
@@ -124,7 +125,7 @@ public:
             return;
         }
 
-        throw std::exception();
+        ThrowNotFound_F("Key {} not found", key);
     }
 
     std::unique_ptr<libmw::IDBIterator> NewIterator() final
