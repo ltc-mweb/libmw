@@ -26,50 +26,6 @@ class CRYPTO_API Crypto
 {
 public:
     //
-    // Uses Blake2b to hash the given input into a 32 byte hash.
-    //
-    //static BigInt<32> Blake2b(const std::vector<uint8_t>& input);
-
-    //
-    // Uses Blake2b to hash the given input into a 32 byte hash using a key.
-    //
-    //static BigInt<32> Blake2b(
-    //    const std::vector<uint8_t>& key,
-    //    const std::vector<uint8_t>& input
-    //);
-
-    //
-    // Uses SHA256 to hash the given input into a 32 byte hash.
-    //
-    static BigInt<32> SHA256(const std::vector<uint8_t>& input);
-
-    //
-    // Uses SHA512 to hash the given input into a 64 byte hash.
-    //
-    static BigInt<64> SHA512(const std::vector<uint8_t>& input);
-
-    //
-    // Uses RipeMD160 to hash the given input into a 20 byte hash.
-    //
-    static BigInt<20> RipeMD160(const std::vector<uint8_t>& input);
-
-    //
-    //
-    //
-    static BigInt<32> HMAC_SHA256(
-        const std::vector<uint8_t>& key,
-        const std::vector<uint8_t>& data
-    );
-
-    //
-    //
-    //
-    static BigInt<64> HMAC_SHA512(
-        const std::vector<uint8_t>& key,
-        const std::vector<uint8_t>& data
-    );
-
-    //
     // Creates a pedersen commitment from a value with a zero blinding factor.
     //
     static Commitment CommitTransparent(const uint64_t value);
