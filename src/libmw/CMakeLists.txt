@@ -1,4 +1,4 @@
-add_library(libmw SHARED "libmw.cpp" "BlockStoreWrapper.h" "Transformers.h" "State.h" "libmw_node.cpp" "libmw_wallet.cpp" "defs.cpp")
+add_library(libmw SHARED "libmw.cpp" "BlockStoreWrapper.h" "Transformers.h" "State.h" "libmw_node.cpp" "libmw_wallet.cpp" "defs.cpp" "libmw_miner.cpp")
 
 target_link_libraries(libmw PRIVATE litecoin MW::Common MW::Crypto MW::Database MW::File MW::MMR MW::Traits MW::Node MW::Wallet)
 target_compile_definitions(libmw PRIVATE LIBMW)

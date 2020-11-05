@@ -20,6 +20,11 @@ MWIMPORT libmw::CoinsViewRef Initialize(
 ); // TODO: Take in a BlockStore
 
 /// <summary>
+/// Shuts down node and cleans up memory.
+/// </summary>
+MWIMPORT void Shutdown();
+
+/// <summary>
 /// Validates the chainstate and replaces the existing state if valid.
 /// This should be used during initial sync, or when syncing from beyond the horizon.
 /// </summary>
@@ -66,19 +71,6 @@ MWIMPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const li
 /// <param name="undoData">The MW ext block undo data to apply. Must not be null.</param>
 /// <param name="view">The CoinsView to disconnect the block from. Must not be null.</param>
 MWIMPORT void DisconnectBlock(const libmw::BlockUndoRef& undoData, const libmw::CoinsViewRef& view);
-
-/// <summary>
-/// Builds the next MW ext block on top of the given CoinsView. 
-/// </summary>
-/// <param name="height">The height of the block being built.</param>
-/// <param name="view">The CoinsView representing the latest state of the active chain. Must not be null.</param>
-/// <param name="transactions">The MWEB transactions to include. The block may not include all of them.</param>
-/// <returns>The non-null MW ext block with pegins and pegouts.</returns>
-MWIMPORT libmw::BlockAndPegs BuildNextBlock(
-    const uint64_t height,
-    const libmw::CoinsViewRef& view,
-    const std::vector<libmw::TxRef>& transactions
-);
 
 /// <summary>
 /// Commits the changes from the cached CoinsView to the base CoinsView.

@@ -70,7 +70,7 @@ public:
         }
     }
 
-    uint64_t GetDepthInActiveChain(const libmw::BlockHash& canonical_block_hash) final
+    uint64_t GetDepthInActiveChain(const libmw::BlockHash& canonical_block_hash) const final
     {
         auto iter = m_depthInChain.find(canonical_block_hash);
         if (iter != m_depthInChain.end()) {

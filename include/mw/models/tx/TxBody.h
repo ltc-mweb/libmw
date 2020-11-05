@@ -64,6 +64,50 @@ public:
     const std::vector<Output>& GetOutputs() const noexcept { return m_outputs; }
     const std::vector<Kernel>& GetKernels() const noexcept { return m_kernels; }
 
+    std::vector<Kernel> GetPegInKernels() const noexcept
+    {
+        std::vector<Kernel> peggedIn;
+        std::copy_if(
+            m_kernels.cbegin(), m_kernels.cend(),
+            std::back_inserter(peggedIn),
+            [](const auto& kernel) -> bool { return kernel.IsPegIn(); }
+        );
+
+        return peggedIn;
+    }
+
+    std::vector<Output> GetPegInOutputs() const noexcept
+    {
+        std::vector<Output> peggedIn;
+        std::copy_if(
+            m_outputs.cbegin(), m_outputs.cend(),
+            std::back_inserter(peggedIn),
+            [](const Output& output) -> bool { return output.IsPeggedIn(); }
+        );
+
+        return peggedIn;
+    }
+
+    uint64_t GetPegInAmount() const noexcept
+    {
+        return std::accumulate(
+            m_kernels.cbegin(), m_kernels.cend(), (uint64_t)0,
+            [](const uint64_t sum, const auto& kernel) noexcept { return sum + kernel.GetPeggedIn(); }
+        );
+    }
+
+    std::vector<Kernel> GetPegOutKernels() const noexcept
+    {
+        std::vector<Kernel> peggedOut;
+        std::copy_if(
+            m_kernels.cbegin(), m_kernels.cend(),
+            std::back_inserter(peggedOut),
+            [](const auto& kernel) -> bool { return kernel.IsPegOut(); }
+        );
+
+        return peggedOut;
+    }
+
     uint64_t GetTotalFee() const noexcept
     {
         return std::accumulate(

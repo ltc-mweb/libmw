@@ -8,6 +8,7 @@
 #include "defs.h"
 #include "node.h"
 #include "wallet.h"
+#include "miner.h"
 
 #include <memory>
 #include <cstdint>

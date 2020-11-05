@@ -32,6 +32,7 @@ MWEXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
 
 MWEXPORT uint64_t TxRef::GetTotalFee() const noexcept
 {
+    assert(pTransaction != nullptr);
     return pTransaction->GetTotalFee();
 }
 

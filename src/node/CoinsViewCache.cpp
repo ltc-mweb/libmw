@@ -96,6 +96,7 @@ mw::Block::Ptr CoinsViewCache::BuildNextBlock(const uint64_t height, const std::
     LOG_TRACE_F("Building block with {} transactions", transactions.size());
 
     // TODO: Make sure all inputs are available before aggregating a transaction.
+    // TODO: Make sure no duplicate outputs already on chain.
 
     auto pTransaction = Aggregation::Aggregate(transactions);
 

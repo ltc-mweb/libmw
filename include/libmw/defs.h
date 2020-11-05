@@ -28,6 +28,7 @@
 
 #define LIBMW_NAMESPACE namespace libmw {
 #define NODE_NAMESPACE namespace node {
+#define MINER_NAMESPACE namespace miner {
 #define DB_NAMESPACE namespace db {
 #define WALLET_NAMESPACE namespace wallet {
 #define END_NAMESPACE }
@@ -40,6 +41,7 @@ namespace mw
     class BlockUndo;
     class Transaction;
     class ICoinsView;
+    class BlockBuilder;
     struct State;
 }
 
@@ -54,8 +56,8 @@ typedef std::array<uint8_t, 33> Commitment;
 typedef std::string MWEBAddress;
 typedef std::string PartialTransaction;
 
-static uint8_t NORMAL_OUTPUT = 0;
-static uint8_t PEGIN_OUTPUT = 1;
+static const uint8_t NORMAL_OUTPUT = 0;
+static const uint8_t PEGIN_OUTPUT = 1;
 
 struct PegIn
 {
@@ -133,6 +135,11 @@ struct PrivateKey
 {
     std::string bip32Path;
     libmw::BlindingFactor keyBytes;
+};
+
+struct BlockBuilderRef
+{
+    std::shared_ptr<mw::BlockBuilder> pBuilder;
 };
 
 // TODO: WalletTx

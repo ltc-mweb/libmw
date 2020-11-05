@@ -61,7 +61,7 @@ public:
     /// 1 for chain tip, 2 for previous block, etc.
     /// 0 if not in the chain.
     /// </returns>
-    virtual uint64_t GetDepthInActiveChain(const libmw::BlockHash& canonical_block_hash) = 0;
+    virtual uint64_t GetDepthInActiveChain(const libmw::BlockHash& canonical_block_hash) const = 0;
 };
 
 END_NAMESPACE

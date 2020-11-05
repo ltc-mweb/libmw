@@ -137,6 +137,17 @@ private:
         return x.Format();
     }
 
+    template <class T>
+    static std::string ConvertArg(const std::vector<T>& x)
+    {
+        std::string str = "vec(";
+        for (const T& value : x) {
+            str += ConvertArg(value) + ",";
+        }
+
+        return str + ")";
+    }
+
     static std::string ConvertArg(const std::shared_ptr<const Traits::IPrintable>& x)
     {
         if (x == nullptr)

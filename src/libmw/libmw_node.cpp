@@ -27,6 +27,12 @@ MWEXPORT libmw::CoinsViewRef Initialize(
     return libmw::CoinsViewRef{ NODE->GetDBView() };
 }
 
+MWEXPORT void Shutdown()
+{
+    LoggerAPI::Shutdown();
+    NODE.reset();
+}
+
 MWEXPORT libmw::CoinsViewRef ApplyState(
     const libmw::IBlockStore::Ptr& pBlockStore,
     const libmw::IDBWrapper::Ptr& pCoinsDB,
@@ -65,21 +71,6 @@ MWEXPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const Co
 MWEXPORT void DisconnectBlock(const libmw::BlockUndoRef& undoData, const CoinsViewRef& view)
 {
     NODE->DisconnectBlock(undoData.pUndo, view.pCoinsView);
-}
-
-MWEXPORT libmw::BlockAndPegs BuildNextBlock(
-    const uint64_t height,
-    const libmw::CoinsViewRef& view,
-    const std::vector<libmw::TxRef>& transactions)
-{
-    mw::CoinsViewCache viewCache(view.pCoinsView);
-
-    LOG_TRACE_F("Building block with {} txs", transactions.size());
-    auto txs = TransformTxs(transactions);
-    auto pBlock = viewCache.BuildNextBlock(height, txs);
-    LOG_TRACE_F("Next block built: {}", Json(pBlock->ToJSON()));
-
-    return TransformBlock(pBlock);
 }
 
 MWEXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<libmw::IDBBatch>& pBatch)

@@ -2,6 +2,7 @@ set(TARGET_NAME Node)
 
 file(GLOB SOURCE_CODE
 	"Node.cpp"
+	"BlockBuilder.cpp"
 	"CoinsViewCache.cpp"
 	"CoinsViewDB.cpp"
 	"CoinsViewFactory.cpp"
