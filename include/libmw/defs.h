@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <set>
 #include <vector>
 #include <string>
 #include <memory>
@@ -50,6 +51,7 @@ namespace mw
 LIBMW_NAMESPACE
 
 typedef std::array<uint8_t, 32> BlockHash;
+typedef std::array<uint8_t, 32> KernelHash;
 typedef std::array<uint8_t, 32> Offset;
 typedef std::array<uint8_t, 32> BlindingFactor;
 typedef std::array<uint8_t, 33> Commitment;
@@ -89,6 +91,7 @@ struct BlockRef
 
     MWIMPORT libmw::HeaderRef GetHeader() const;
     MWIMPORT uint64_t GetTotalFee() const noexcept;
+    MWIMPORT std::set<KernelHash> GetKernelHashes() const;
 
     std::shared_ptr<mw::Block> pBlock;
 };
@@ -109,6 +112,7 @@ struct TxRef
 {
     MWIMPORT std::vector<PegOut> GetPegouts() const noexcept;
     MWIMPORT uint64_t GetTotalFee() const noexcept;
+    MWIMPORT std::set<KernelHash> GetKernelHashes() const;
 
     std::shared_ptr<const mw::Transaction> pTransaction;
 };
