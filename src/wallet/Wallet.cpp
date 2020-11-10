@@ -247,33 +247,32 @@ void Wallet::BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canon
         try {
             SecretKey nonce = RewindNonce(output.GetCommitment());
             auto pRewound = Crypto::RewindRangeProof(output.GetCommitment(), *output.GetRangeProof(), nonce);
-            if (pRewound != nullptr) {
-                libmw::PrivateKey private_key = m_pWalletInterface->GetHDKey(pRewound->GetKeyChainPath().Format());
-                const uint64_t amount = pRewound->GetAmount();
-                libmw::Commitment commitment = output.GetCommitment().array();
-
-                auto iter = coinmap.find(output.GetCommitment());
-                if (iter != coinmap.cend()) {
-                    libmw::Coin coin = iter->second;
-                    coin.included_block = canonical_block_hash.ToArray();
-                    coins_to_update.push_back(std::move(coin));
-                } else {
-                    libmw::Coin coin{
-                        output.GetFeatures(),
-                        private_key,
-                        amount,
-                        commitment,
-                        canonical_block_hash.ToArray(),
-                        false,
-                        libmw::BlockHash{}
-                    };
-                    coins_to_update.push_back(std::move(coin));
-                }
+            if (pRewound == nullptr) {
+                continue;
             }
-        }
-        catch (std::exception&) {
 
-        }
+            auto iter = coinmap.find(output.GetCommitment());
+            if (iter != coinmap.cend()) {
+                libmw::Coin coin = iter->second;
+                coin.included_block = canonical_block_hash.ToArray();
+                coins_to_update.push_back(std::move(coin));
+            } else {
+                libmw::PrivateKey private_key = m_pWalletInterface->GetHDKey(
+                    pRewound->GetKeyChainPath().Format()
+                );
+
+                libmw::Coin coin{
+                    output.GetFeatures(),
+                    std::move(private_key),
+                    pRewound->GetAmount(),
+                    output.GetCommitment().array(),
+                    canonical_block_hash.ToArray(),
+                    false,
+                    boost::none
+                };
+                coins_to_update.push_back(std::move(coin));
+            }
+        } catch (std::exception&) { }
     }
 
     // Mark inputs as spent
@@ -323,6 +322,66 @@ void Wallet::BlockDisconnected(const mw::Block::CPtr& pBlock)
         }
     }
 
+    m_pWalletInterface->AddCoins(coins_to_update);
+}
+
+void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
+{
+    std::vector<libmw::Coin> orig_coins = m_pWalletInterface->ListCoins();
+    std::cout << "Original coins size: " << orig_coins.size() << std::endl;
+    m_pWalletInterface->DeleteCoins(orig_coins);
+
+    std::vector<libmw::Coin> coins_to_update;
+    std::unordered_map<Commitment, libmw::Coin&> coinmap;
+
+    auto pChainIter = pChain->NewIterator();
+    while (pChainIter->Valid()) {
+        libmw::BlockRef block_ref = pChainIter->GetBlock();
+        if (block_ref.IsNull()) {
+            // TODO: Use output mmr
+        } else {
+            for (const Output& output : block_ref.pBlock->GetOutputs()) {
+                try {
+                    SecretKey nonce = RewindNonce(output.GetCommitment());
+                    auto pRewound = Crypto::RewindRangeProof(output.GetCommitment(), *output.GetRangeProof(), nonce);
+                    if (pRewound == nullptr) {
+                        continue;
+                    }
+
+                    libmw::PrivateKey private_key = m_pWalletInterface->GetHDKey(
+                        pRewound->GetKeyChainPath().Format()
+                    );
+
+                    libmw::Coin coin{
+                        output.GetFeatures(),
+                        boost::make_optional<libmw::PrivateKey>(std::move(private_key)),
+                        pRewound->GetAmount(),
+                        output.GetCommitment().array(),
+                        boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash()),
+                        false,
+                        boost::none
+                    };
+
+                    std::cout << "Found output " << output.GetCommitment().ToHex() << " - Spent: " << coin.spent_block.has_value() << std::endl;
+
+                    coins_to_update.push_back(std::move(coin));
+                    coinmap.insert({ output.GetCommitment(), coins_to_update.back() });
+                } catch (std::exception&) { }
+            }
+
+            for (const Input& input : block_ref.pBlock->GetInputs()) {
+                auto pCoinIter = coinmap.find(input.GetCommitment());
+                if (pCoinIter != coinmap.end()) {
+                    pCoinIter->second.spent = true;
+                    pCoinIter->second.spent_block = pChainIter->GetCanonicalHash();
+                }
+            }
+        }
+
+        pChainIter->Next();
+    }
+
+    std::cout << "Adding coins: " << coins_to_update.size() << std::endl;
     m_pWalletInterface->AddCoins(coins_to_update);
 }
 

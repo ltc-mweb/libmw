@@ -1,6 +1,8 @@
 #pragma once
 
+#include <libmw/interfaces/chain_interface.h>
 #include <libmw/interfaces/wallet_interface.h>
+
 #include <mw/models/block/Block.h>
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/crypto/PublicKey.h>
@@ -30,6 +32,7 @@ public:
 
     void BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canonical_block_hash);
     void BlockDisconnected(const mw::Block::CPtr& pBlock);
+    void ScanForOutputs(const libmw::IChain::Ptr& pChain);
 
 private:
     libmw::IWallet::Ptr m_pWalletInterface;

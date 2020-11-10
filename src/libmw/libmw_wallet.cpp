@@ -23,7 +23,11 @@ MWEXPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
     const uint64_t fee_base,
     const std::string& address)
 {
-    mw::Transaction::CPtr pTx = Wallet::Open(pWallet).CreatePegOutTx(amount, fee_base, Bech32Address::FromString(address));
+    mw::Transaction::CPtr pTx = Wallet::Open(pWallet).CreatePegOutTx(
+        amount,
+        fee_base,
+        Bech32Address::FromString(address)
+    );
     return std::make_pair(libmw::TxRef{ pTx }, libmw::PegOut{ amount, address });
 }
 
@@ -61,6 +65,11 @@ MWEXPORT void BlockDisconnected(
     const libmw::BlockRef& block)
 {
     Wallet::Open(pWallet).BlockDisconnected(block.pBlock);
+}
+
+MWEXPORT void ScanForOutputs(const libmw::IWallet::Ptr& pWallet, const libmw::IChain::Ptr& pChain)
+{
+    Wallet::Open(pWallet).ScanForOutputs(pChain);
 }
 
 MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet)

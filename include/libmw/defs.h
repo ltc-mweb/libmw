@@ -85,7 +85,10 @@ struct HeaderAndPegsRef
 
 struct BlockRef
 {
+    bool IsNull() const noexcept { return pBlock == nullptr; }
+
     MWIMPORT libmw::HeaderRef GetHeader() const;
+    MWIMPORT uint64_t GetTotalFee() const noexcept;
 
     std::shared_ptr<mw::Block> pBlock;
 };

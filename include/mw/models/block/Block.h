@@ -54,6 +54,7 @@ public:
     uint64_t GetHeight() const noexcept { return m_pHeader->GetHeight(); }
     const BlindingFactor& GetOffset() const noexcept { return m_pHeader->GetOffset(); }
 
+    uint64_t GetTotalFee() const noexcept { return m_body.GetTotalFee(); }
     std::vector<Kernel> GetPegInKernels() const noexcept { return m_body.GetPegInKernels(); }
     uint64_t GetPegInAmount() const noexcept { return m_body.GetPegInAmount(); }
     std::vector<Kernel> GetPegOutKernels() const noexcept { return m_body.GetPegOutKernels(); }

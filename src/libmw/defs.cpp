@@ -15,6 +15,12 @@ MWEXPORT libmw::HeaderRef BlockRef::GetHeader() const
     return libmw::HeaderRef{ pBlock->GetHeader() };
 }
 
+MWEXPORT uint64_t BlockRef::GetTotalFee() const noexcept
+{
+    assert(pBlock != nullptr);
+    return pBlock->GetTotalFee();
+}
+
 MWEXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
 {
     std::vector<PegOut> pegouts;

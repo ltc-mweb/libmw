@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defs.h"
+#include "interfaces/chain_interface.h"
 #include "interfaces/wallet_interface.h"
 
 LIBMW_NAMESPACE
@@ -80,6 +81,11 @@ MWIMPORT void BlockConnected(
 MWIMPORT void BlockDisconnected(
     const libmw::IWallet::Ptr& pWallet,
     const libmw::BlockRef& block
+);
+
+MWIMPORT void ScanForOutputs(
+    const libmw::IWallet::Ptr& pWallet,
+    const libmw::IChain::Ptr& pChain
 );
 
 /// <summary>
