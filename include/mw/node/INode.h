@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mw/common/Macros.h>
-#include <mw/common/ImportExport.h>
 #include <mw/db/IBlockStore.h>
 #include <mw/node/NodeConfig.h>
 #include <mw/node/CoinsView.h>
@@ -12,7 +11,7 @@
 #include <mw/models/tx/PegInCoin.h>
 #include <mw/models/tx/PegOutCoin.h>
 #include <mw/models/tx/UTXO.h>
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 #include <functional>
 #include <vector>
 

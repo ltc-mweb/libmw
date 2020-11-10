@@ -1,14 +1,7 @@
 #pragma once
 
-#include <mw/common/ImportExport.h>
 #include <mw/util/StringUtil.h>
 #include <mw/file/FilePath.h>
-
-//#ifdef MW_COMMON
-//#define LOGGER_API MWEXPORT
-//#else
-//#define LOGGER_API MWIMPORT
-//#endif
 
 #define LOGGER_API
 

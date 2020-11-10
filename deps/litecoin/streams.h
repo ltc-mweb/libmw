@@ -6,6 +6,9 @@
 #ifndef BITCOIN_STREAMS_H
 #define BITCOIN_STREAMS_H
 
+#pragma warning(push)
+#pragma warning(disable: 4244 4267)
+
 #include <support/allocators/zeroafterfree.h>
 #include <serialize.h>
 
@@ -853,5 +856,7 @@ public:
         }
     }
 };
+
+#pragma warning(pop)
 
 #endif // BITCOIN_STREAMS_H

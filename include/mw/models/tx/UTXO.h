@@ -11,7 +11,7 @@ class UTXO : public Traits::ISerializable
 public:
     using CPtr = std::shared_ptr<const UTXO>;
 
-    UTXO() = default;
+    UTXO() : m_blockHeight(0), m_leafIdx(), m_output() { }
     UTXO(const uint64_t blockHeight, mmr::LeafIndex&& leafIdx, Output&& output)
         : m_blockHeight(blockHeight), m_leafIdx(std::move(leafIdx)), m_output(std::move(output)) { }
     UTXO(const uint64_t blockHeight, mmr::LeafIndex&& leafIdx, const Output& output)

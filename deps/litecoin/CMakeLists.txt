@@ -22,7 +22,6 @@ file(GLOB SOURCE_CODE
     crypto/sha512.cpp
     crypto/scrypt/crypto_scrypt-ref.cpp
     crypto/scrypt/sha256.cpp
-    crypto/ctaes/ctaes.c
     #leveldb/helpers/memenv/memenv.cc
     support/cleanse.cpp
     support/lockedpool.cpp

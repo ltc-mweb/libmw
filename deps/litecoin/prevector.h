@@ -5,6 +5,9 @@
 #ifndef BITCOIN_PREVECTOR_H
 #define BITCOIN_PREVECTOR_H
 
+#pragma warning(push)
+#pragma warning(disable: 4201)
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -509,5 +512,7 @@ public:
     }
 };
 #pragma pack(pop)
+
+#pragma warning(pop)
 
 #endif // BITCOIN_PREVECTOR_H

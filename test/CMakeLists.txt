@@ -30,10 +30,11 @@ add_subdirectory(tests/models)
 add_subdirectory(tests/node)
 add_subdirectory(tests/serialization)
 add_subdirectory(tests/util)
+add_subdirectory(tests/wallet)
 
 add_executable(Tests ${test_sources})
 add_dependencies(Tests fmt::fmt MW_TEST::Framework MW::Node)
-target_link_libraries(Tests MW_TEST::Framework MW::Node Catch2::Catch2)
+target_link_libraries(Tests MW_TEST::Framework MW::Node Catch2::Catch2 libmw)
 
 include(CTest)
 include(Catch)

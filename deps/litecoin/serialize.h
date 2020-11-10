@@ -6,6 +6,9 @@
 #ifndef BITCOIN_SERIALIZE_H
 #define BITCOIN_SERIALIZE_H
 
+#pragma warning(push)
+#pragma warning(disable: 4100 4244)
+
 #include <compat/endian.h>
 
 #include <algorithm>
@@ -990,5 +993,7 @@ size_t GetSerializeSizeMany(int nVersion, const T&... t)
     SerializeMany(sc, t...);
     return sc.size();
 }
+
+#pragma warning(pop)
 
 #endif // BITCOIN_SERIALIZE_H

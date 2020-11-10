@@ -94,6 +94,7 @@ public:
     }
 
     const mw::Transaction::CPtr& GetTransaction() const noexcept { return m_pTransaction; }
+    const std::vector<Kernel>& GetKernels() const noexcept { return m_pTransaction->GetKernels(); }
     const std::vector<Output>& GetOutputs() const noexcept { return m_pTransaction->GetOutputs(); }
 
     PegInCoin GetPegInCoin() const

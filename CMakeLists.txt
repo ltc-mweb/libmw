@@ -6,6 +6,7 @@ project(LIBMW-LTC)
 
 option(MW_TESTS "Build tests" true)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetWarningLevel4.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetOutputDir.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetOptimizations.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetCpp17.cmake)

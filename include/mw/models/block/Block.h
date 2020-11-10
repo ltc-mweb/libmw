@@ -54,42 +54,10 @@ public:
     uint64_t GetHeight() const noexcept { return m_pHeader->GetHeight(); }
     const BlindingFactor& GetOffset() const noexcept { return m_pHeader->GetOffset(); }
 
-    std::vector<Kernel> GetPegInKernels() const noexcept
-    {
-        const auto& kernels = GetKernels();
-
-        std::vector<Kernel> peggedIn;
-        std::copy_if(
-            kernels.cbegin(), kernels.cend(),
-            std::back_inserter(peggedIn),
-            [](const auto& kernel) -> bool { return kernel.IsPegIn(); }
-        );
-
-        return peggedIn;
-    }
-
-    uint64_t GetPegInAmount() const noexcept
-    {
-        const auto kernels = GetKernels();
-        return std::accumulate(
-            kernels.cbegin(), kernels.cend(), (uint64_t)0,
-            [](const uint64_t sum, const auto& kernel) noexcept { return sum + kernel.GetPeggedIn(); }
-        );
-    }
-
-    std::vector<Kernel> GetPegOutKernels() const noexcept
-    {
-        const auto kernels = GetKernels();
-
-        std::vector<Kernel> peggedOut;
-        std::copy_if(
-            kernels.cbegin(), kernels.cend(),
-            std::back_inserter(peggedOut),
-            [](const auto& kernel) -> bool { return kernel.IsPegOut(); }
-        );
-
-        return peggedOut;
-    }
+    uint64_t GetTotalFee() const noexcept { return m_body.GetTotalFee(); }
+    std::vector<Kernel> GetPegInKernels() const noexcept { return m_body.GetPegInKernels(); }
+    uint64_t GetPegInAmount() const noexcept { return m_body.GetPegInAmount(); }
+    std::vector<Kernel> GetPegOutKernels() const noexcept { return m_body.GetPegOutKernels(); }
 
     //
     // Serialization/Deserialization

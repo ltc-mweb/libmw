@@ -2,6 +2,7 @@
 
 #include <spdlog/spdlog.h>
 #include <mw/common/Logger.h>
+#include <shared_mutex>
 
 class Logger
 {
@@ -35,4 +36,5 @@ private:
 
     std::shared_ptr<spdlog::logger> m_pNodeLogger;
     std::shared_ptr<spdlog::logger> m_pWalletLogger;
+    mutable std::shared_mutex m_mutex;
 };

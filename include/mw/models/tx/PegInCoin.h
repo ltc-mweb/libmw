@@ -8,7 +8,7 @@
 //
 // Represents coins being pegged in, i.e. moved from canonical chain to the extension block.
 //
-class PegInCoin : public Traits::ISerializable, public Traits::IJsonable
+class PegInCoin : public Traits::ISerializable, public Traits::IJsonable, public Traits::IPrintable
 {
 public:
     PegInCoin(const uint64_t amount, const Commitment& commitment)
@@ -56,6 +56,11 @@ public:
         Commitment commitment = json.GetRequired<Commitment>("commitment");
 
         return PegInCoin(amount, std::move(commitment));
+    }
+
+    std::string Format() const noexcept final
+    {
+        return std::string("PegInCoin(commitment: ") + m_commitment.Format() + ", amount: " + std::to_string(m_amount) + ")";
     }
 
 private:

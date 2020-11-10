@@ -9,7 +9,7 @@
 #include <mw/mmr/Index.h>
 #include <mw/mmr/LeafIndex.h>
 #include <mw/mmr/Leaf.h>
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 #include <memory>
 
 MMR_NAMESPACE

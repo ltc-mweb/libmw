@@ -1,14 +1,8 @@
 #pragma once
 
-#include <mw/common/ImportExport.h>
 #include <string>
 #include <thread>
 
-//#ifdef MW_COMMON
-//#define THREAD_MANAGER_API MWEXPORT
-//#else
-//#define THREAD_MANAGER_API MWIMPORT
-//#endif
 #define THREAD_MANAGER_API
 
 namespace ThreadManagerAPI

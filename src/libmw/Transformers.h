@@ -4,6 +4,7 @@
 #include <mw/models/tx/PegInCoin.h>
 #include <mw/models/tx/PegOutCoin.h>
 #include <mw/models/tx/Transaction.h>
+#include <mw/models/block/Block.h>
 
 static std::vector<PegInCoin> TransformPegIns(const std::vector<libmw::PegIn>& pegInCoins)
 {
@@ -39,4 +40,38 @@ static std::vector<mw::Transaction::CPtr> TransformTxs(const std::vector<libmw::
     );
 
     return transactions;
+}
+
+static libmw::BlockAndPegs TransformBlock(const mw::Block::Ptr& pBlock)
+{
+    std::vector<Kernel> pegin_kernels = pBlock->GetPegInKernels();
+    std::vector<libmw::PegIn> pegins;
+    std::transform(
+        pegin_kernels.cbegin(), pegin_kernels.cend(),
+        std::back_inserter(pegins),
+        [](const Kernel& kernel) {
+            libmw::PegIn pegin;
+            pegin.amount = kernel.GetAmount();
+            const auto& commit = kernel.GetCommitment().vec();
+            std::copy(commit.begin(), commit.end(), pegin.commitment.data());
+            return pegin;
+        }
+    );
+
+    std::vector<Kernel> pegout_kernels = pBlock->GetPegOutKernels();
+    std::vector<libmw::PegOut> pegouts;
+    std::transform(
+        pegout_kernels.cbegin(), pegout_kernels.cend(),
+        std::back_inserter(pegouts),
+        [](const Kernel& kernel) {
+            assert(kernel.GetAddress().has_value());
+
+            libmw::PegOut pegout;
+            pegout.amount = kernel.GetAmount();
+            pegout.address = kernel.GetAddress().value().ToString();
+            return pegout;
+        }
+    );
+
+    return libmw::BlockAndPegs{ pBlock, pegins, pegouts };
 }

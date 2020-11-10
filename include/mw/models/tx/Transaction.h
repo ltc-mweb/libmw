@@ -69,6 +69,11 @@ public:
     const std::vector<Kernel>& GetKernels() const noexcept { return m_body.GetKernels(); }
     uint64_t GetTotalFee() const noexcept { return m_body.GetTotalFee(); }
 
+    std::vector<Kernel> GetPegInKernels() const noexcept { return m_body.GetPegInKernels(); }
+    std::vector<Output> GetPegInOutputs() const noexcept { return m_body.GetPegInOutputs(); }
+    uint64_t GetPegInAmount() const noexcept { return m_body.GetPegInAmount(); }
+    std::vector<Kernel> GetPegOutKernels() const noexcept { return m_body.GetPegOutKernels(); }
+
     //
     // Serialization/Deserialization
     //

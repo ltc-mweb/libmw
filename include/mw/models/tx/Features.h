@@ -20,7 +20,7 @@ private:
     uint8_t m_features;
 };
 
-enum EOutputFeatures
+enum EOutputFeatures : uint8_t
 {
     // No Flags
     DEFAULT_OUTPUT = 0,

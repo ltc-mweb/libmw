@@ -17,6 +17,7 @@ public:
     BlindingFactor() = default;
     BlindingFactor(BigInt<32>&& value) : m_value(std::move(value)) { }
     BlindingFactor(const BigInt<32>& value) : m_value(value) { }
+    BlindingFactor(const std::array<uint8_t, 32>& value) : m_value(value) { }
     BlindingFactor(const SecretKey& key) : m_value(key.GetBigInt()) { }
     BlindingFactor(const BlindingFactor& other) = default;
     BlindingFactor(BlindingFactor&& other) noexcept = default;

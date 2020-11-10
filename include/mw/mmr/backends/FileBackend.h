@@ -11,7 +11,7 @@
 #include <mw/file/AppendOnlyFile.h>
 #include <mw/db/LeafDB.h>
 #include <mw/exceptions/NotFoundException.h>
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 
 MMR_NAMESPACE
 
@@ -80,11 +80,13 @@ public:
         if (it != m_leafMap.end()) {
             return m_leaves[it->second];
         }
+
         LeafDB ldb(m_dbPrefix, m_pDatabase.get());
         auto pLeaf = ldb.Get(idx, std::move(hash));
         if (!pLeaf) {
             ThrowNotFound_F("Can't get leaf at position {} with hash {}", idx.GetPosition(), hash);
         }
+
         return std::move(*pLeaf);
     }
 

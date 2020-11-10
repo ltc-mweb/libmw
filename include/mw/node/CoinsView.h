@@ -8,7 +8,7 @@
 #include <mw/models/tx/UTXO.h>
 #include <mw/mmr/MMR.h>
 #include <mw/mmr/LeafSet.h>
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 #include <memory>
 
 // Forward Declarations

@@ -2,10 +2,12 @@ set(TARGET_NAME MMR)
 
 file(GLOB SOURCE_CODE
 	"ILeafSet.cpp"
+	"IMMR.cpp"
 	"Index.cpp"
 	"LeafSet.cpp"
 	"LeafSetCache.cpp"
 	"MMR.cpp"
+	"MMRCache.cpp"
 )
 
 add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})

@@ -4,7 +4,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-#include <mw/common/ImportExport.h>
 #include <mw/models/crypto/BigInteger.h>
 #include <mw/models/crypto/Commitment.h>
 #include <mw/models/crypto/RangeProof.h>
@@ -18,11 +17,6 @@
 #include <mw/models/crypto/ScryptParameters.h>
 #include <support/allocators/secure.h>
 
-//#ifdef MW_CRYPTO
-//#define CRYPTO_API MWEXPORT
-//#else
-//#define CRYPTO_API MWIMPORT
-//#endif
 #define CRYPTO_API
 
 //
@@ -31,50 +25,6 @@
 class CRYPTO_API Crypto
 {
 public:
-    //
-    // Uses Blake2b to hash the given input into a 32 byte hash.
-    //
-    //static BigInt<32> Blake2b(const std::vector<uint8_t>& input);
-
-    //
-    // Uses Blake2b to hash the given input into a 32 byte hash using a key.
-    //
-    //static BigInt<32> Blake2b(
-    //    const std::vector<uint8_t>& key,
-    //    const std::vector<uint8_t>& input
-    //);
-
-    //
-    // Uses SHA256 to hash the given input into a 32 byte hash.
-    //
-    static BigInt<32> SHA256(const std::vector<uint8_t>& input);
-
-    //
-    // Uses SHA512 to hash the given input into a 64 byte hash.
-    //
-    static BigInt<64> SHA512(const std::vector<uint8_t>& input);
-
-    //
-    // Uses RipeMD160 to hash the given input into a 20 byte hash.
-    //
-    static BigInt<20> RipeMD160(const std::vector<uint8_t>& input);
-
-    //
-    //
-    //
-    static BigInt<32> HMAC_SHA256(
-        const std::vector<uint8_t>& key,
-        const std::vector<uint8_t>& data
-    );
-
-    //
-    //
-    //
-    static BigInt<64> HMAC_SHA512(
-        const std::vector<uint8_t>& key,
-        const std::vector<uint8_t>& data
-    );
-
     //
     // Creates a pedersen commitment from a value with a zero blinding factor.
     //

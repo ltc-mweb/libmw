@@ -35,6 +35,8 @@ static std::string random_string(size_t length)
 // TODO: Make asynchronous
 void Logger::StartLogger(const FilePath& logDirectory, const spdlog::level::level_enum& logLevel)
 {
+    std::unique_lock<std::shared_mutex> write_lock(m_mutex);
+
     logDirectory.CreateDirIfMissing();
 
     {
@@ -64,6 +66,8 @@ void Logger::StartLogger(const FilePath& logDirectory, const spdlog::level::leve
 void Logger::StopLogger()
 {
     Flush();
+
+    std::unique_lock<std::shared_mutex> write_lock(m_mutex);
     m_pNodeLogger.reset();
     m_pWalletLogger.reset();
 }
@@ -111,6 +115,8 @@ void Logger::Log(
     const LoggerAPI::LogLevel logLevel,
     const std::string& eventText) noexcept
 {
+    std::shared_lock<std::shared_mutex> read_lock(m_mutex);
+
     auto pLogger = GetLogger(file);
     if (pLogger != nullptr)
     {
@@ -142,6 +148,7 @@ void Logger::Log(
 
 LoggerAPI::LogLevel Logger::GetLogLevel(const LoggerAPI::LogFile file) const noexcept
 {
+    std::shared_lock<std::shared_mutex> read_lock(m_mutex);
     auto pLogger = GetLogger(file);
     if (pLogger != nullptr)
     {
@@ -153,6 +160,7 @@ LoggerAPI::LogLevel Logger::GetLogLevel(const LoggerAPI::LogFile file) const noe
 
 void Logger::Flush()
 {
+    std::shared_lock<std::shared_mutex> read_lock(m_mutex);
     if (m_pNodeLogger != nullptr)
     {
         m_pNodeLogger->flush();

@@ -5,14 +5,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-#include "defs.h"
-
-#include <array>
-#include <vector>
-#include <string>
-#include <memory>
-#include <cstdint>
-#include <unordered_map>
+#include <libmw/defs.h>
 
 LIBMW_NAMESPACE
 
@@ -55,6 +48,7 @@ public:
 //
 // Interface for looking up blocks and headers.
 // This must be implemented by the libmw consumer.
+// TODO: Get by height functions should be replaced with reverse iterators or get prev functions.
 //
 class IBlockStore
 {

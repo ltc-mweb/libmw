@@ -2,7 +2,7 @@
 
 #include <mw/mmr/Leaf.h>
 #include <mw/models/crypto/Hash.h>
-#include <libmw/interfaces.h>
+#include <libmw/interfaces/db_interface.h>
 
 // Forward Declarations
 class Database;
