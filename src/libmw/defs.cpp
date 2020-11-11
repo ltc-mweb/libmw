@@ -21,6 +21,16 @@ MWEXPORT uint64_t BlockRef::GetTotalFee() const noexcept
     return pBlock->GetTotalFee();
 }
 
+MWEXPORT std::set<KernelHash> BlockRef::GetKernelHashes() const
+{
+    assert(pBlock != nullptr);
+    std::set<KernelHash> kernelHashes;
+    for (const Kernel& kernel : pBlock->GetKernels()) {
+        kernelHashes.insert(kernel.GetHash().ToArray());
+    }
+    return kernelHashes;
+}
+
 MWEXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
 {
     std::vector<PegOut> pegouts;
@@ -40,6 +50,16 @@ MWEXPORT uint64_t TxRef::GetTotalFee() const noexcept
 {
     assert(pTransaction != nullptr);
     return pTransaction->GetTotalFee();
+}
+
+MWEXPORT std::set<KernelHash> TxRef::GetKernelHashes() const
+{
+    assert(pTransaction != nullptr);
+    std::set<KernelHash> kernelHashes;
+    for (const Kernel& kernel : pTransaction->GetKernels()) {
+        kernelHashes.insert(kernel.GetHash().ToArray());
+    }
+    return kernelHashes;
 }
 
 MWEXPORT libmw::CoinsViewRef CoinsViewRef::CreateCache() const
