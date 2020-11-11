@@ -6,6 +6,12 @@
 
 LIBMW_NAMESPACE
 
+MWEXPORT libmw::BlockHash BlockRef::GetHash() const noexcept
+{
+    assert(pBlock != nullptr);
+    return pBlock->GetHash().ToArray();
+}
+
 MWEXPORT libmw::HeaderRef BlockRef::GetHeader() const
 {
     if (pBlock == nullptr) {

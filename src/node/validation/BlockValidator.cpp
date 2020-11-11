@@ -4,6 +4,7 @@
 
 void BlockValidator::Validate(
     const mw::Block::Ptr& pBlock,
+    const mw::Hash& mweb_hash,
     const std::vector<PegInCoin>& pegInCoins,
     const std::vector<PegOutCoin>& pegOutCoins)
 {
@@ -11,6 +12,12 @@ void BlockValidator::Validate(
 
     if (pBlock->WasValidated()) {
         return;
+    }
+
+    if (pBlock->GetHash() != mweb_hash) {
+        std::cout << "Hash mismatch! Expected " << mweb_hash.ToHex() << " but was " << pBlock->GetHash().ToHex() << std::endl;
+        // TODO: Enforce this in the next testnet
+        // ThrowValidation(EConsensusError::HASH_MISMATCH);
     }
 
     pBlock->Validate();

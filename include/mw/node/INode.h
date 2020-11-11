@@ -31,6 +31,7 @@ public:
     //
     virtual void ValidateBlock(
         const mw::Block::Ptr& pBlock,
+        const mw::Hash& mweb_hash,
         const std::vector<PegInCoin>& pegInCoins,
         const std::vector<PegOutCoin>& pegOutCoins
     ) const = 0;

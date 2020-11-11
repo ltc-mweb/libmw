@@ -47,11 +47,13 @@ MWIMPORT libmw::CoinsViewRef ApplyState(
 /// This performs all consensus checks that don't require knowledge of the state.
 /// </summary>
 /// <param name="block">The MW ext block to validate. Must not be null.</param>
+/// <param name="hash">The expected MWEB header hash.</param>
 /// <param name="pegInCoins">The peg-in coins that are expected to be part of the MWEB.</param>
 /// <param name="pegOutCoins">The peg-out coins that are expected to be part of the MWEB.</param>
 /// <throws>ValidationException if consensus rules are not met.</throws>
 MWIMPORT void CheckBlock(
     const libmw::BlockRef& block,
+    const libmw::BlockHash& hash,
     const std::vector<libmw::PegIn>& pegInCoins,
     const std::vector<libmw::PegOut>& pegOutCoins
 );

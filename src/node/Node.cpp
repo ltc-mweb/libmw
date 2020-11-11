@@ -59,13 +59,14 @@ Node::~Node()
 
 void Node::ValidateBlock(
     const mw::Block::Ptr& pBlock,
+    const mw::Hash& mweb_hash,
     const std::vector<PegInCoin>& pegInCoins,
     const std::vector<PegOutCoin>& pegOutCoins) const
 {
     assert(pBlock != nullptr);
 
     LOG_TRACE_F("Validating block {}", pBlock);
-    BlockValidator().Validate(pBlock, pegInCoins, pegOutCoins);
+    BlockValidator().Validate(pBlock, mweb_hash, pegInCoins, pegOutCoins);
     LOG_TRACE_F("Block {} validated", pBlock);
 }
 

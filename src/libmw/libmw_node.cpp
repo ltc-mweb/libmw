@@ -55,12 +55,14 @@ MWEXPORT libmw::CoinsViewRef ApplyState(
 
 MWEXPORT void CheckBlock(
     const libmw::BlockRef& block,
+    const libmw::BlockHash& hash,
     const std::vector<libmw::PegIn>& pegInCoins,
     const std::vector<libmw::PegOut>& pegOutCoins)
 {
+    auto mweb_hash = TransformHash(hash);
     auto pegins = TransformPegIns(pegInCoins);
     auto pegouts = TransformPegOuts(pegOutCoins);
-    NODE->ValidateBlock(block.pBlock, pegins, pegouts);
+    NODE->ValidateBlock(block.pBlock, mweb_hash, pegins, pegouts);
 }
 
 MWEXPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const CoinsViewRef& view)

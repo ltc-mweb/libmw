@@ -15,6 +15,7 @@ public:
     MinedBlock(const mw::Block::Ptr& pBlock, const std::vector<Tx>& txs)
         : m_pBlock(pBlock), m_txs(txs) { }
 
+    mw::Hash GetHash() const noexcept { return m_pBlock->GetHash(); }
     const mw::Header::CPtr& GetHeader() const noexcept { return m_pBlock->GetHeader(); }
     const mw::Block::Ptr& GetBlock() const noexcept { return m_pBlock; }
 

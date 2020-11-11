@@ -60,7 +60,7 @@ TEST_CASE("BlockBuilder")
 
         libmw::BlockRef built_block = libmw::miner::BuildBlock(block_builder);
         REQUIRE(built_block.pBlock->GetKernels().front() == builder_tx1.GetKernels().front());
-        BlockValidator().Validate(built_block.pBlock, { builder_tx1.GetPegInCoin() }, {});
+        BlockValidator().Validate(built_block.pBlock, built_block.pBlock->GetHash(), { builder_tx1.GetPegInCoin() }, {});
 
         libmw::node::Shutdown();
     }

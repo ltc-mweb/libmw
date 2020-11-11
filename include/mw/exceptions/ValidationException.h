@@ -7,6 +7,7 @@
 
 enum class EConsensusError
 {
+    HASH_MISMATCH,
     CUT_THROUGH,
     BLOCK_WEIGHT,
     BLOCK_SUMS,

@@ -27,7 +27,7 @@ TEST_CASE("BlockValidator")
         mw::INode::Ptr pNode = test::CreateNode(datadir);
 
         REQUIRE_FALSE(block_10.GetBlock()->WasValidated());
-        pNode->ValidateBlock(block_10.GetBlock(), pegInCoins, pegOutCoins);
+        pNode->ValidateBlock(block_10.GetBlock(), block_10.GetHash(), pegInCoins, pegOutCoins);
         REQUIRE(block_10.GetBlock()->WasValidated());
 
         LoggerAPI::Shutdown();

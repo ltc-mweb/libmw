@@ -89,6 +89,7 @@ struct BlockRef
 {
     bool IsNull() const noexcept { return pBlock == nullptr; }
 
+    MWIMPORT libmw::BlockHash GetHash() const noexcept;
     MWIMPORT libmw::HeaderRef GetHeader() const;
     MWIMPORT uint64_t GetTotalFee() const noexcept;
     MWIMPORT std::set<KernelHash> GetKernelHashes() const;

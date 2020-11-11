@@ -6,6 +6,11 @@
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/block/Block.h>
 
+static mw::Hash TransformHash(const libmw::BlockHash& hash)
+{
+    return mw::Hash(hash);
+}
+
 static std::vector<PegInCoin> TransformPegIns(const std::vector<libmw::PegIn>& pegInCoins)
 {
     std::vector<PegInCoin> pegins;
