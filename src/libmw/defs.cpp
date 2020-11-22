@@ -58,14 +58,37 @@ MWEXPORT uint64_t TxRef::GetTotalFee() const noexcept
     return pTransaction->GetTotalFee();
 }
 
-MWEXPORT std::set<KernelHash> TxRef::GetKernelHashes() const
+MWEXPORT std::set<KernelHash> TxRef::GetKernelHashes() const noexcept
 {
     assert(pTransaction != nullptr);
     std::set<KernelHash> kernelHashes;
     for (const Kernel& kernel : pTransaction->GetKernels()) {
         kernelHashes.insert(kernel.GetHash().ToArray());
     }
+
     return kernelHashes;
+}
+
+MWEXPORT std::set<libmw::Commitment> TxRef::GetInputCommits() const noexcept
+{
+    assert(pTransaction != nullptr);
+    std::set<libmw::Commitment> input_commits;
+    for (const Input& input : pTransaction->GetInputs()) {
+        input_commits.insert(input.GetCommitment().array());
+    }
+
+    return input_commits;
+}
+
+MWEXPORT std::set<libmw::Commitment> TxRef::GetOutputCommits() const noexcept
+{
+    assert(pTransaction != nullptr);
+    std::set<libmw::Commitment> output_commits;
+    for (const Output& output : pTransaction->GetOutputs()) {
+        output_commits.insert(output.GetCommitment().array());
+    }
+
+    return output_commits;
 }
 
 MWEXPORT libmw::CoinsViewRef CoinsViewRef::CreateCache() const

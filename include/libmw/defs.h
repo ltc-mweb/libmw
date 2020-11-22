@@ -113,7 +113,9 @@ struct TxRef
 {
     MWIMPORT std::vector<PegOut> GetPegouts() const noexcept;
     MWIMPORT uint64_t GetTotalFee() const noexcept;
-    MWIMPORT std::set<KernelHash> GetKernelHashes() const;
+    MWIMPORT std::set<KernelHash> GetKernelHashes() const noexcept;
+    MWIMPORT std::set<libmw::Commitment> GetInputCommits() const noexcept;
+    MWIMPORT std::set<libmw::Commitment> GetOutputCommits() const noexcept;
 
     std::shared_ptr<const mw::Transaction> pTransaction;
 };
