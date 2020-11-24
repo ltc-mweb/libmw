@@ -102,10 +102,7 @@ MWEXPORT bool HasCoin(const libmw::CoinsViewRef& view, const libmw::Commitment& 
 {
     assert(view.pCoinsView != nullptr);
 
-    auto pCoinsView = std::dynamic_pointer_cast<mw::CoinsViewCache>(view.pCoinsView);
-    assert(pCoinsView != nullptr);
-
-    return !pCoinsView->GetUTXOs(BigInt<33>(commitment)).empty();
+    return !view.pCoinsView->GetUTXOs(BigInt<33>(commitment)).empty();
 }
 
 MWEXPORT bool HasCoinInCache(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment)
