@@ -98,5 +98,25 @@ MWEXPORT void CheckTransaction(const libmw::TxRef& transaction)
     BlockSumValidator::ValidateForTx(*transaction.pTransaction);
 }
 
+MWEXPORT bool HasCoin(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment)
+{
+    assert(view.pCoinsView != nullptr);
+
+    auto pCoinsView = std::dynamic_pointer_cast<mw::CoinsViewCache>(view.pCoinsView);
+    assert(pCoinsView != nullptr);
+
+    return !pCoinsView->GetUTXOs(BigInt<33>(commitment)).empty();
+}
+
+MWEXPORT bool HasCoinInCache(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment)
+{
+    assert(view.pCoinsView != nullptr);
+
+    auto pCoinsView = std::dynamic_pointer_cast<mw::CoinsViewCache>(view.pCoinsView);
+    assert(pCoinsView != nullptr);
+
+    return pCoinsView->HasCoinInCache(BigInt<33>(commitment));
+}
+
 END_NAMESPACE // node
 END_NAMESPACE // libmw

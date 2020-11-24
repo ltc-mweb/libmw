@@ -9,7 +9,7 @@ std::vector<UTXO::CPtr> CoinsViewCache::GetUTXOs(const Commitment& commitment) c
 {
     std::vector<UTXO::CPtr> utxos = m_pBase->GetUTXOs(commitment);
 
-    const std::vector<CoinAction>& actions = m_pUpdates->GetActions(commitment);
+    std::vector<CoinAction> actions = m_pUpdates->GetActions(commitment);
     for (const CoinAction& action : actions) {
         if (action.pUTXO != nullptr) {
             utxos.push_back(action.pUTXO);
@@ -143,6 +143,16 @@ mw::Block::Ptr CoinsViewCache::BuildNextBlock(const uint64_t height, const std::
     );
 
     return std::make_shared<mw::Block>(pHeader, pTransaction->GetBody());
+}
+
+bool CoinsViewCache::HasCoinInCache(const Commitment& commitment) const noexcept
+{
+    std::vector<CoinAction> actions = m_pUpdates->GetActions(commitment);
+    if (!actions.empty()) {
+        return actions.back().pUTXO != nullptr;
+    }
+
+    return false;
 }
 
 void CoinsViewCache::AddUTXO(const uint64_t header_height, const Output& output)

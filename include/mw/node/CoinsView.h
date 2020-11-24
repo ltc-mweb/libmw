@@ -139,6 +139,8 @@ public:
     void Flush(const libmw::IDBBatch::UPtr& pBatch = nullptr);
     mw::Block::Ptr BuildNextBlock(const uint64_t height, const std::vector<mw::Transaction::CPtr>& transactions);
 
+    bool HasCoinInCache(const Commitment& commitment) const noexcept;
+
     mmr::ILeafSet::Ptr GetLeafSet() const noexcept final { return m_pLeafSet; }
     mmr::IMMR::Ptr GetKernelMMR() const noexcept final { return m_pKernelMMR; }
     mmr::IMMR::Ptr GetOutputPMMR() const noexcept final { return m_pOutputPMMR; }

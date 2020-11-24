@@ -100,5 +100,9 @@ MWIMPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view);
 /// <throws>ValidationException if consensus rules are not met.</throws>
 MWIMPORT void CheckTransaction(const libmw::TxRef& transaction);
 
+MWIMPORT bool HasCoin(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment);
+
+MWIMPORT bool HasCoinInCache(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment);
+
 END_NAMESPACE // node
 END_NAMESPACE // libmw
