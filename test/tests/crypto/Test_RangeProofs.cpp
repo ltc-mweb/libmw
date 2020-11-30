@@ -11,6 +11,7 @@ TEST_CASE("Range Proofs")
     SecretKey nonce = Random::CSPRNG<32>();
     SecretKey nonce2 = Random::CSPRNG<32>();
     ProofMessage message = BigInt(Random::CSPRNG<20>().GetBigInt());
+    std::vector<uint8_t> extraData = Random::CSPRNG<100>().vec();
 
     // Create a RangeProof via Crypto::GenerateRangeProof. Use the same value for privateNonce and rewindNonce.
     RangeProof::CPtr pRangeProof = Crypto::GenerateRangeProof(
@@ -18,14 +19,15 @@ TEST_CASE("Range Proofs")
         BlindingFactor(blind).ToSecretKey(),
         nonce,
         nonce,
-        message
+        message,
+        extraData
     );
 
     // Try rewinding it via Crypto::RewindRangeProof using the *wrong* rewindNonce. Make sure it returns null.
-    REQUIRE_FALSE(Crypto::RewindRangeProof(commit, *pRangeProof, nonce2));
+    REQUIRE_FALSE(Crypto::RewindRangeProof(commit, *pRangeProof, extraData, nonce2));
 
     // Try rewinding it via Crypto::RewindRangeProof using the *correct* rewindNonce. Make sure it returns a valid RewoundProof.
-    std::unique_ptr<RewoundProof> pRewoundProof = Crypto::RewindRangeProof(commit, *pRangeProof, nonce);
+    std::unique_ptr<RewoundProof> pRewoundProof = Crypto::RewindRangeProof(commit, *pRangeProof, extraData, nonce);
     REQUIRE(pRewoundProof);
 
     // Make sure amount, blindingFactor (aka 'key'), and ProofMessage match the values passed to GenerateRangeProof
@@ -37,6 +39,6 @@ TEST_CASE("Range Proofs")
 
     // Make sure VerifyRangeProofs returns true. Use an empty vector for the third tuple value.
     std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>> rangeProofs;
-    rangeProofs.push_back(std::make_tuple(commit, pRangeProof, std::vector<uint8_t>()));
+    rangeProofs.push_back(std::make_tuple(commit, pRangeProof, extraData));
     REQUIRE(Crypto::VerifyRangeProofs(rangeProofs));
 }

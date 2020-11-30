@@ -196,7 +196,7 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
 	{
 		pBackend->AddLeaf(mmr::Leaf::Create(pUTXO->GetLeafIndex(), pUTXO->GetRangeProof()->Serialized()));
 
-		proofs.push_back({ pUTXO->GetCommitment(), pUTXO->GetRangeProof(), pUTXO->GetExtraData() });
+		proofs.push_back({ pUTXO->GetCommitment(), pUTXO->GetRangeProof(), pUTXO->GetOwnerData().Serialized() });
 		if (proofs.size() >= PROOF_BATCH_SIZE) {
 			if (!Crypto::VerifyRangeProofs(proofs)) {
 				ThrowValidation(EConsensusError::BULLETPROOF);

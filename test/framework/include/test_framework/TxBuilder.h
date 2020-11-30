@@ -40,7 +40,8 @@ struct TxBuilder
             BlindingFactor(output_bf).ToSecretKey(),
             SecretKey(),
             SecretKey(),
-            ProofMessage(BigInt<20>())
+            ProofMessage(BigInt<20>()),
+            OwnerData().Serialized() // TODO: Implement OwnerData
         );
 
         m_outputs.push_back(Output{ features, Crypto::CommitBlinded(amount, output_bf), {}, pRangeProof });

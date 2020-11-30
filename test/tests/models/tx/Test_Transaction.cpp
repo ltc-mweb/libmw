@@ -22,7 +22,7 @@ TEST_CASE("Tx Transaction")
     //
     {
         std::vector<uint8_t> serialized = tx->Serialized();
-        REQUIRE(serialized.size() == 1772);
+        REQUIRE(serialized.size() == 2098);
 
         Deserializer deserializer(serialized);
         REQUIRE(BlindingFactor::Deserialize(deserializer) == tx->GetOffset());

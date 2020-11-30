@@ -27,13 +27,14 @@ public:
             BlindingFactor(blindingFactor).ToSecretKey(),
             SecretKey(),
             SecretKey(),
-            ProofMessage(BigInt<20>())
+            ProofMessage(BigInt<20>()),
+            OwnerData().Serialized() // TODO: Implement OwnerData
         );
 
         return TxOutput(
             blindingFactor,
             amount,
-            Output{ features, std::move(commitment), std::vector<uint8_t>{}, pRangeProof }
+            Output{ features, std::move(commitment), OwnerData{}, pRangeProof }
         );
     }
 

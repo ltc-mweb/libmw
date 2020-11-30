@@ -93,7 +93,8 @@ RangeProof::CPtr Bulletproofs::GenerateRangeProof(
     const SecretKey& key,
     const SecretKey& privateNonce,
     const SecretKey& rewindNonce,
-    const ProofMessage& proofMessage)
+    const ProofMessage& proofMessage,
+    const std::vector<uint8_t>& extraData)
 {
     auto contextWriter = m_context.Write();
     secp256k1_context* pContext = contextWriter->Randomized();
@@ -122,8 +123,8 @@ RangeProof::CPtr Bulletproofs::GenerateRangeProof(
         64,
         rewindNonce.data(),
         privateNonce.data(),
-        NULL,
-        0,
+        extraData.data(),
+        extraData.size(),
         proofMessage.data()
     );
     secp256k1_scratch_space_destroy(pScratchSpace);
@@ -139,6 +140,7 @@ RangeProof::CPtr Bulletproofs::GenerateRangeProof(
 std::unique_ptr<RewoundProof> Bulletproofs::RewindProof(
     const Commitment& commitment,
     const RangeProof& rangeProof,
+    const std::vector<uint8_t>& extraData,
     const SecretKey& nonce) const
 {
     secp256k1_pedersen_commitment secpCommitment = ConversionUtil(m_context).ToSecp256k1(commitment);
@@ -157,8 +159,8 @@ std::unique_ptr<RewoundProof> Bulletproofs::RewindProof(
         &secpCommitment,
         &secp256k1_generator_const_h,
         nonce.data(),
-        NULL,
-        0,
+        extraData.data(),
+        extraData.size(),
         message.data()
     );
 

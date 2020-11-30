@@ -129,23 +129,26 @@ RangeProof::CPtr Crypto::GenerateRangeProof(
     const SecretKey& key,
     const SecretKey& privateNonce,
     const SecretKey& rewindNonce,
-    const ProofMessage& proofMessage)
+    const ProofMessage& proofMessage,
+    const std::vector<uint8_t>& extraData)
 {
     return Bulletproofs(SECP256K1_CONTEXT).GenerateRangeProof(
         amount,
         key,
         privateNonce,
         rewindNonce,
-        proofMessage
+        proofMessage,
+        extraData
     );
 }
 
 std::unique_ptr<RewoundProof> Crypto::RewindRangeProof(
     const Commitment& commitment,
     const RangeProof& rangeProof,
+    const std::vector<uint8_t>& extraData,
     const SecretKey& nonce)
 {
-    return Bulletproofs(SECP256K1_CONTEXT).RewindProof(commitment, rangeProof, nonce);
+    return Bulletproofs(SECP256K1_CONTEXT).RewindProof(commitment, rangeProof, extraData, nonce);
 }
 
 bool Crypto::VerifyRangeProofs(

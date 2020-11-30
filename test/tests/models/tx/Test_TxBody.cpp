@@ -21,7 +21,7 @@ TEST_CASE("Tx Body")
     //
     {
         std::vector<uint8_t> serialized = txBody.Serialized();
-        REQUIRE(serialized.size() == 1740);
+        REQUIRE(serialized.size() == 2066);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint64_t>() == txBody.GetInputs().size());

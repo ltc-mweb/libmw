@@ -8,7 +8,7 @@ TEST_CASE("Tx UTXO")
 {
     EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT;
     Commitment commit = Random::CSPRNG<33>().GetBigInt();
-    std::vector<uint8_t> extraData = Random::CSPRNG<100>().vec();
+    OwnerData ownerData{}; // TODO: Populate this
     RangeProof::CPtr rangeProof = std::make_shared<const RangeProof>(
         std::vector<uint8_t>(Random::CSPRNG<600>().vec())
     );
@@ -16,7 +16,7 @@ TEST_CASE("Tx UTXO")
     Output output(
         features,
         Commitment(commit),
-        std::vector<uint8_t>(extraData),
+        OwnerData(ownerData),
         rangeProof
     );
 
@@ -33,7 +33,7 @@ TEST_CASE("Tx UTXO")
     //
     {
         std::vector<uint8_t> serialized = utxo.Serialized();
-        REQUIRE(serialized.size() == 759);
+        REQUIRE(serialized.size() == 822);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint64_t>() == blockHeight);
@@ -49,7 +49,7 @@ TEST_CASE("Tx UTXO")
         REQUIRE(utxo.GetLeafIndex() == leafIndex);
         REQUIRE(utxo.GetOutput() == output);
         REQUIRE(utxo.GetCommitment() == commit);
-        REQUIRE(utxo.GetExtraData() == extraData);
+        REQUIRE(utxo.GetOwnerData() == ownerData);
         REQUIRE(utxo.GetRangeProof() == rangeProof);
     }
 }

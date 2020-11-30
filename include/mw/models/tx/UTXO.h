@@ -22,7 +22,7 @@ public:
     const Output& GetOutput() const noexcept { return m_output; }
 
 	const Commitment& GetCommitment() const noexcept { return m_output.GetCommitment(); }
-    const std::vector<uint8_t>& GetExtraData() const noexcept { return m_output.GetExtraData(); }
+    const OwnerData& GetOwnerData() const noexcept { return m_output.GetOwnerData(); }
 	RangeProof::CPtr GetRangeProof() const noexcept { return m_output.GetRangeProof(); }
 
     Serializer& Serialize(Serializer& serializer) const noexcept

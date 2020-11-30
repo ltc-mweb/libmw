@@ -62,7 +62,8 @@ public:
         const SecretKey& key,
         const SecretKey& privateNonce,
         const SecretKey& rewindNonce,
-        const ProofMessage& proofMessage
+        const ProofMessage& proofMessage,
+        const std::vector<uint8_t>& extraData
     );
 
     //
@@ -71,6 +72,7 @@ public:
     static std::unique_ptr<RewoundProof> RewindRangeProof(
         const Commitment& commitment,
         const RangeProof& rangeProof,
+        const std::vector<uint8_t>& extraData,
         const SecretKey& nonce
     );
 

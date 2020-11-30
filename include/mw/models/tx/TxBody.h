@@ -218,7 +218,7 @@ public:
         std::transform(
             m_outputs.cbegin(), m_outputs.cend(),
             std::back_inserter(rangeProofs),
-            [](const Output& output) { return std::make_tuple(output.GetCommitment(), output.GetRangeProof(), output.GetExtraData()); }
+            [](const Output& output) { return std::make_tuple(output.GetCommitment(), output.GetRangeProof(), output.GetOwnerData().Serialized()); }
         );
         if (!Crypto::VerifyRangeProofs(rangeProofs)) {
             ThrowValidation(EConsensusError::BULLETPROOF);

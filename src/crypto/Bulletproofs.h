@@ -24,12 +24,14 @@ public:
         const SecretKey& key,
         const SecretKey& privateNonce,
         const SecretKey& rewindNonce,
-        const ProofMessage& proofMessage
+        const ProofMessage& proofMessage,
+        const std::vector<uint8_t>& extraData
     );
 
     std::unique_ptr<RewoundProof> RewindProof(
         const Commitment& commitment,
         const RangeProof& rangeProof,
+        const std::vector<uint8_t>& extraData,
         const SecretKey& nonce
     ) const;
 
