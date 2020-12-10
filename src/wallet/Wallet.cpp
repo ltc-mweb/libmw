@@ -3,7 +3,6 @@
 #include <mw/crypto/Random.h>
 #include <mw/config/ChainParams.h>
 
-#include "CoinSelection.h"
 #include "KernelFactory.h"
 #include "WalletUtil.h"
 
@@ -55,7 +54,7 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
 {
     std::vector<libmw::Coin> coins = m_pWalletInterface->ListCoins();
 
-    std::vector<libmw::Coin> input_coins = CoinSelection::SelectCoins(coins, amount, fee_base);
+    std::vector<libmw::Coin> input_coins = m_pWalletInterface->SelectCoins(coins, amount, fee_base);
     BlindingFactor input_blinds = WalletUtil::AddBlindingFactors(input_coins);
     uint64_t inputs_amount = WalletUtil::TotalAmount(input_coins);
     const uint64_t fee = WalletUtil::CalculateFee(fee_base, input_coins.size(), 1, 2);
@@ -115,7 +114,7 @@ PartialTx Wallet::Send(const uint64_t amount, const uint64_t fee_base)
 {
     std::vector<libmw::Coin> coins = m_pWalletInterface->ListCoins();
 
-    std::vector<libmw::Coin> input_coins = CoinSelection::SelectCoins(coins, amount, fee_base);
+    std::vector<libmw::Coin> input_coins = m_pWalletInterface->SelectCoins(coins, amount, fee_base);
     BlindingFactor input_blinds = WalletUtil::AddBlindingFactors(input_coins);
     uint64_t inputs_amount = WalletUtil::TotalAmount(input_coins);
     const uint64_t fee = WalletUtil::CalculateFee(fee_base, input_coins.size(), 1, 2);
