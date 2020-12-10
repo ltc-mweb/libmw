@@ -77,8 +77,8 @@ public:
         const uint64_t fee_base) const final
     {
         std::vector<libmw::Coin> selected_coins;
-        
-        uint64_t fee = 10 * fee_base;// TODO: Implement actual fee calculation
+
+        uint64_t fee = 10 * fee_base;
         uint64_t inputs_amount = 0;
         for (const libmw::Coin& coin : coins) {
             if (coin.spent) {

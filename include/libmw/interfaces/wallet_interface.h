@@ -54,6 +54,7 @@ public:
 
     /// <summary>
     /// Use the Litecoin coin selection algorithm to select MWEB coins.
+    /// Throws if there are insufficient funds.
     /// </summary>
     /// <returns>The selected coins.</returns>
     virtual std::vector<libmw::Coin> SelectCoins(
