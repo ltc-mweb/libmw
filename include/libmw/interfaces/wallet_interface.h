@@ -53,6 +53,15 @@ public:
     virtual void DeleteCoins(const std::vector<libmw::Coin>& coins) = 0;
 
     /// <summary>
+    /// Use the Litecoin coin selection algorithm to select MWEB coins.
+    /// </summary>
+    /// <returns>The selected coins.</returns>
+    virtual std::vector<libmw::Coin> SelectCoins(
+        const std::vector<libmw::Coin>& coins,
+        const uint64_t amount,
+        const uint64_t fee_base) const = 0;
+
+    /// <summary>
     /// Returns the depth of the block in the active chain.
     /// </summary>
     /// <param name="canonical_block_hash">The *canonical* block hash.</param>
