@@ -16,7 +16,8 @@ enum class EConsensusError
     PEGIN_MISMATCH,
     PEGOUT_MISMATCH,
     MMR_MISMATCH,
-	UTXO_MISSING
+	UTXO_MISSING,
+	PEGIN_MATURITY
 };
 
 class ValidationException : public LTCException
@@ -56,6 +57,8 @@ private:
 				return "MMR_MISMATCH";
 			case EConsensusError::UTXO_MISSING:
 				return "UTXO_MISSING";
+			case EConsensusError::PEGIN_MATURITY:
+				return "PEGIN_MATURITY";
         }
 
         return "UNKNOWN";

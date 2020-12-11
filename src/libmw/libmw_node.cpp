@@ -5,6 +5,7 @@
 #include "State.h"
 
 #include <mw/consensus/BlockSumValidator.h>
+#include <mw/exceptions/ValidationException.h>
 #include <mw/models/block/Block.h>
 #include <mw/models/block/BlockUndo.h>
 #include <mw/models/tx/Transaction.h>
@@ -96,6 +97,25 @@ MWEXPORT void CheckTransaction(const libmw::TxRef& transaction)
 
     transaction.pTransaction->GetBody().Validate();
     BlockSumValidator::ValidateForTx(*transaction.pTransaction);
+}
+
+MWEXPORT void CheckTxInputs(const libmw::TxRef& transaction, const libmw::CoinsViewRef& view, int nSpendHeight)
+{
+    assert(transaction.pTransaction != nullptr);
+    assert(view.pCoinsView != nullptr);
+
+    auto pCoinsView = std::dynamic_pointer_cast<mw::CoinsViewCache>(view.pCoinsView);
+    assert(pCoinsView != nullptr);
+
+    for (const Input& input : transaction.pTransaction->GetInputs()) {
+        auto utxos = pCoinsView->GetUTXOs(input.GetCommitment());
+        if (utxos.empty()) {
+            ThrowValidation(EConsensusError::UTXO_MISSING);
+        }
+        if (input.IsPeggedIn() && nSpendHeight - utxos.back()->GetBlockHeight() < mw::ChainParams::GetPegInMaturity()) {
+            ThrowValidation(EConsensusError::PEGIN_MATURITY);
+        }
+    }
 }
 
 MWEXPORT bool HasCoin(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment)
