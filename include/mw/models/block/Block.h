@@ -52,7 +52,8 @@ public:
     const std::vector<Kernel>& GetKernels() const noexcept { return m_body.GetKernels(); }
 
     uint64_t GetHeight() const noexcept { return m_pHeader->GetHeight(); }
-    const BlindingFactor& GetOffset() const noexcept { return m_pHeader->GetOffset(); }
+    const BlindingFactor& GetKernelOffset() const noexcept { return m_pHeader->GetKernelOffset(); }
+    const BlindingFactor& GetOwnerOffset() const noexcept { return m_pHeader->GetOwnerOffset(); }
 
     uint64_t GetTotalFee() const noexcept { return m_body.GetTotalFee(); }
     std::vector<Kernel> GetPegInKernels() const noexcept { return m_body.GetPegInKernels(); }

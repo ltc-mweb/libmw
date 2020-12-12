@@ -40,6 +40,6 @@ TEST_CASE("Aggregation")
     REQUIRE(pAggregated->GetKernels().size() == 2);
     REQUIRE(pAggregated->GetKernels() == kernels);
 
-    BlindingFactor offset = Crypto::AddBlindingFactors({ tx1->GetOffset(), tx2->GetOffset() });
-    REQUIRE(pAggregated->GetOffset() == offset);
+    BlindingFactor offset = Crypto::AddBlindingFactors({ tx1->GetKernelOffset(), tx2->GetKernelOffset() });
+    REQUIRE(pAggregated->GetKernelOffset() == offset);
 }

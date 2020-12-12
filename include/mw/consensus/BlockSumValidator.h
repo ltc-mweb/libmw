@@ -89,7 +89,7 @@ public:
 
     static void ValidateForTx(const mw::Transaction& tx)
     {
-        ValidateIncremental(tx.GetBody(), tx.GetOffset());
+        ValidateIncremental(tx.GetBody(), tx.GetKernelOffset());
     }
 
 private:

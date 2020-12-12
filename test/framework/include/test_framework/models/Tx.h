@@ -15,14 +15,21 @@ class Tx
 public:
     struct Builder
     {
-        BlindingFactor offset;
+        BlindingFactor kernel_offset;
+        BlindingFactor owner_offset;
         std::vector<Input> inputs;
         std::vector<Output> outputs;
         std::vector<Kernel> kernels;
 
-        Builder& SetOffset(const BlindingFactor& offsetIn)
+        Builder& SetKernelOffset(const BlindingFactor& offsetIn)
         {
-            offset = offsetIn;
+            kernel_offset = offsetIn;
+            return *this;
+        }
+
+        Builder& SetOwnerOffset(const BlindingFactor& offsetIn)
+        {
+            owner_offset = offsetIn;
             return *this;
         }
 
@@ -61,7 +68,7 @@ public:
         Tx Build() const
         {
             return Tx(
-                std::make_shared<mw::Transaction>(BlindingFactor(offset), TxBody(inputs, outputs, kernels))
+                std::make_shared<mw::Transaction>(kernel_offset, owner_offset, TxBody(inputs, outputs, kernels))
             );
         }
     };
@@ -90,7 +97,7 @@ public:
 
         Kernel kernel = Kernel::CreatePegIn(amount, std::move(kernelCommit), std::move(signature));
 
-        return Tx::Builder().SetOffset(txOffset).AddKernel(kernel).AddOutput(output).Build();
+        return Tx::Builder().SetKernelOffset(txOffset).AddKernel(kernel).AddOutput(output).Build();
     }
 
     const mw::Transaction::CPtr& GetTransaction() const noexcept { return m_pTransaction; }

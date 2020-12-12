@@ -16,7 +16,7 @@ public:
         uint64_t fee = 10 * fee_base;// TODO: Implement actual fee calculation
         uint64_t inputs_amount = 0;
         for (const libmw::Coin& coin : coins) {
-            if (coin.spent) {
+            if (coin.spent || !coin.key.has_value()) {
                 continue;
             }
 

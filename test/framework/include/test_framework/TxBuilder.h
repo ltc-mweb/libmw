@@ -12,7 +12,7 @@ TEST_NAMESPACE
 struct TxBuilder
 {
     TxBuilder()
-        : m_built{ false }, m_amount{}, m_offset{}, m_inputs{}, m_outputs{}, m_kernels{}
+        : m_built{ false }, m_amount{}, m_kernelOffset{}, m_ownerOffset{}, m_inputs{}, m_outputs{}, m_kernels{}
     {
 
     }
@@ -22,8 +22,10 @@ struct TxBuilder
         assert(!m_built);
 
         BlindingFactor input_bf = Random::CSPRNG<32>();
-        m_offset = Crypto::AddBlindingFactors({ m_offset }, { input_bf });
-        m_inputs.push_back(Input{ features, Crypto::CommitBlinded(amount, input_bf) });
+        m_kernelOffset = Crypto::AddBlindingFactors({ m_kernelOffset }, { input_bf });
+        mw::Hash mweb_hash = Hashed(std::vector<uint8_t>{'M', 'W', 'E', 'B'}); // TODO: Determine actual message
+        Signature sig = Schnorr::Sign(input_bf.data(), mweb_hash);
+        m_inputs.push_back(Input{ Crypto::CommitBlinded(amount, input_bf), std::move(sig) });
         m_amount += (int64_t)amount;
         return *this;
     }
@@ -33,7 +35,7 @@ struct TxBuilder
         assert(!m_built);
 
         BlindingFactor output_bf = Random::CSPRNG<32>();
-        m_offset = Crypto::AddBlindingFactors({ m_offset, output_bf });
+        m_kernelOffset = Crypto::AddBlindingFactors({ m_kernelOffset, output_bf });
 
         RangeProof::CPtr pRangeProof = Crypto::GenerateRangeProof(
             amount,
@@ -54,7 +56,7 @@ struct TxBuilder
         assert(!m_built);
 
         SecretKey kernel_excess = Random::CSPRNG<32>();
-        m_offset = Crypto::AddBlindingFactors({ m_offset }, { kernel_excess });
+        m_kernelOffset = Crypto::AddBlindingFactors({ m_kernelOffset }, { kernel_excess });
 
         Commitment excess_commitment = Crypto::CommitBlinded(0, kernel_excess);
         std::vector<uint8_t> kernel_message = Serializer()
@@ -75,7 +77,7 @@ struct TxBuilder
         assert(!m_built);
 
         SecretKey kernel_excess = Random::CSPRNG<32>();
-        m_offset = Crypto::AddBlindingFactors({ m_offset }, { kernel_excess });
+        m_kernelOffset = Crypto::AddBlindingFactors({ m_kernelOffset }, { kernel_excess });
 
         Commitment excess_commitment = Crypto::CommitBlinded(0, kernel_excess);
         std::vector<uint8_t> kernel_message = Serializer()
@@ -96,7 +98,7 @@ struct TxBuilder
         assert(!m_built);
 
         SecretKey kernel_excess = Random::CSPRNG<32>();
-        m_offset = Crypto::AddBlindingFactors({ m_offset }, { kernel_excess });
+        m_kernelOffset = Crypto::AddBlindingFactors({ m_kernelOffset }, { kernel_excess });
         Bech32Address ltc_address("hrp", Random::CSPRNG<32>().vec());
 
         Commitment excess_commitment = Crypto::CommitBlinded(0, kernel_excess);
@@ -121,14 +123,15 @@ struct TxBuilder
         assert(!m_built);
 
         m_built = true;
-        return std::make_shared<mw::Transaction>(BlindingFactor{m_offset}, TxBody{m_inputs, m_outputs, m_kernels});
+        return std::make_shared<mw::Transaction>(m_kernelOffset, m_ownerOffset, TxBody{m_inputs, m_outputs, m_kernels});
     }
 
 private:
     bool m_built;
 
     int64_t m_amount;
-    BlindingFactor m_offset;
+    BlindingFactor m_kernelOffset;
+    BlindingFactor m_ownerOffset;
 
     std::vector<Input> m_inputs;
     std::vector<Output> m_outputs;

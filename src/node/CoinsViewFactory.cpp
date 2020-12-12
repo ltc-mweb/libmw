@@ -58,7 +58,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	BlockSumValidator::ValidateState(
 		utxos,
 		kernels,
-		pStateHeader->GetOffset()
+		pStateHeader->GetKernelOffset()
 	);
 
 	// Add UTXOs to database

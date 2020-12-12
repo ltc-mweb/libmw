@@ -31,7 +31,8 @@ public:
         std::vector<Input> inputs;
         std::vector<Output> outputs;
         std::vector<Kernel> kernels;
-        std::vector<BlindingFactor> kernelOffsets;
+        std::vector<BlindingFactor> kernel_offsets;
+        std::vector<BlindingFactor> owner_offsets;
 
         // collect all the inputs, outputs and kernels from the txs
         for (const mw::Transaction::CPtr& pTransaction : transactions) {
@@ -47,27 +48,31 @@ public:
                 kernels.push_back(kernel);
             }
 
-            kernelOffsets.push_back(pTransaction->GetOffset());
+            kernel_offsets.push_back(pTransaction->GetKernelOffset());
+            owner_offsets.push_back(pTransaction->GetOwnerOffset());
         }
 
         // Perform cut-through
-        CutThrough::PerformCutThrough(inputs, outputs);
+        // CutThrough::PerformCutThrough(inputs, outputs);
+        // TODO: Prevent spending output that's created in the same transaction
 
         // Sort the kernels.
         std::sort(kernels.begin(), kernels.end(), SortByHash);
         std::sort(inputs.begin(), inputs.end(), SortByHash);
         std::sort(outputs.begin(), outputs.end(), SortByHash);
 
-        // Sum the kernel_offsets up to give us an aggregate offset for the transaction.
-        BlindingFactor offset = Crypto::AddBlindingFactors(kernelOffsets);
+        // Sum the offsets up to give us an aggregate offsets for the transaction.
+        BlindingFactor kernel_offset = Crypto::AddBlindingFactors(kernel_offsets);
+        BlindingFactor owner_offset = Crypto::AddBlindingFactors(owner_offsets);
 
         // Build a new aggregate tx from the following:
         //   * cut-through inputs
         //   * cut-through outputs
         //   * full set of tx kernels
-        //   * sum of all kernel offsets
+        //   * sum of all offsets
         return std::make_shared<mw::Transaction>(
-            std::move(offset),
+            std::move(kernel_offset),
+            std::move(owner_offset),
             TxBody{ std::move(inputs), std::move(outputs), std::move(kernels) }
         );
     }

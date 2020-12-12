@@ -38,7 +38,7 @@ TEST_CASE("BlockSumValidator::ValidateState")
     REQUIRE(utxos.size() == 2);
     REQUIRE(tx->GetKernels().size() == 4);
 
-    BlockSumValidator::ValidateState(utxos, tx->GetKernels(), tx->GetOffset());
+    BlockSumValidator::ValidateState(utxos, tx->GetKernels(), tx->GetKernelOffset());
 }
 
 TEST_CASE("BlockSumValidator::ValidateForBlock")
@@ -69,7 +69,7 @@ TEST_CASE("BlockSumValidator::ValidateForBlock")
     mw::Transaction::CPtr pAggregated = Aggregation::Aggregate({ tx1, tx2, tx3 });
     BlockSumValidator::ValidateForTx(*pAggregated); // Sanity check
 
-    BlindingFactor total_offset = Crypto::AddBlindingFactors({ prev_total_offset, pAggregated->GetOffset() });
+    BlindingFactor total_offset = Crypto::AddBlindingFactors({ prev_total_offset, pAggregated->GetKernelOffset() });
 
     BlockSumValidator::ValidateForBlock(pAggregated->GetBody(), total_offset, prev_total_offset);
 }
@@ -83,13 +83,14 @@ TEST_CASE("BlockSumValidator::ValidateForBlock - Without Builder")
     mw::Hash prev_total_offset = mw::Hash::FromHex("0123456789abcdef0123456789abcdef00000000000000000000000000000000");
 
     test::Tx::Builder tx_builder;
+    mw::Hash mweb_hash = Hashed(std::vector<uint8_t>{'M', 'W', 'E', 'B'}); // TODO: Determine actual message
 
     // Add inputs
     BlindingFactor input1_bf = Random::CSPRNG<32>();
-    tx_builder.AddInput(Input(EOutputFeatures::DEFAULT_OUTPUT, Crypto::CommitBlinded(5'000'000, input1_bf)));
+    tx_builder.AddInput(Input(Crypto::CommitBlinded(5'000'000, input1_bf), Schnorr::Sign(input1_bf.data(), mweb_hash)));
 
     BlindingFactor input2_bf = Random::CSPRNG<32>();
-    tx_builder.AddInput(Input(EOutputFeatures::DEFAULT_OUTPUT, Crypto::CommitBlinded(6'000'000, input2_bf)));
+    tx_builder.AddInput(Input(Crypto::CommitBlinded(6'000'000, input2_bf), Schnorr::Sign(input2_bf.data(), mweb_hash)));
 
     // Add outputs
     BlindingFactor output1_bf = Random::CSPRNG<32>();
@@ -105,7 +106,7 @@ TEST_CASE("BlockSumValidator::ValidateForBlock - Without Builder")
     tx_builder.AddPlainKernel(500'000, SecretKey{ std::move(excess_minus_offset) });
 
     // Set Offset
-    tx_builder.SetOffset(tx_offset);
+    tx_builder.SetKernelOffset(tx_offset);
 
     mw::Transaction::CPtr pTransaction = tx_builder.Build().GetTransaction();
 

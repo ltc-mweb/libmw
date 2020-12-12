@@ -3,6 +3,7 @@
 #include <libmw/defs.h>
 #include <mw/models/crypto/BlindingFactor.h>
 #include <mw/crypto/Crypto.h>
+#include <mw/crypto/Hasher.h>
 
 class WalletUtil
 {
@@ -39,5 +40,22 @@ public:
         const uint64_t num_outputs)
     {
         return fee_base * (num_inputs + (num_kernels * 4) + (num_outputs * 8));
+    }
+
+    static std::vector<Input> SignInputs(const std::vector<libmw::Coin>& input_coins)
+    {
+        std::vector<Input> inputs;
+        std::transform(
+            input_coins.cbegin(), input_coins.cend(),
+            std::back_inserter(inputs),
+            [](const libmw::Coin& input_coin) {
+                assert(input_coin.key.has_value());
+
+                Signature sig = Schnorr::Sign(input_coin.key.value().keyBytes.data(), MWEB_HASH);
+                return Input(Commitment(input_coin.commitment), std::move(sig));
+            }
+        );
+
+        return inputs;
     }
 };

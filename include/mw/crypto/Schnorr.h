@@ -13,7 +13,7 @@ public:
     // Signs the message hash with the given key.
     //
     static Signature Sign(
-        const SecretKey& secretKey,
+        const uint8_t* secretKey,
         const mw::Hash& message
     );
 

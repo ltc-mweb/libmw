@@ -206,6 +206,13 @@ public:
             std::back_inserter(signatures),
             [](const Kernel& kernel) { return std::make_tuple(kernel.GetSignature(), kernel.GetCommitment(), kernel.GetSignatureMessage()); }
         );
+
+        std::transform(
+            m_inputs.cbegin(), m_inputs.cend(),
+            std::back_inserter(signatures),
+            [](const Input& input) { return std::make_tuple(input.GetSignature(), input.GetCommitment(), MWEB_HASH); }
+        );
+
         Schnorr::BatchVerify(signatures);
 
         // TODO: Validate Weight

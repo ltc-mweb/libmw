@@ -19,13 +19,14 @@ Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
 mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount)
 {
     libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewHDKey();
-    BlindingFactor offset = Random::CSPRNG<32>();
+    BlindingFactor kernel_offset = Random::CSPRNG<32>();
+    BlindingFactor owner_offset; // TODO: Calculate this
 
     Output output = CreateOutput(amount, EOutputFeatures::PEGGED_IN, private_key);
 
     BlindingFactor kernel_blind = Blinds()
         .Add(private_key.keyBytes)
-        .Sub(offset)
+        .Sub(kernel_offset)
         .Total();
     Kernel kernel = KernelFactory::CreatePegInKernel(kernel_blind, amount);
 
@@ -45,7 +46,7 @@ mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount)
         std::vector<Output>{ std::move(output) },
         std::vector<Kernel>{ std::move(kernel) }
     );
-    return std::make_shared<mw::Transaction>(std::move(offset), std::move(body));
+    return std::make_shared<mw::Transaction>(std::move(kernel_offset), std::move(owner_offset), std::move(body));
 }
 
 mw::Transaction::CPtr Wallet::CreatePegOutTx(
@@ -65,11 +66,12 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
     BlindingFactor blindingFactor(private_key.keyBytes);
     Output change_output = CreateOutput(change_amount, EOutputFeatures::DEFAULT_OUTPUT, private_key);
 
-    BlindingFactor offset = Random::CSPRNG<32>();
+    BlindingFactor kernel_offset = Random::CSPRNG<32>();
+    BlindingFactor owner_offset; // TODO: Calculate this
     BlindingFactor kernel_blind = Blinds()
         .Add(blindingFactor)
         .Sub(input_blinds)
-        .Sub(offset)
+        .Sub(kernel_offset)
         .Total();
     Kernel kernel = KernelFactory::CreatePegOutKernel(kernel_blind, amount, fee, address);
 
@@ -94,21 +96,14 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
     coins_to_update.push_back(std::move(change_coin));
     m_pWalletInterface->AddCoins(coins_to_update);
 
-    std::vector<Input> inputs;
-    std::transform(
-        input_coins.cbegin(), input_coins.cend(),
-        std::back_inserter(inputs),
-        [](const libmw::Coin& input_coin) {
-            return Input((EOutputFeatures)input_coin.features, Commitment(input_coin.commitment));
-        }
-    );
+    std::vector<Input> inputs = WalletUtil::SignInputs(input_coins);
 
     TxBody body(
         inputs,
         std::vector<Output>{ std::move(change_output) },
         std::vector<Kernel>{ std::move(kernel) }
     );
-    return std::make_shared<mw::Transaction>(std::move(offset), std::move(body));
+    return std::make_shared<mw::Transaction>(std::move(kernel_offset), std::move(owner_offset), std::move(body));
 }
 
 PartialTx Wallet::Send(const uint64_t amount, const uint64_t fee_base)
@@ -130,14 +125,7 @@ PartialTx Wallet::Send(const uint64_t amount, const uint64_t fee_base)
         .Sub(input_blinds)
         .Total();
 
-    std::vector<Input> inputs;
-    std::transform(
-        input_coins.cbegin(), input_coins.cend(),
-        std::back_inserter(inputs),
-        [](const libmw::Coin& input_coin) {
-            return Input((EOutputFeatures)input_coin.features, Commitment(input_coin.commitment));
-        }
-    );
+    std::vector<Input> inputs = WalletUtil::SignInputs(input_coins);
 
     std::vector<libmw::Coin> coins_to_update;
     std::transform(
@@ -170,8 +158,9 @@ mw::Transaction::CPtr Wallet::Receive(const PartialTx& partial_tx)
     BlindingFactor received_blind(private_key.keyBytes);
     Output received_output = CreateOutput(partial_tx.GetAmount(), EOutputFeatures::DEFAULT_OUTPUT, private_key);
 
-    BlindingFactor tx_offset = Random::CSPRNG<32>();
-    BlindingFactor kernel_blind = Crypto::AddBlindingFactors({ received_blind, partial_tx.GetBlind() }, { tx_offset });
+    BlindingFactor kernel_offset = Random::CSPRNG<32>();
+    BlindingFactor owner_offset; // TODO: Calculate this
+    BlindingFactor kernel_blind = Crypto::AddBlindingFactors({ received_blind, partial_tx.GetBlind() }, { kernel_offset });
     Kernel kernel = KernelFactory::CreatePlainKernel(kernel_blind, partial_tx.GetFee());
 
     libmw::Coin received_coin{
@@ -189,7 +178,7 @@ mw::Transaction::CPtr Wallet::Receive(const PartialTx& partial_tx)
     outputs.push_back(received_output);
     TxBody body(partial_tx.GetInputs(), outputs, { kernel });
 
-    return std::make_shared<mw::Transaction>(std::move(tx_offset), std::move(body));
+    return std::make_shared<mw::Transaction>(std::move(kernel_offset), std::move(owner_offset), std::move(body));
 }
 
 libmw::MWEBAddress Wallet::GetAddress() const

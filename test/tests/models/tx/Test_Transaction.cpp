@@ -22,10 +22,10 @@ TEST_CASE("Tx Transaction")
     //
     {
         std::vector<uint8_t> serialized = tx->Serialized();
-        REQUIRE(serialized.size() == 2098);
 
         Deserializer deserializer(serialized);
-        REQUIRE(BlindingFactor::Deserialize(deserializer) == tx->GetOffset());
+        REQUIRE(BlindingFactor::Deserialize(deserializer) == tx->GetKernelOffset());
+        REQUIRE(BlindingFactor::Deserialize(deserializer) == tx->GetOwnerOffset());
         REQUIRE(TxBody::Deserialize(deserializer) == tx->GetBody());
 
         Deserializer deserializer2(serialized);
@@ -37,8 +37,9 @@ TEST_CASE("Tx Transaction")
     //
     {
         Json json(tx->ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "body", "offset" }));
-        REQUIRE(BlindingFactor::FromHex(json.GetRequired<std::string>("offset")) == tx->GetOffset());
+        REQUIRE(json.GetKeys() == std::vector<std::string>({ "body", "kernel_offset", "owner_offset" }));
+        REQUIRE(BlindingFactor::FromHex(json.GetRequired<std::string>("kernel_offset")) == tx->GetKernelOffset());
+        REQUIRE(BlindingFactor::FromHex(json.GetRequired<std::string>("owner_offset")) == tx->GetOwnerOffset());
         REQUIRE(json.GetRequired<TxBody>("body") == tx->GetBody());
 
         REQUIRE(*tx == mw::Transaction::FromJSON(json));

@@ -223,7 +223,7 @@ Signature Crypto::BuildSignature(
     const mw::Hash& messageHash)
 {
     return Schnorr::Sign(
-        secretKey,
+        secretKey.data(),
         messageHash
     );    
 }

@@ -12,7 +12,7 @@ const uint64_t MAX_WIDTH = 1 << 20;
 const size_t SCRATCH_SPACE_SIZE = 256 * MAX_WIDTH;
 
 Signature Schnorr::Sign(
-    const SecretKey& secretKey,
+    const uint8_t* secretKey,
     const mw::Hash& message)
 {
     secp256k1_schnorrsig signature;
@@ -21,7 +21,7 @@ Signature Schnorr::Sign(
         &signature,
         nullptr,
         message.data(),
-        secretKey.data(),
+        secretKey,
         nullptr,
         nullptr
     );

@@ -4,15 +4,9 @@
 static const DBTable UTXO_TABLE = { 'U', DBTable::Options({ true /* allowDuplicates */ }) };
 
 CoinDB::CoinDB(libmw::IDBWrapper* pDBWrapper, libmw::IDBBatch* pBatch)
-    : m_pDatabase(std::make_unique<Database>(pDBWrapper, pBatch))
-{
+    : m_pDatabase(std::make_unique<Database>(pDBWrapper, pBatch)) { }
 
-}
-
-CoinDB::~CoinDB()
-{
-
-}
+CoinDB::~CoinDB() { }
 
 std::unordered_map<Commitment, UTXO::CPtr> CoinDB::GetUTXOs(const std::vector<Commitment>& commitments) const
 {

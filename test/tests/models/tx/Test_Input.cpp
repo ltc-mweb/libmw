@@ -6,20 +6,21 @@
 
 TEST_CASE("Plain Tx Input")
 {
-    //TODO: use Commitment::FromHex instead
+    // TODO: Use Commitment::FromHex instead
     Commitment commit(Random::CSPRNG<33>().GetBigInt());
-    Input input(EOutputFeatures::DEFAULT_OUTPUT, Commitment(commit));
+    Signature signature(Random::CSPRNG<64>().GetBigInt());
+    Input input(commit, signature);
 
     //
     // Serialization
     //
     {
         std::vector<uint8_t> serialized = input.Serialized();
-        REQUIRE(serialized.size() == 34);
+        REQUIRE(serialized.size() == 97);
 
         Deserializer deserializer(serialized);
-        REQUIRE(deserializer.Read<uint8_t>() == EOutputFeatures::DEFAULT_OUTPUT);
         REQUIRE(Commitment::Deserialize(deserializer) == commit);
+        REQUIRE(Signature::Deserialize(deserializer) == signature);
 
         Deserializer deserializer2(serialized);
         REQUIRE(input == Input::Deserialize(deserializer2));
@@ -32,9 +33,9 @@ TEST_CASE("Plain Tx Input")
     //
     {
         Json json(input.ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "commit", "features" }));
-        REQUIRE(json.GetRequired<std::string>("features") == "Plain");
+        REQUIRE(json.GetKeys() == std::vector<std::string>({ "commit", "signature" }));
         REQUIRE(json.GetRequired<Commitment>("commit") == commit);
+        REQUIRE(json.GetRequired<Signature>("signature") == signature);
 
         REQUIRE(input == Input::FromJSON(json));
     }
@@ -43,52 +44,7 @@ TEST_CASE("Plain Tx Input")
     // Getters
     //
     {
-        REQUIRE_FALSE(input.IsPeggedIn());
-        REQUIRE(input.GetFeatures() == EOutputFeatures::DEFAULT_OUTPUT);
         REQUIRE(input.GetCommitment() == commit);
-    }
-}
-
-TEST_CASE("Peg-In Tx Input")
-{
-    Commitment commit(Random::CSPRNG<33>().GetBigInt());
-    Input input(EOutputFeatures::PEGGED_IN, Commitment(commit));
-
-    //
-    // Serialization
-    //
-    {
-        std::vector<uint8_t> serialized = input.Serialized();
-        REQUIRE(serialized.size() == 34);
-
-        Deserializer deserializer(serialized);
-        REQUIRE(deserializer.Read<uint8_t>() == EOutputFeatures::PEGGED_IN);
-        REQUIRE(Commitment::Deserialize(deserializer) == commit);
-
-        Deserializer deserializer2(serialized);
-        REQUIRE(input == Input::Deserialize(deserializer2));
-
-        REQUIRE(input.GetHash() == Hashed(serialized));
-    }
-
-    //
-    // JSON
-    //
-    {
-        Json json(input.ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "commit", "features" }));
-        REQUIRE(json.GetRequired<std::string>("features") == "PeggedIn");
-        REQUIRE(json.GetRequired<Commitment>("commit") == commit);
-
-        REQUIRE(input == Input::FromJSON(json));
-    }
-
-    //
-    // Getters
-    //
-    {
-        REQUIRE(input.IsPeggedIn());
-        REQUIRE(input.GetFeatures() == EOutputFeatures::PEGGED_IN);
-        REQUIRE(input.GetCommitment() == commit);
+        REQUIRE(input.GetSignature() == signature);
     }
 }

@@ -39,7 +39,8 @@ public:
         mw::Hash&& rangeProofRoot,
         mw::Hash&& kernelRoot,
 		mw::Hash&& leafsetRoot,
-        BlindingFactor&& offset,
+        BlindingFactor&& kernelOffset,
+        BlindingFactor&& ownerOffset,
         const uint64_t outputMMRSize,
         const uint64_t kernelMMRSize
     )
@@ -48,7 +49,8 @@ public:
         m_rangeProofRoot(std::move(rangeProofRoot)),
         m_kernelRoot(std::move(kernelRoot)),
 		m_leafsetRoot(std::move(leafsetRoot)),
-        m_offset(std::move(offset)),
+        m_kernelOffset(std::move(kernelOffset)),
+        m_ownerOffset(std::move(ownerOffset)),
         m_outputMMRSize(outputMMRSize),
         m_kernelMMRSize(kernelMMRSize) { }
 
@@ -65,7 +67,8 @@ public:
     const mw::Hash& GetRangeProofRoot() const noexcept { return m_rangeProofRoot; }
     const mw::Hash& GetKernelRoot() const noexcept { return m_kernelRoot; }
 	const mw::Hash& GetLeafsetRoot() const noexcept { return m_leafsetRoot; }
-    const BlindingFactor& GetOffset() const noexcept { return m_offset; }
+    const BlindingFactor& GetKernelOffset() const noexcept { return m_kernelOffset; }
+    const BlindingFactor& GetOwnerOffset() const noexcept { return m_ownerOffset; }
     uint64_t GetNumTXOs() const noexcept { return m_outputMMRSize; }
     uint64_t GetNumKernels() const noexcept { return m_kernelMMRSize; }
 
@@ -95,7 +98,8 @@ public:
             .Append(m_rangeProofRoot)
             .Append(m_kernelRoot)
 			.Append(m_leafsetRoot)
-            .Append(m_offset)
+            .Append(m_kernelOffset)
+            .Append(m_ownerOffset)
             .Append<uint64_t>(m_outputMMRSize)
             .Append<uint64_t>(m_kernelMMRSize);
     }
@@ -107,7 +111,8 @@ public:
         mw::Hash proofRoot = mw::Hash::Deserialize(deserializer);
 		mw::Hash kernelRoot = mw::Hash::Deserialize(deserializer);
 		mw::Hash leafsetRoot = mw::Hash::Deserialize(deserializer);
-        BlindingFactor offset = BlindingFactor::Deserialize(deserializer);
+        BlindingFactor kernelOffset = BlindingFactor::Deserialize(deserializer);
+        BlindingFactor ownerOffset = BlindingFactor::Deserialize(deserializer);
         uint64_t outputMMRSize = deserializer.Read<uint64_t>();
         uint64_t kernelMMRSize = deserializer.Read<uint64_t>();
 
@@ -117,7 +122,8 @@ public:
             std::move(proofRoot),
             std::move(kernelRoot),
 			std::move(leafsetRoot),
-            std::move(offset),
+            std::move(kernelOffset),
+            std::move(ownerOffset),
             outputMMRSize,
             kernelMMRSize
         };
@@ -131,7 +137,8 @@ public:
             { "proof_root", m_rangeProofRoot.ToHex() },
             { "kernel_root", m_kernelRoot.ToHex() },
             { "leafset_root", m_leafsetRoot.ToHex() },
-            { "offset", m_offset.ToHex() },
+            { "kernel_offset", m_kernelOffset.ToHex() },
+            { "owner_offset", m_ownerOffset.ToHex() },
             { "num_outputs", m_outputMMRSize },
             { "num_kernels", m_kernelMMRSize }
         });
@@ -145,7 +152,8 @@ public:
             mw::Hash::FromHex(json.GetRequired<std::string>("proof_root")),
             mw::Hash::FromHex(json.GetRequired<std::string>("kernel_root")),
             mw::Hash::FromHex(json.GetRequired<std::string>("leafset_root")),
-            BlindingFactor::FromHex(json.GetRequired<std::string>("offset")),
+            BlindingFactor::FromHex(json.GetRequired<std::string>("kernel_offset")),
+            BlindingFactor::FromHex(json.GetRequired<std::string>("owner_offset")),
             json.GetRequired<uint64_t>("num_outputs"),
             json.GetRequired<uint64_t>("num_kernels")
         };
@@ -158,7 +166,8 @@ private:
     mw::Hash m_rangeProofRoot;
     mw::Hash m_kernelRoot;
 	mw::Hash m_leafsetRoot;
-    BlindingFactor m_offset;
+    BlindingFactor m_kernelOffset;
+    BlindingFactor m_ownerOffset;
     uint64_t m_outputMMRSize;
     uint64_t m_kernelMMRSize;
 };

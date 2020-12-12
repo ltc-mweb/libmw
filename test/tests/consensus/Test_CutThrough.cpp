@@ -1,6 +1,7 @@
 #include <catch.hpp>
 
 #include <mw/consensus/CutThrough.h>
+#include <mw/crypto/Schnorr.h>
 #include <mw/crypto/Random.h>
 
 #include <test_framework/models/Tx.h>
@@ -11,9 +12,10 @@ TEST_CASE("Cut-Through")
     BlindingFactor blind_b = Random::CSPRNG<32>();
     BlindingFactor blind_c = Random::CSPRNG<32>();
 
-    Input input1(EOutputFeatures::DEFAULT_OUTPUT, Crypto::CommitBlinded(50, blind_a));
-    Input input2(EOutputFeatures::DEFAULT_OUTPUT, Crypto::CommitBlinded(25, blind_b));
-    Input input3(EOutputFeatures::PEGGED_IN, Crypto::CommitBlinded(10, blind_c));
+    mw::Hash mweb_hash = Hashed(std::vector<uint8_t>{'M', 'W', 'E', 'B'}); // TODO: Determine actual message
+    Input input1(Crypto::CommitBlinded(50, blind_a), Schnorr::Sign(blind_a.data(), mweb_hash));
+    Input input2(Crypto::CommitBlinded(25, blind_b), Schnorr::Sign(blind_b.data(), mweb_hash));
+    Input input3(Crypto::CommitBlinded(10, blind_c), Schnorr::Sign(blind_c.data(), mweb_hash));
 
     Output output1 = test::TxOutput::Create(EOutputFeatures::DEFAULT_OUTPUT, blind_a, 50).GetOutput();
     Output output2 = test::TxOutput::Create(EOutputFeatures::DEFAULT_OUTPUT, blind_c, 25).GetOutput();
