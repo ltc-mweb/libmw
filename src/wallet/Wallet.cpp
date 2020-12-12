@@ -234,7 +234,7 @@ std::vector<libmw::Coin> Wallet::AvailableCoins() const
     std::vector<libmw::Coin> result;
 
     for (const libmw::Coin& coin : coins) {
-        if (coin.spent_block.has_value()) {
+        if (coin.spent || coin.spent_block.has_value()) {
             continue;
         }
 
@@ -246,7 +246,7 @@ std::vector<libmw::Coin> Wallet::AvailableCoins() const
         bool isPegin = coin.features & libmw::PEGIN_OUTPUT;
         bool peginMatured = num_confirmations >= mw::ChainParams::GetPegInMaturity();
 
-        if (num_confirmations > 0 && !coin.spent && (!isPegin || peginMatured)) {
+        if (num_confirmations > 0 && (!isPegin || peginMatured)) {
             result.push_back(coin);
         }
     }
