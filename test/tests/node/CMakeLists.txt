@@ -1,5 +1,6 @@
 set(Node_Tests
     "Test_BlockBuilder.cpp"
+    "Test_CheckTxInputs.cpp"
     "Test_MineChain.cpp"
     "Test_Reorg.cpp"
     "validation/Test_BlockValidator.cpp"

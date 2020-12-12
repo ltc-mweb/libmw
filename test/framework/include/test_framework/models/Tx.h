@@ -71,9 +71,15 @@ public:
 
     static Tx CreatePegIn(const uint64_t amount)
     {
+        BlindingFactor outputBF;
+        return CreatePegIn2(amount, outputBF);
+    }
+
+    static Tx CreatePegIn2(const uint64_t amount, BlindingFactor& outputBF)
+    {
         BlindingFactor txOffset = Random().CSPRNG<32>();
 
-        BlindingFactor outputBF = Random().CSPRNG<32>();
+        outputBF = Random().CSPRNG<32>();
         test::TxOutput output = test::TxOutput::Create(EOutputFeatures::PEGGED_IN, outputBF, amount);
 
         BlindingFactor kernelBF = Crypto::AddBlindingFactors({ outputBF }, { txOffset });
@@ -91,6 +97,30 @@ public:
         Kernel kernel = Kernel::CreatePegIn(amount, std::move(kernelCommit), std::move(signature));
 
         return Tx::Builder().SetOffset(txOffset).AddKernel(kernel).AddOutput(output).Build();
+    }
+
+    static Tx CreateSpend(const Input& input, const BlindingFactor& inputBF, const uint64_t amount, const uint64_t fee)
+    {
+        BlindingFactor txOffset = Random().CSPRNG<32>();
+
+        BlindingFactor outputBF = Random().CSPRNG<32>();
+        test::TxOutput output = test::TxOutput::Create(EOutputFeatures::DEFAULT_OUTPUT, outputBF, amount-fee);
+
+        BlindingFactor kernelBF = Crypto::AddBlindingFactors({ outputBF }, { inputBF, txOffset });
+        Commitment kernelCommit = Crypto::CommitBlinded(0, kernelBF);
+
+        Serializer serializer;
+        serializer.Append<uint8_t>((uint8_t)KernelType::PLAIN_KERNEL);
+        serializer.Append<uint64_t>(fee);
+
+        Signature signature = Crypto::BuildSignature(
+            kernelBF.ToSecretKey(),
+            Hashed(serializer.vec())
+        );
+
+        Kernel kernel = Kernel::CreatePlain(fee, std::move(kernelCommit), std::move(signature));
+
+        return Tx::Builder().SetOffset(txOffset).AddKernel(kernel).AddInput(input).AddOutput(output).Build();
     }
 
     const mw::Transaction::CPtr& GetTransaction() const noexcept { return m_pTransaction; }
