@@ -114,10 +114,11 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
     }
 
 	// Verify kernel signatures
-	std::vector<std::tuple<Signature, Commitment, mw::Hash>> signatures;
+	std::vector<SignedMessage> signatures;
 	for (const Kernel& kernel : kernels)
 	{
-		signatures.push_back({ kernel.GetSignature(), kernel.GetCommitment(), kernel.GetSignatureMessage() });
+		PublicKey pubkey = Crypto::ToPublicKey(kernel.GetCommitment());
+		signatures.push_back({ kernel.GetSignatureMessage(), std::move(pubkey), kernel.GetSignature() });
 
 		if (signatures.size() >= KERNEL_BATCH_SIZE) {
 			if (!Schnorr::BatchVerify(signatures)) {

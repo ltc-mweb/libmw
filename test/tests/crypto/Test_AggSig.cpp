@@ -1,6 +1,7 @@
 #include <catch.hpp>
 
 #include <mw/crypto/Crypto.h>
+#include <mw/crypto/MuSig.h>
 #include <mw/crypto/Schnorr.h>
 #include <mw/crypto/Random.h>
 
@@ -11,13 +12,13 @@ TEST_CASE("AggSig Interaction")
     // Generate sender keypairs
     SecretKey secretKeySender = Random::CSPRNG<32>();
     PublicKey publicKeySender = Crypto::CalculatePublicKey(secretKeySender);
-    SecretKey secretNonceSender = Crypto::GenerateSecureNonce();
+    SecretKey secretNonceSender = MuSig::GenerateSecureNonce();
     PublicKey publicNonceSender = Crypto::CalculatePublicKey(secretNonceSender);
 
     // Generate receiver keypairs
     SecretKey secretKeyReceiver = Random::CSPRNG<32>();
     PublicKey publicKeyReceiver = Crypto::CalculatePublicKey(secretKeyReceiver);
-    SecretKey secretNonceReceiver = Crypto::GenerateSecureNonce();
+    SecretKey secretNonceReceiver = MuSig::GenerateSecureNonce();
     PublicKey publicNonceReceiver = Crypto::CalculatePublicKey(secretNonceReceiver);
 
     // Add pubKeys and pubNonces
@@ -30,14 +31,14 @@ TEST_CASE("AggSig Interaction")
     );
 
     // Generate partial signatures
-    CompactSignature senderPartialSignature = Crypto::CalculatePartialSignature(
+    CompactSignature senderPartialSignature = MuSig::CalculatePartial(
         secretKeySender,
         secretNonceSender,
         sumPubKeys,
         sumPubNonces,
         message
     );
-    CompactSignature receiverPartialSignature = Crypto::CalculatePartialSignature(
+    CompactSignature receiverPartialSignature = MuSig::CalculatePartial(
         secretKeyReceiver,
         secretNonceReceiver,
         sumPubKeys,
@@ -46,7 +47,7 @@ TEST_CASE("AggSig Interaction")
     );
 
     // Validate partial signatures
-    const bool senderSigValid = Crypto::VerifyPartialSignature(
+    const bool senderSigValid = MuSig::VerifyPartial(
         senderPartialSignature,
         publicKeySender,
         sumPubKeys,
@@ -55,7 +56,7 @@ TEST_CASE("AggSig Interaction")
     );
     REQUIRE(senderSigValid == true);
 
-    const bool receiverSigValid = Crypto::VerifyPartialSignature(
+    const bool receiverSigValid = MuSig::VerifyPartial(
         receiverPartialSignature,
         publicKeyReceiver,
         sumPubKeys,
@@ -65,11 +66,11 @@ TEST_CASE("AggSig Interaction")
     REQUIRE(receiverSigValid == true);
 
     // Aggregate signature and validate
-    Signature aggregateSignature = Crypto::AggregateSignatures(
+    Signature aggregateSignature = MuSig::Aggregate(
         std::vector<CompactSignature>({ senderPartialSignature, receiverPartialSignature }),
         sumPubNonces
     );
-    const bool aggSigValid = Crypto::VerifyAggregateSignature(
+    const bool aggSigValid = Schnorr::Verify(
         aggregateSignature,
         sumPubKeys,
         message
@@ -77,15 +78,13 @@ TEST_CASE("AggSig Interaction")
     REQUIRE(aggSigValid == true);
 }
 
-
 TEST_CASE("Coinbase Signature")
 {
     mw::Hash message = Random::CSPRNG<32>().GetBigInt();
-    SecretKey secretKey = Random::CSPRNG<32>();
-    Commitment commitment = Crypto::CommitBlinded(0, BlindingFactor(secretKey));
+    SecretKey secret_key = Random::CSPRNG<32>();
+    PublicKey public_key = Crypto::CalculatePublicKey(secret_key);
+    Signature signature = Schnorr::Sign(secret_key.data(), message);
 
-    Signature signature = Crypto::BuildSignature(secretKey, message);
-
-    const bool valid = Schnorr::BatchVerify({ std::make_tuple(signature, commitment, message) });
+    const bool valid = Schnorr::Verify(signature, public_key, message);
     REQUIRE(valid == true);
 }

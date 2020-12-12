@@ -53,37 +53,36 @@ bool Schnorr::Verify(
     return verifyResult == 1;
 }
 
-bool Schnorr::BatchVerify(const std::vector<std::tuple<Signature, Commitment, mw::Hash>>& signatures)
+bool Schnorr::BatchVerify(const std::vector<SignedMessage>& signatures)
 {
     std::vector<const Signature*> signature_ptrs;
-    std::vector<const Commitment*> commitment_ptrs;
+    std::vector<const PublicKey*> pubkey_ptrs;
     std::vector<const mw::Hash*> message_ptrs;
 
     for (const auto& signature : signatures)
     {
-        signature_ptrs.push_back(&std::get<0>(signature));
-        commitment_ptrs.push_back(&std::get<1>(signature));
-        message_ptrs.push_back(&std::get<2>(signature));
+        signature_ptrs.push_back(&signature.signature);
+        pubkey_ptrs.push_back(&signature.public_key);
+        message_ptrs.push_back(&signature.message_hash);
     }
 
-    return BatchVerify(signature_ptrs, commitment_ptrs, message_ptrs);
+    return BatchVerify(signature_ptrs, pubkey_ptrs, message_ptrs);
 }
 
 bool Schnorr::BatchVerify(
     const std::vector<const Signature*>& signatures,
-    const std::vector<const Commitment*>& commitments,
+    const std::vector<const PublicKey*>& pubkeys,
     const std::vector<const mw::Hash*>& messages)
 {
-    assert(signatures.size() == commitments.size());
-    assert(commitments.size() == messages.size());
+    assert(signatures.size() == pubkeys.size());
+    assert(pubkeys.size() == messages.size());
 
     std::vector<secp256k1_pubkey> parsedPubKeys;
     std::transform(
-        commitments.cbegin(), commitments.cend(),
+        pubkeys.cbegin(), pubkeys.cend(),
         std::back_inserter(parsedPubKeys),
-        [](const Commitment* commitment) -> secp256k1_pubkey {
-            PublicKey publicKey = ConversionUtil(SCHNORR_CONTEXT).ToPublicKey(*commitment);
-            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(publicKey);
+        [](const PublicKey* pubkey) -> secp256k1_pubkey {
+            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(*pubkey);
         }
     );
 
@@ -92,7 +91,7 @@ bool Schnorr::BatchVerify(
     std::vector<secp256k1_schnorrsig> parsedSignatures = ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signatures);
     std::vector<secp256k1_schnorrsig*> signaturePtrs = VectorUtil::ToPointerVec(parsedSignatures);
 
-    std::vector<const unsigned char*> messageData;
+    std::vector<const uint8_t*> messageData;
     std::transform(
         messages.cbegin(), messages.cend(),
         std::back_inserter(messageData),

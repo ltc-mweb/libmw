@@ -118,57 +118,6 @@ public:
     static PublicKey ToPublicKey(const Commitment& commitment);
 
     //
-    // Signs the message using the secret key.
-    // If successful, returns a schnorr signature.
-    //
-    static Signature BuildSignature(
-        const SecretKey& secretKey,
-        const mw::Hash& messageHash
-    );
-
-    //
-    // Builds one party's share of a Schnorr signature.
-    // Returns a CompactSignature if successful.
-    //
-    static CompactSignature CalculatePartialSignature(
-        const SecretKey& secretKey,
-        const SecretKey& secretNonce,
-        const PublicKey& sumPubKeys,
-        const PublicKey& sumPubNonces,
-        const mw::Hash& message
-    );
-
-    //
-    // Verifies one party's share of a Schnorr signature.
-    // Returns true if valid.
-    //
-    static bool VerifyPartialSignature(
-        const CompactSignature& partialSignature,
-        const PublicKey& publicKey,
-        const PublicKey& sumPubKeys,
-        const PublicKey& sumPubNonces,
-        const mw::Hash& message
-    );
-
-    //
-    // Combines multiple partial signatures to build the final aggregate signature.
-    // Returns the raw aggregate signature.
-    //
-    static Signature AggregateSignatures(
-        const std::vector<CompactSignature>& signatures,
-        const PublicKey& sumPubNonces
-    );
-
-    //
-    // Verifies that the signature is a valid signature for the message.
-    //
-    static bool VerifyAggregateSignature(
-        const Signature& aggregateSignature,
-        const PublicKey sumPubKeys,
-        const mw::Hash& message
-    );
-
-    //
     // Calculates the blinding factor x' = x + SHA256(xG+vH | xJ), used in the switch commitment x'G+vH.
     //
     static SecretKey BlindSwitch(
@@ -183,6 +132,4 @@ public:
         const SecretKey& secretKey1,
         const SecretKey& secretKey2
     );
-
-    static SecretKey GenerateSecureNonce();
 };

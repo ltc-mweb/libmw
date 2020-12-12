@@ -1,10 +1,11 @@
 #pragma once
 
+#include "secp256k1-zkp.h"
+
 #include <mw/common/Lock.h>
 #include <mw/crypto/Random.h>
 #include <mw/models/crypto/SecretKey.h>
 #include <mw/exceptions/CryptoException.h>
-#include <mw/crypto/secp256k1.h>
 
 class Context
 {

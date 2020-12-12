@@ -14,7 +14,6 @@
 // Secp256k1
 #include "Context.h"
 #include "Bulletproofs.h"
-#include "MuSig.h"
 #include "Pedersen.h"
 #include "PublicKeys.h"
 #include <mw/crypto/Schnorr.h>
@@ -216,70 +215,4 @@ PublicKey Crypto::AddPublicKeys(const std::vector<PublicKey>& publicKeys)
 PublicKey Crypto::ToPublicKey(const Commitment& commitment)
 {
     return ConversionUtil(SECP256K1_CONTEXT).ToPublicKey(commitment);
-}
-
-Signature Crypto::BuildSignature(
-    const SecretKey& secretKey,
-    const mw::Hash& messageHash)
-{
-    return Schnorr::Sign(
-        secretKey.data(),
-        messageHash
-    );    
-}
-
-CompactSignature Crypto::CalculatePartialSignature(
-    const SecretKey& secretKey,
-    const SecretKey& secretNonce,
-    const PublicKey& sumPubKeys,
-    const PublicKey& sumPubNonces,
-    const mw::Hash& message)
-{
-    return MuSig(SECP256K1_CONTEXT).CalculatePartialSignature(
-        secretKey,
-        secretNonce,
-        sumPubKeys,
-        sumPubNonces,
-        message
-    );
-}
-
-Signature Crypto::AggregateSignatures(
-    const std::vector<CompactSignature>& signatures,
-    const PublicKey& sumPubNonces)
-{
-    return MuSig(SECP256K1_CONTEXT).AggregateSignatures(signatures, sumPubNonces);
-}
-
-bool Crypto::VerifyPartialSignature(
-    const CompactSignature& partialSignature,
-    const PublicKey& publicKey,
-    const PublicKey& sumPubKeys,
-    const PublicKey& sumPubNonces,
-    const mw::Hash& message)
-{
-    return MuSig(SECP256K1_CONTEXT).VerifyPartialSignature(
-        partialSignature,
-        publicKey,
-        sumPubKeys,
-        sumPubNonces,
-        message
-    );
-}
-
-bool Crypto::VerifyAggregateSignature(
-    const Signature& aggregateSignature,
-    const PublicKey sumPubKeys,
-    const mw::Hash& message)
-{
-    return Schnorr::Verify(
-        aggregateSignature,
-        sumPubKeys,
-        message
-    );
-}
-
-SecretKey Crypto::GenerateSecureNonce()
-{
-    return MuSig(SECP256K1_CONTEXT).GenerateSecureNonce();
 }

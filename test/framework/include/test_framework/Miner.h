@@ -34,7 +34,7 @@ public:
 
         auto kernel_offset = pTransaction->GetKernelOffset();
         if (!m_blocks.empty()) {
-            kernel_offset = Crypto::AddBlindingFactors({ kernel_offset, m_blocks.back().GetHeader()->GetKernelOffset() });
+            kernel_offset = Crypto::AddBlindingFactors({ kernel_offset, m_blocks.back().GetKernelOffset() });
         }
 
         auto owner_offset = pTransaction->GetOwnerOffset();

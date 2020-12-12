@@ -59,7 +59,7 @@ public:
                 .Append<uint64_t>(fee)
                 .vec();
 
-            Signature signature = Crypto::BuildSignature(excess, Hashed(kernel_message));
+            Signature signature = Schnorr::Sign(excess.data(), Hashed(kernel_message));
             Kernel kernel = Kernel::CreatePlain(fee, std::move(excess_commitment), std::move(signature));
             kernels.push_back(std::move(kernel));
             return *this;
@@ -90,8 +90,8 @@ public:
         serializer.Append<uint8_t>((uint8_t)KernelType::PEGIN_KERNEL);
         serializer.Append<uint64_t>(amount);
 
-        Signature signature = Crypto::BuildSignature(
-            kernelBF.ToSecretKey(),
+        Signature signature = Schnorr::Sign(
+            kernelBF.data(),
             Hashed(serializer.vec())
         );
 

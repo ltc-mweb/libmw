@@ -64,7 +64,7 @@ struct TxBuilder
             .Append<uint64_t>(fee)
             .vec();
 
-        Signature signature = Crypto::BuildSignature(kernel_excess, Hashed(kernel_message));
+        Signature signature = Schnorr::Sign(kernel_excess.data(), Hashed(kernel_message));
         Kernel kernel = Kernel::CreatePlain(fee, std::move(excess_commitment), std::move(signature));
 
         m_kernels.push_back(std::move(kernel));
@@ -85,7 +85,7 @@ struct TxBuilder
             .Append<uint64_t>(amount)
             .vec();
 
-        Signature signature = Crypto::BuildSignature(kernel_excess, Hashed(kernel_message));
+        Signature signature = Schnorr::Sign(kernel_excess.data(), Hashed(kernel_message));
         Kernel kernel = Kernel::CreatePegIn(amount, std::move(excess_commitment), std::move(signature));
 
         m_kernels.push_back(std::move(kernel));
@@ -109,7 +109,7 @@ struct TxBuilder
             .Append(ltc_address)
             .vec();
 
-        Signature signature = Crypto::BuildSignature(kernel_excess, Hashed(kernel_message));
+        Signature signature = Schnorr::Sign(kernel_excess.data(), Hashed(kernel_message));
         Kernel kernel = Kernel::CreatePegOut(amount, fee, std::move(ltc_address), std::move(excess_commitment), std::move(signature));
 
         m_kernels.push_back(std::move(kernel));

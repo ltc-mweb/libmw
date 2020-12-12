@@ -200,17 +200,23 @@ public:
     {
         CutThrough::VerifyCutThrough(m_inputs, m_outputs);
 
-        std::vector<std::tuple<Signature, Commitment, mw::Hash>> signatures;
+        std::vector<SignedMessage> signatures;
         std::transform(
             m_kernels.cbegin(), m_kernels.cend(),
             std::back_inserter(signatures),
-            [](const Kernel& kernel) { return std::make_tuple(kernel.GetSignature(), kernel.GetCommitment(), kernel.GetSignatureMessage()); }
+            [](const Kernel& kernel) {
+                PublicKey public_key = Crypto::ToPublicKey(kernel.GetCommitment());
+                return SignedMessage{ kernel.GetSignatureMessage(), std::move(public_key), kernel.GetSignature() };
+            }
         );
 
         std::transform(
             m_inputs.cbegin(), m_inputs.cend(),
             std::back_inserter(signatures),
-            [](const Input& input) { return std::make_tuple(input.GetSignature(), input.GetCommitment(), MWEB_HASH); }
+            [](const Input& input) {
+                PublicKey public_key = Crypto::ToPublicKey(input.GetCommitment());
+                return SignedMessage{ MWEB_HASH, std::move(public_key), input.GetSignature() };
+            }
         );
 
         Schnorr::BatchVerify(signatures);

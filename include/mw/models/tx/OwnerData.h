@@ -6,6 +6,7 @@
 #include <mw/traits/Serializable.h>
 #include <mw/crypto/Crypto.h>
 #include <mw/crypto/Schnorr.h>
+#include <mw/models/crypto/SignedMessage.h>
 
 class OwnerData :
     public Traits::ISerializable,
@@ -52,14 +53,15 @@ public:
     const std::vector<uint8_t>& GetEncrypted() const noexcept { return m_encrypted; }
     const Signature& GetSignature() const noexcept { return m_signature; }
 
-    std::vector<uint8_t> GetSignatureMsg() const noexcept
+    SignedMessage GetSignedMsg() const noexcept
     {
-        return Serializer()
+        auto serialized_msg = Serializer()
             .Append(m_receiverPubKey)
             .Append(m_pubNonce)
             .Append<uint8_t>((uint8_t)m_encrypted.size())
             .Append(m_encrypted)
             .vec();
+        return SignedMessage{ Hashed(serialized_msg), m_senderPubKey, m_signature };
     }
 
     bool TryDecrypt(const SecretKey& secretKey, SecureVector& decrypted) const noexcept
