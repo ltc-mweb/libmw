@@ -99,20 +99,17 @@ MWEXPORT void CheckTransaction(const libmw::TxRef& transaction)
     BlockSumValidator::ValidateForTx(*transaction.pTransaction);
 }
 
-MWEXPORT void CheckTxInputs(const libmw::TxRef& transaction, const libmw::CoinsViewRef& view, int nSpendHeight)
+MWEXPORT void CheckTxInputs(const libmw::CoinsViewRef& view, const libmw::TxRef& transaction, uint64_t nSpendHeight)
 {
-    assert(transaction.pTransaction != nullptr);
     assert(view.pCoinsView != nullptr);
-
-    auto pCoinsView = std::dynamic_pointer_cast<mw::CoinsViewCache>(view.pCoinsView);
-    assert(pCoinsView != nullptr);
+    assert(transaction.pTransaction != nullptr);
 
     for (const Input& input : transaction.pTransaction->GetInputs()) {
-        auto utxos = pCoinsView->GetUTXOs(input.GetCommitment());
+        auto utxos = view.pCoinsView->GetUTXOs(input.GetCommitment());
         if (utxos.empty()) {
             ThrowValidation(EConsensusError::UTXO_MISSING);
         }
-        if (input.IsPeggedIn() && nSpendHeight - utxos.back()->GetBlockHeight() < mw::ChainParams::GetPegInMaturity()) {
+        if (input.IsPeggedIn() && nSpendHeight < utxos.back()->GetBlockHeight() + mw::ChainParams::GetPegInMaturity()) {
             ThrowValidation(EConsensusError::PEGIN_MATURITY);
         }
     }

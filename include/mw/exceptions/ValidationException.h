@@ -16,8 +16,8 @@ enum class EConsensusError
     PEGIN_MISMATCH,
     PEGOUT_MISMATCH,
     MMR_MISMATCH,
-	UTXO_MISSING,
-	PEGIN_MATURITY
+    UTXO_MISSING,
+    PEGIN_MATURITY
 };
 
 class ValidationException : public LTCException

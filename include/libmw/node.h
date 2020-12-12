@@ -104,11 +104,11 @@ MWIMPORT void CheckTransaction(const libmw::TxRef& transaction);
 /// Validation of the MWEB transaction inputs against the given CoinsView.
 /// This validates that the inputs are unspent, and their maturity is reached.
 /// </summary>
-/// <param name="transaction">The MWEB transaction to validate. Must not be null.</param>
 /// <param name="view">The CoinsView to validate against. Must not be null.</param>
+/// <param name="transaction">The MWEB transaction to validate. Must not be null.</param>
 /// <param name="nSpendHeight">The height at which the transaction is included.</param>
 /// <throws>ValidationException if consensus rules are not met.</throws>
-MWIMPORT void CheckTxInputs(const libmw::TxRef& transaction, const libmw::CoinsViewRef& view, int nSpendHeight);
+MWIMPORT void CheckTxInputs(const libmw::CoinsViewRef& view, const libmw::TxRef& transaction, uint64_t nSpendHeight);
 
 MWIMPORT bool HasCoin(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment);
 
