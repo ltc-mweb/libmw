@@ -53,12 +53,12 @@ private:
                 return "PEGIN_MISMATCH";
             case EConsensusError::PEGOUT_MISMATCH:
                 return "PEGOUT_MISMATCH";
-			case EConsensusError::MMR_MISMATCH:
-				return "MMR_MISMATCH";
-			case EConsensusError::UTXO_MISSING:
-				return "UTXO_MISSING";
-			case EConsensusError::PEGIN_MATURITY:
-				return "PEGIN_MATURITY";
+            case EConsensusError::MMR_MISMATCH:
+                return "MMR_MISMATCH";
+            case EConsensusError::UTXO_MISSING:
+                return "UTXO_MISSING";
+            case EConsensusError::PEGIN_MATURITY:
+                return "PEGIN_MATURITY";
         }
 
         return "UNKNOWN";
