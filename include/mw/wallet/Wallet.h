@@ -45,6 +45,8 @@ private:
         const libmw::PrivateKey& private_key
     ) const;
 
+    std::vector<libmw::Coin> AvailableCoins() const;
+
     SecretKey RewindNonce(const Commitment& commitment) const;
     SecretKey SecretNonce(const Commitment& commitment) const;
 };

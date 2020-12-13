@@ -52,7 +52,7 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
     const uint64_t fee_base,
     const Bech32Address& address)
 {
-    std::vector<libmw::Coin> coins = m_pWalletInterface->ListCoins();
+    std::vector<libmw::Coin> coins = AvailableCoins();
 
     std::vector<libmw::Coin> input_coins = m_pWalletInterface->SelectCoins(coins, amount, fee_base);
     BlindingFactor input_blinds = WalletUtil::AddBlindingFactors(input_coins);
@@ -112,7 +112,7 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
 
 PartialTx Wallet::Send(const uint64_t amount, const uint64_t fee_base)
 {
-    std::vector<libmw::Coin> coins = m_pWalletInterface->ListCoins();
+    std::vector<libmw::Coin> coins = AvailableCoins();
 
     std::vector<libmw::Coin> input_coins = m_pWalletInterface->SelectCoins(coins, amount, fee_base);
     BlindingFactor input_blinds = WalletUtil::AddBlindingFactors(input_coins);
@@ -226,6 +226,32 @@ libmw::WalletBalance Wallet::GetBalance() const
     }
 
     return balance;
+}
+
+std::vector<libmw::Coin> Wallet::AvailableCoins() const
+{
+    std::vector<libmw::Coin> coins = m_pWalletInterface->ListCoins();
+    std::vector<libmw::Coin> result;
+
+    for (const libmw::Coin& coin : coins) {
+        if (coin.spent || coin.spent_block.has_value()) {
+            continue;
+        }
+
+        uint64_t num_confirmations = 0;
+        if (coin.included_block.has_value()) {
+            num_confirmations = m_pWalletInterface->GetDepthInActiveChain(coin.included_block.value());
+        }
+
+        bool isPegin = coin.features & libmw::PEGIN_OUTPUT;
+        bool peginMatured = num_confirmations >= mw::ChainParams::GetPegInMaturity();
+
+        if (num_confirmations > 0 && (!isPegin || peginMatured)) {
+            result.push_back(coin);
+        }
+    }
+
+    return result;
 }
 
 void Wallet::BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canonical_block_hash)
