@@ -23,11 +23,6 @@ public:
     BlindingFactor(BlindingFactor&& other) noexcept = default;
 
     //
-    // Destructor
-    //
-    virtual ~BlindingFactor() = default;
-
-    //
     // Operators
     //
     BlindingFactor& operator=(const BlindingFactor& other) = default;
@@ -62,15 +57,6 @@ public:
 
     std::string ToHex() const { return m_value.ToHex(); }
     static BlindingFactor FromHex(const std::string& hex) { return BlindingFactor(BigInt<32>::FromHex(hex)); }
-
-    //
-    // Converts BlindingFactor to SecretKey.
-    // WARNING: BlindingFactor is unusable after calling this.
-    //
-    SecretKey ToSecretKey()
-    {
-        return SecretKey(std::move(m_value));
-    }
 
 private:
     // The 32 byte blinding factor.

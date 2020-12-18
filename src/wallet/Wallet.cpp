@@ -1,5 +1,7 @@
 #include <mw/wallet/Wallet.h>
+#include <mw/wallet/OutputFactory.h>
 #include <mw/crypto/Blinds.h>
+#include <mw/crypto/Bulletproofs.h>
 #include <mw/crypto/Random.h>
 #include <mw/config/ChainParams.h>
 
@@ -235,7 +237,7 @@ void Wallet::BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canon
     for (const Output& output : pBlock->GetOutputs()) {
         try {
             SecretKey nonce = RewindNonce(output.GetCommitment());
-            auto pRewound = Crypto::RewindRangeProof(
+            auto pRewound = Bulletproofs::Rewind(
                 output.GetCommitment(),
                 *output.GetRangeProof(),
                 output.GetOwnerData().Serialized(),
@@ -338,7 +340,7 @@ void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
                 for (const Output& output : block_ref.pBlock->GetOutputs()) {
                     try {
                         SecretKey nonce = RewindNonce(output.GetCommitment());
-                        auto pRewound = Crypto::RewindRangeProof(
+                        auto pRewound = Bulletproofs::Rewind(
                             output.GetCommitment(),
                             *output.GetRangeProof(),
                             output.GetOwnerData().Serialized(),
@@ -393,17 +395,15 @@ Output Wallet::CreateOutput(
     const libmw::PrivateKey& private_key) const
 {
     Commitment commitment = Crypto::CommitBlinded(amount, private_key.keyBytes);
-
-    RangeProof::CPtr pRangeProof = Crypto::GenerateRangeProof(
-        amount,
-        SecretKey(private_key.keyBytes),
-        SecretNonce(commitment),
+    return OutputFactory::Create(
+        features,
+        private_key.keyBytes,
+        Random().CSPRNG<32>(), // TODO: Implement
+        StealthAddress::Random(), // TODO: Implement
         RewindNonce(commitment),
         ProofMessage::FromKeyChain(KeyChainPath::FromString(private_key.bip32Path)),
-        OwnerData().Serialized() // TODO: Implement OwnerData
+        amount
     );
-
-    return Output{ features, std::move(commitment), {}, pRangeProof };
 }
 
 SecretKey Wallet::RewindNonce(const Commitment& commitment) const

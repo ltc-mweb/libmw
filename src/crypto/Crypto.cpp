@@ -13,7 +13,6 @@
 
 // Secp256k1
 #include "Context.h"
-#include "Bulletproofs.h"
 #include "Pedersen.h"
 #include "PublicKeys.h"
 #include <mw/crypto/Schnorr.h>
@@ -123,39 +122,6 @@ SecretKey Crypto::AddPrivateKeys(const SecretKey& secretKey1, const SecretKey& s
     ThrowCrypto("secp256k1_ec_privkey_tweak_add failed");
 }
 
-RangeProof::CPtr Crypto::GenerateRangeProof(
-    const uint64_t amount,
-    const SecretKey& key,
-    const SecretKey& privateNonce,
-    const SecretKey& rewindNonce,
-    const ProofMessage& proofMessage,
-    const std::vector<uint8_t>& extraData)
-{
-    return Bulletproofs(SECP256K1_CONTEXT).GenerateRangeProof(
-        amount,
-        key,
-        privateNonce,
-        rewindNonce,
-        proofMessage,
-        extraData
-    );
-}
-
-std::unique_ptr<RewoundProof> Crypto::RewindRangeProof(
-    const Commitment& commitment,
-    const RangeProof& rangeProof,
-    const std::vector<uint8_t>& extraData,
-    const SecretKey& nonce)
-{
-    return Bulletproofs(SECP256K1_CONTEXT).RewindProof(commitment, rangeProof, extraData, nonce);
-}
-
-bool Crypto::VerifyRangeProofs(
-    const std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>>& rangeProofs)
-{
-    return Bulletproofs(SECP256K1_CONTEXT).VerifyBulletproofs(rangeProofs);
-}
-
 std::vector<uint8_t> Crypto::AES256_Encrypt(
     const SecureVector& input,
     const SecretKey& key,
@@ -215,4 +181,19 @@ PublicKey Crypto::AddPublicKeys(const std::vector<PublicKey>& publicKeys)
 PublicKey Crypto::ToPublicKey(const Commitment& commitment)
 {
     return ConversionUtil(SECP256K1_CONTEXT).ToPublicKey(commitment);
+}
+
+PublicKey Crypto::MultiplyKey(const PublicKey& public_key, const SecretKey& mul)
+{
+    secp256k1_pubkey pubkey = ConversionUtil(SECP256K1_CONTEXT).ToSecp256k1(public_key);
+    const int tweakResult = secp256k1_ec_pubkey_tweak_mul(
+        SECP256K1_CONTEXT.Read()->Get(),
+        &pubkey,
+        mul.data()
+    );
+    if (tweakResult == 1) {
+        return ConversionUtil(SECP256K1_CONTEXT).ToPublicKey(pubkey);
+    }
+
+    ThrowCrypto("secp256k1_ec_pubkey_tweak_mul failed");
 }

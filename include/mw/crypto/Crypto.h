@@ -55,35 +55,6 @@ public:
     );
 
     //
-    //
-    //
-    static RangeProof::CPtr GenerateRangeProof(
-        const uint64_t amount,
-        const SecretKey& key,
-        const SecretKey& privateNonce,
-        const SecretKey& rewindNonce,
-        const ProofMessage& proofMessage,
-        const std::vector<uint8_t>& extraData
-    );
-
-    //
-    //
-    //
-    static std::unique_ptr<RewoundProof> RewindRangeProof(
-        const Commitment& commitment,
-        const RangeProof& rangeProof,
-        const std::vector<uint8_t>& extraData,
-        const SecretKey& nonce
-    );
-
-    //
-    //
-    //
-    static bool VerifyRangeProofs(
-        const std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>>& rangeProofs
-    );
-
-    //
     // Encrypts the input with AES256 using the given key.
     //
     static std::vector<uint8_t> AES256_Encrypt(
@@ -132,4 +103,6 @@ public:
         const SecretKey& secretKey1,
         const SecretKey& secretKey2
     );
+
+    static PublicKey MultiplyKey(const PublicKey& public_key, const SecretKey& mul);
 };

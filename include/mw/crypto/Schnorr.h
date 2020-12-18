@@ -28,11 +28,4 @@ public:
     static bool BatchVerify(
         const std::vector<SignedMessage>& signatures
     );
-
-private:
-    static bool BatchVerify(
-        const std::vector<const Signature*>& signatures,
-        const std::vector<const PublicKey*>& publicKeys,
-        const std::vector<const mw::Hash*>& messages
-    );
 };

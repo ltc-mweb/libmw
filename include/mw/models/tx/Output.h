@@ -109,7 +109,7 @@ public:
 
 private:
     // Options for an output's structure or use
-    EOutputFeatures m_features;
+    EOutputFeatures m_features; // TODO: This should probably be part of the OwnerData. See: https://github.com/ltc-mweb/libmw/issues/7#issuecomment-716549586
 
     // The homomorphic commitment representing the output amount
     Commitment m_commitment;

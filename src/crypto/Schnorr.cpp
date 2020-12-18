@@ -6,10 +6,10 @@
 #include <mw/exceptions/CryptoException.h>
 #include <mw/util/VectorUtil.h>
 
-Locked<Context> SCHNORR_CONTEXT(std::make_shared<Context>());
+static Locked<Context> SCHNORR_CONTEXT(std::make_shared<Context>());
 
-const uint64_t MAX_WIDTH = 1 << 20;
-const size_t SCRATCH_SPACE_SIZE = 256 * MAX_WIDTH;
+static constexpr uint64_t MAX_WIDTH = 1 << 20;
+static constexpr size_t SCRATCH_SPACE_SIZE = 256 * MAX_WIDTH;
 
 Signature Schnorr::Sign(
     const uint8_t* secretKey,
@@ -55,47 +55,34 @@ bool Schnorr::Verify(
 
 bool Schnorr::BatchVerify(const std::vector<SignedMessage>& signatures)
 {
-    std::vector<const Signature*> signature_ptrs;
-    std::vector<const PublicKey*> pubkey_ptrs;
-    std::vector<const mw::Hash*> message_ptrs;
-
-    for (const auto& signature : signatures)
-    {
-        signature_ptrs.push_back(&signature.signature);
-        pubkey_ptrs.push_back(&signature.public_key);
-        message_ptrs.push_back(&signature.message_hash);
-    }
-
-    return BatchVerify(signature_ptrs, pubkey_ptrs, message_ptrs);
-}
-
-bool Schnorr::BatchVerify(
-    const std::vector<const Signature*>& signatures,
-    const std::vector<const PublicKey*>& pubkeys,
-    const std::vector<const mw::Hash*>& messages)
-{
-    assert(signatures.size() == pubkeys.size());
-    assert(pubkeys.size() == messages.size());
-
+    // Parse pubkeys
     std::vector<secp256k1_pubkey> parsedPubKeys;
     std::transform(
-        pubkeys.cbegin(), pubkeys.cend(),
+        signatures.cbegin(), signatures.cend(),
         std::back_inserter(parsedPubKeys),
-        [](const PublicKey* pubkey) -> secp256k1_pubkey {
-            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(*pubkey);
+        [](const SignedMessage& signed_message) -> secp256k1_pubkey {
+            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signed_message.public_key);
         }
     );
-
     std::vector<secp256k1_pubkey*> pubKeyPtrs = VectorUtil::ToPointerVec(parsedPubKeys);
 
-    std::vector<secp256k1_schnorrsig> parsedSignatures = ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signatures);
+    // Parse signatures
+    std::vector<secp256k1_schnorrsig> parsedSignatures;
+    std::transform(
+        signatures.cbegin(), signatures.cend(),
+        std::back_inserter(parsedSignatures),
+        [](const SignedMessage& signed_message) -> secp256k1_schnorrsig {
+            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signed_message.signature);
+        }
+    );
     std::vector<secp256k1_schnorrsig*> signaturePtrs = VectorUtil::ToPointerVec(parsedSignatures);
 
+    // Transform messages
     std::vector<const uint8_t*> messageData;
     std::transform(
-        messages.cbegin(), messages.cend(),
+        signatures.cbegin(), signatures.cend(),
         std::back_inserter(messageData),
-        [](const mw::Hash* pMessage) { return pMessage->data(); }
+        [](const SignedMessage& signed_message) { return signed_message.message_hash.data(); }
     );
 
     secp256k1_scratch_space* pScratchSpace = secp256k1_scratch_space_create(

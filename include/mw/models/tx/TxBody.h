@@ -12,6 +12,7 @@
 #include <mw/models/tx/Output.h>
 #include <mw/models/tx/Kernel.h>
 #include <mw/consensus/CutThrough.h>
+#include <mw/crypto/Bulletproofs.h>
 #include <mw/crypto/Schnorr.h>
 
 #include <memory>
@@ -198,6 +199,9 @@ public:
 
     void Validate() const
     {
+        // TODO: Validate Weight
+        // TODO: Verify Sorted
+
         CutThrough::VerifyCutThrough(m_inputs, m_outputs);
 
         std::vector<SignedMessage> signatures;
@@ -215,25 +219,30 @@ public:
             std::back_inserter(signatures),
             [](const Input& input) {
                 PublicKey public_key = Crypto::ToPublicKey(input.GetCommitment());
-                return SignedMessage{ MWEB_HASH, std::move(public_key), input.GetSignature() };
+                return SignedMessage{ InputMessage(), std::move(public_key), input.GetSignature() };
             }
+        );
+
+        std::transform(
+            m_outputs.cbegin(), m_outputs.cend(),
+            std::back_inserter(signatures),
+            [](const Output& output) { return output.GetOwnerData().GetSignedMsg(); }
         );
 
         Schnorr::BatchVerify(signatures);
 
-        // TODO: Validate Weight
-        // TODO: Verify Sorted
-
         //
         // Verify RangeProofs
         //
-        std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>> rangeProofs;
+        std::vector<ProofData> rangeProofs;
         std::transform(
             m_outputs.cbegin(), m_outputs.cend(),
             std::back_inserter(rangeProofs),
-            [](const Output& output) { return std::make_tuple(output.GetCommitment(), output.GetRangeProof(), output.GetOwnerData().Serialized()); }
+            [](const Output& output) {
+                return ProofData{ output.GetCommitment(), output.GetRangeProof(), output.GetOwnerData().Serialized() };
+            }
         );
-        if (!Crypto::VerifyRangeProofs(rangeProofs)) {
+        if (!Bulletproofs::BatchVerify(rangeProofs)) {
             ThrowValidation(EConsensusError::BULLETPROOF);
         }
     }

@@ -94,7 +94,7 @@ MWIMPORT void ScanForOutputs(
 /// TODO: Add multi-address support.
 /// </summary>
 /// <param name="pWallet">The wallet to calculate the MWEB wallet address for. Must not be null.</param>
-/// <returns></returns>
+/// <returns>The MWEB wallet's bech32 address.</returns>
 MWIMPORT MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet);
 
 /// <summary>

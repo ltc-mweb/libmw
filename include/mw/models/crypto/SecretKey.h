@@ -27,6 +27,11 @@ public:
     virtual ~secret_key_t() = default;
 
     //
+    // Operators
+    //
+    inline bool operator==(const secret_key_t<NUM_BYTES>& rhs) const noexcept { return m_value == rhs.m_value; }
+
+    //
     // Getters
     //
     const BigInt<NUM_BYTES>& GetBigInt() const { return m_value; }

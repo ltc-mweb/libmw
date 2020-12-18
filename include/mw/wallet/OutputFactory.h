@@ -1,57 +1,58 @@
 #pragma once
 
-#include <mw/common/Macros.h>
-#include <mw/models/tx/Output.h>
-#include <mw/models/wallet/StealthAddress.h>
 #include <mw/crypto/Bulletproofs.h>
-#include <mw/crypto/Random.h>
+#include <mw/crypto/Schnorr.h>
+#include <mw/models/crypto/RangeProof.h>
+#include <mw/models/tx/Output.h>
+#include <mw/models/tx/OwnerData.h>
+#include <mw/models/wallet/StealthAddress.h>
 
-TEST_NAMESPACE
-
-class TxOutput
+class OutputFactory
 {
 public:
-    TxOutput(const BlindingFactor& blindingFactor, const uint64_t amount, const Output& output)
-        : m_blindingFactor(blindingFactor), m_amount(amount), m_output(output) { }
-
-    static TxOutput Create(
+    static Output Create(
         const EOutputFeatures features,
-        const BlindingFactor& blindingFactor,
+        const BlindingFactor& blinding_factor,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
+        const SecretKey& rewind_nonce, // TODO: Is this still needed?
+        const ProofMessage& proofMessage, // TODO: Is this still needed?
         const uint64_t amount)
     {
         Commitment commitment = Crypto::CommitBlinded(
             amount,
-            blindingFactor
+            blinding_factor
         );
 
-        OwnerData owner_data = CreateOwnerData(sender_privkey, receiver_addr);
+        OwnerData owner_data = CreateOwnerData(sender_privkey, receiver_addr, blinding_factor, amount);
 
         RangeProof::CPtr pRangeProof = Bulletproofs::Generate(
             amount,
-            SecretKey(blindingFactor.vec()),
-            SecretKey(),
-            SecretKey(),
-            ProofMessage(BigInt<20>()),
+            SecretKey(blinding_factor.vec()),
+            rewind_nonce,
+            rewind_nonce,
+            proofMessage,
             owner_data.Serialized()
         );
 
-        return TxOutput(
-            blindingFactor,
-            amount,
-            Output{ features, std::move(commitment), std::move(owner_data), pRangeProof }
-        );
+        return Output{ features, std::move(commitment), std::move(owner_data), pRangeProof };
     }
 
-    static OwnerData CreateOwnerData(const SecretKey& sender_privkey, const StealthAddress& receiver_addr)
+    static OwnerData CreateOwnerData(
+        const SecretKey& sender_privkey,
+        const StealthAddress& receiver_addr,
+        const BlindingFactor& blinding_factor,
+        const uint64_t amount)
     {
         PublicKey sender_pubkey = Keys::From(sender_privkey).PubKey();
         SecretKey r = Random::CSPRNG<32>();
         PublicKey R = Keys::From(r).PubKey();
         PublicKey rA = Keys::From(receiver_addr.A()).Mul(r).PubKey();
         PublicKey receiver_pubkey = Keys::From(Hashed(rA)).Add(receiver_addr.B()).PubKey();
-        std::vector<uint8_t> encrypted_data{}; // TODO: Encrypt blinding factor & amount
+        std::vector<uint8_t> encrypted_data = Serializer()
+            .Append(blinding_factor)
+            .Append<uint64_t>(amount)
+            .vec();
 
         auto serialized_msg = Serializer()
             .Append(receiver_pubkey)
@@ -69,15 +70,4 @@ public:
             std::move(signature)
         );
     }
-
-    const BlindingFactor& GetBlindingFactor() const noexcept { return m_blindingFactor; }
-    uint64_t GetAmount() const noexcept { return m_amount; }
-    const Output& GetOutput() const noexcept { return m_output; }
-
-private:
-    BlindingFactor m_blindingFactor;
-    uint64_t m_amount;
-    Output m_output;
 };
-
-END_NAMESPACE

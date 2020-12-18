@@ -83,34 +83,48 @@ TEST_CASE("BlockSumValidator::ValidateForBlock - Without Builder")
     mw::Hash prev_total_offset = mw::Hash::FromHex("0123456789abcdef0123456789abcdef00000000000000000000000000000000");
 
     test::Tx::Builder tx_builder;
-    mw::Hash mweb_hash = Hashed(std::vector<uint8_t>{'M', 'W', 'E', 'B'}); // TODO: Determine actual message
 
     // Add inputs
     BlindingFactor input1_bf = Random::CSPRNG<32>();
-    tx_builder.AddInput(Input(Crypto::CommitBlinded(5'000'000, input1_bf), Schnorr::Sign(input1_bf.data(), mweb_hash)));
+    SecretKey input1_sender_key = Random::CSPRNG<32>();
+    tx_builder.AddInput(test::TxInput::Create(input1_bf, input1_sender_key, 5'000'000));
 
     BlindingFactor input2_bf = Random::CSPRNG<32>();
-    tx_builder.AddInput(Input(Crypto::CommitBlinded(6'000'000, input2_bf), Schnorr::Sign(input2_bf.data(), mweb_hash)));
+    SecretKey input2_sender_key = Random::CSPRNG<32>();
+    tx_builder.AddInput(test::TxInput::Create(input2_bf, input2_sender_key, 6'000'000));
 
     // Add outputs
     BlindingFactor output1_bf = Random::CSPRNG<32>();
-    tx_builder.AddOutput(test::TxOutput::Create(EOutputFeatures::DEFAULT_OUTPUT, output1_bf, 4'000'000));
+    SecretKey output1_sender_key = Random::CSPRNG<32>();
+    tx_builder.AddOutput(test::TxOutput::Create(
+        EOutputFeatures::DEFAULT_OUTPUT,
+        output1_bf,
+        output1_sender_key,
+        StealthAddress::Random(),
+        4'000'000
+    ));
 
     BlindingFactor output2_bf = Random::CSPRNG<32>();
-    tx_builder.AddOutput(test::TxOutput::Create(EOutputFeatures::DEFAULT_OUTPUT, output2_bf, 6'500'000));
-
-    // Add kernels
-    BlindingFactor excess = Crypto::AddBlindingFactors({ output1_bf, output2_bf }, { input1_bf, input2_bf });
-    BlindingFactor tx_offset = Random::CSPRNG<32>();
-    BigInt<32> excess_minus_offset = Crypto::AddBlindingFactors({ excess }, { tx_offset }).GetBigInt();
-    tx_builder.AddPlainKernel(500'000, SecretKey{ std::move(excess_minus_offset) });
+    SecretKey output2_sender_key = Random::CSPRNG<32>();
+    tx_builder.AddOutput(test::TxOutput::Create(
+        EOutputFeatures::DEFAULT_OUTPUT,
+        output2_bf,
+        output2_sender_key,
+        StealthAddress::Random(),
+        6'500'000
+    ));
 
     // Set Offset
+    BlindingFactor tx_offset = Random::CSPRNG<32>();
     tx_builder.SetKernelOffset(tx_offset);
+
+    // Add kernel
+    BlindingFactor excess = Blinds().Add(output1_bf).Add(output2_bf).Sub(input1_bf).Sub(input2_bf).Total();
+    tx_builder.AddPlainKernel(500'000, Blinds().Add(excess).Sub(tx_offset).Total());
 
     mw::Transaction::CPtr pTransaction = tx_builder.Build().GetTransaction();
 
-    BlindingFactor total_offset = Crypto::AddBlindingFactors({ prev_total_offset, tx_offset });
+    BlindingFactor total_offset = Blinds().Add(prev_total_offset).Add(tx_offset).Total();
     BlockSumValidator::ValidateForBlock(pTransaction->GetBody(), total_offset, prev_total_offset);
 }
 

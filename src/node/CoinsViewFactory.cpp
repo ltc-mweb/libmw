@@ -2,6 +2,7 @@
 
 #include <mw/mmr/backends/FileBackend.h>
 #include <mw/exceptions/ValidationException.h>
+#include <mw/crypto/Bulletproofs.h>
 #include <mw/crypto/Schnorr.h>
 #include <mw/consensus/BlockSumValidator.h>
 #include <mw/db/CoinDB.h>
@@ -190,7 +191,7 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
     auto pBackend = mmr::FileBackend::Open('R', mmrPath, pDBWrapper);
 	mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
 
-	std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>> proofs;
+	std::vector<ProofData> proofs;
 
 	// TODO: Need parent hashes
 	for (const UTXO::CPtr& pUTXO : utxos)
@@ -199,7 +200,7 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
 
 		proofs.push_back({ pUTXO->GetCommitment(), pUTXO->GetRangeProof(), pUTXO->GetOwnerData().Serialized() });
 		if (proofs.size() >= PROOF_BATCH_SIZE) {
-			if (!Crypto::VerifyRangeProofs(proofs)) {
+			if (!Bulletproofs::BatchVerify(proofs)) {
 				ThrowValidation(EConsensusError::BULLETPROOF);
 			}
 
@@ -208,7 +209,7 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
 	}
 
 	if (!proofs.empty()) {
-		if (!Crypto::VerifyRangeProofs(proofs)) {
+		if (!Bulletproofs::BatchVerify(proofs)) {
 			ThrowValidation(EConsensusError::BULLETPROOF);
 		}
 	}

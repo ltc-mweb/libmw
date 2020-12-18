@@ -12,8 +12,6 @@
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Jsonable.h>
 
-static const mw::Hash MWEB_HASH = Hashed(std::vector<uint8_t>{'M', 'W', 'E', 'B'}); // TODO: Determine actual message
-
 ////////////////////////////////////////
 // INPUT
 ////////////////////////////////////////

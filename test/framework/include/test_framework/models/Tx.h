@@ -6,6 +6,7 @@
 #include <mw/crypto/Random.h>
 #include <mw/crypto/Hasher.h>
 
+#include <test_framework/models/TxInput.h>
 #include <test_framework/models/TxOutput.h>
 
 TEST_NAMESPACE
@@ -39,6 +40,12 @@ public:
             return *this;
         }
 
+        Builder& AddInput(const test::TxInput& input)
+        {
+            inputs.push_back(input.GetInput());
+            return *this;
+        }
+
         Builder& AddOutput(const test::TxOutput& output)
         {
             outputs.push_back(output.GetOutput());
@@ -51,7 +58,7 @@ public:
             return *this;
         }
 
-        Builder& AddPlainKernel(const uint64_t fee, const SecretKey& excess)
+        Builder& AddPlainKernel(const uint64_t fee, const BlindingFactor& excess)
         {
             Commitment excess_commitment = Crypto::CommitBlinded(0, excess);
             std::vector<uint8_t> kernel_message = Serializer()
@@ -81,7 +88,14 @@ public:
         BlindingFactor txOffset = Random().CSPRNG<32>();
 
         BlindingFactor outputBF = Random().CSPRNG<32>();
-        test::TxOutput output = test::TxOutput::Create(EOutputFeatures::PEGGED_IN, outputBF, amount);
+        SecretKey sender_privkey = Random().CSPRNG<32>();
+        test::TxOutput output = test::TxOutput::Create(
+            EOutputFeatures::PEGGED_IN,
+            outputBF,
+            sender_privkey,
+            StealthAddress::Random(),
+            amount
+        );
 
         BlindingFactor kernelBF = Crypto::AddBlindingFactors({ outputBF }, { txOffset });
         Commitment kernelCommit = Crypto::CommitBlinded(0, kernelBF);
@@ -97,7 +111,7 @@ public:
 
         Kernel kernel = Kernel::CreatePegIn(amount, std::move(kernelCommit), std::move(signature));
 
-        return Tx::Builder().SetKernelOffset(txOffset).AddKernel(kernel).AddOutput(output).Build();
+        return Tx::Builder().SetKernelOffset(txOffset).SetOwnerOffset(sender_privkey).AddKernel(kernel).AddOutput(output).Build();
     }
 
     const mw::Transaction::CPtr& GetTransaction() const noexcept { return m_pTransaction; }

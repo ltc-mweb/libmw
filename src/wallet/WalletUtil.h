@@ -51,7 +51,7 @@ public:
             [](const libmw::Coin& input_coin) {
                 assert(input_coin.key.has_value());
 
-                Signature sig = Schnorr::Sign(input_coin.key.value().keyBytes.data(), MWEB_HASH);
+                Signature sig = Schnorr::Sign(input_coin.key.value().keyBytes.data(), InputMessage());
                 return Input(Commitment(input_coin.commitment), std::move(sig));
             }
         );
