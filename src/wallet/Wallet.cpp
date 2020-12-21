@@ -194,7 +194,10 @@ mw::Transaction::CPtr Wallet::Receive(const PartialTx& partial_tx)
 libmw::MWEBAddress Wallet::GetAddress() const
 {
     SecretKey private_key(m_pWalletInterface->GetHDKey("m/1/0/100").keyBytes);
-    return Bech32Address("mweb", Crypto::CalculatePublicKey(private_key).vec()).ToString();
+    auto id = Crypto::CalculatePublicKey(private_key).vec();
+    std::vector<uint8_t> data = {0};
+    ConvertBits<8, 5, true>([&](uint8_t c) { data.push_back(c); }, id.begin(), id.end());
+    return Bech32Address("mweb", data).ToString();
 }
 
 libmw::WalletBalance Wallet::GetBalance() const
