@@ -11,6 +11,7 @@ enum class EConsensusError
     CUT_THROUGH,
     BLOCK_WEIGHT,
     BLOCK_SUMS,
+    OWNER_SUMS,
     KERNEL_SIG,
     BULLETPROOF,
     PEGIN_MISMATCH,
@@ -44,6 +45,8 @@ private:
                 return "BLOCK_WEIGHT";
             case EConsensusError::BLOCK_SUMS:
                 return "BLOCK_SUMS";
+            case EConsensusError::OWNER_SUMS:
+                return "OWNER_SUMS";
             case EConsensusError::KERNEL_SIG:
                 return "KERNEL_SIG";
             case EConsensusError::BULLETPROOF:

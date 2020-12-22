@@ -96,6 +96,7 @@ MWEXPORT void CheckTransaction(const libmw::TxRef& transaction)
 
     transaction.pTransaction->GetBody().Validate();
     BlockSumValidator::ValidateForTx(*transaction.pTransaction);
+    // TODO: Validate owner offsets
 }
 
 MWEXPORT bool HasCoin(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment)

@@ -31,24 +31,17 @@ MWEXPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
     return std::make_pair(libmw::TxRef{ pTx }, libmw::PegOut{ amount, address });
 }
 
-MWEXPORT libmw::PartialTransaction Send(
+MWEXPORT libmw::TxRef Send(
     const libmw::IWallet::Ptr& pWallet,
     const uint64_t amount,
     const uint64_t fee_base,
-    const libmw::MWEBAddress&)
+    const libmw::MWEBAddress& address)
 {
-    PartialTx partial_tx = Wallet::Open(pWallet).Send(amount, fee_base);
-    return HexUtil::ToHex(partial_tx.Serialized());
-}
-
-MWEXPORT libmw::TxRef Receive(
-    const libmw::IWallet::Ptr& pWallet,
-    const libmw::PartialTransaction& partialTx)
-{
-    std::vector<uint8_t> serialized = HexUtil::FromHex(partialTx);
-    Deserializer deserializer(serialized);
-    PartialTx partial_tx = PartialTx::Deserialize(deserializer);
-    mw::Transaction::CPtr pTx = Wallet::Open(pWallet).Receive(partial_tx);
+    std::vector<uint8_t> decoded = DecodeBase32(address.c_str()); // TODO: Determine encoding
+    //Bech32Address bech32 = Bech32Address::FromString(address);
+    Deserializer deserializer(decoded);
+    StealthAddress receiver_addr = StealthAddress::Deserialize(deserializer);
+    auto pTx = Wallet::Open(pWallet).Send(amount, fee_base, receiver_addr);
     return libmw::TxRef{ pTx };
 }
 

@@ -38,7 +38,9 @@ TEST_CASE("Wallet - SendReceive")
     REQUIRE(balance.locked_balance == 0);
 
     // Initiate 2,000,000 litoshi spend
-    libmw::PartialTransaction partial_tx = libmw::wallet::Send(pSendWallet, 2'000'000, 0, "address");
+    libmw::MWEBAddress recv_address = libmw::wallet::GetAddress(pRecvWallet);
+    libmw::TxRef received_tx = libmw::wallet::Send(pSendWallet, 2'000'000, 0, recv_address);
+    libmw::node::CheckTransaction(received_tx);
 
     // Balance should have 5'000'000 locked litoshis and 3'000'000 unconfirmed
     balance = libmw::wallet::GetBalance(pSendWallet);
@@ -47,16 +49,12 @@ TEST_CASE("Wallet - SendReceive")
     REQUIRE(balance.immature_balance == 0);
     REQUIRE(balance.locked_balance == 5'000'000);
 
-    // Receive transaction
-    libmw::TxRef received_tx = libmw::wallet::Receive(pRecvWallet, partial_tx);
-    libmw::node::CheckTransaction(received_tx);
-
-    // Receiver balance should have 2'000'000 unconfirmed litoshis
-    balance = libmw::wallet::GetBalance(pRecvWallet);
-    REQUIRE(balance.confirmed_balance == 0);
-    REQUIRE(balance.unconfirmed_balance == 2'000'000);
-    REQUIRE(balance.immature_balance == 0);
-    REQUIRE(balance.locked_balance == 0);
+    //// Receiver balance should have 2'000'000 unconfirmed litoshis
+    //balance = libmw::wallet::GetBalance(pRecvWallet);
+    //REQUIRE(balance.confirmed_balance == 0);
+    //REQUIRE(balance.unconfirmed_balance == 2'000'000);
+    //REQUIRE(balance.immature_balance == 0);
+    //REQUIRE(balance.locked_balance == 0);
 
     // Include transaction in a block
     auto pBlock2 = std::make_shared<mw::Block>(

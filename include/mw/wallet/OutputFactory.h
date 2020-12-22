@@ -49,10 +49,13 @@ public:
         PublicKey R = Keys::From(r).PubKey();
         PublicKey rA = Keys::From(receiver_addr.A()).Mul(r).PubKey();
         PublicKey receiver_pubkey = Keys::From(Hashed(rA)).Add(receiver_addr.B()).PubKey();
-        std::vector<uint8_t> encrypted_data = Serializer()
+
+        std::vector<uint8_t> plaintext = Serializer()
             .Append(blinding_factor)
             .Append<uint64_t>(amount)
             .vec();
+        SecretKey shared_secret = Hashed(Keys::From(receiver_addr.B()).Mul(sender_privkey).PubKey());
+        std::vector<uint8_t> encrypted_data = Crypto::AES256_Encrypt(plaintext, shared_secret, BigInt<16>());
 
         auto serialized_msg = Serializer()
             .Append(receiver_pubkey)

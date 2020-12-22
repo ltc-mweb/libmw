@@ -8,7 +8,7 @@
 class WalletUtil
 {
 public:
-    static BlindingFactor AddBlindingFactors(const std::vector<libmw::Coin>& coins)
+    static std::vector<BlindingFactor> GetBlindingFactors(const std::vector<libmw::Coin>& coins)
     {
         std::vector<BlindingFactor> blinds;
 
@@ -16,12 +16,28 @@ public:
             coins.cbegin(), coins.cend(),
             std::back_inserter(blinds),
             [](const libmw::Coin& coin) {
-                assert(coin.key.has_value());
-                return BlindingFactor(coin.key.value().keyBytes);
+                assert(coin.blind.has_value());
+                return BlindingFactor(coin.blind.value());
             }
         );
 
-        return Crypto::AddBlindingFactors(blinds);
+        return blinds;
+    }
+
+    static std::vector<BlindingFactor> GetKeys(const std::vector<libmw::Coin>& coins)
+    {
+        std::vector<BlindingFactor> keys;
+
+        std::transform(
+            coins.cbegin(), coins.cend(),
+            std::back_inserter(keys),
+            [](const libmw::Coin& coin) {
+                assert(coin.key.has_value());
+                return BlindingFactor(coin.key.value());
+            }
+        );
+
+        return keys;
     }
     
     static uint64_t TotalAmount(const std::vector<libmw::Coin>& coins)
@@ -51,7 +67,7 @@ public:
             [](const libmw::Coin& input_coin) {
                 assert(input_coin.key.has_value());
 
-                Signature sig = Schnorr::Sign(input_coin.key.value().keyBytes.data(), InputMessage());
+                Signature sig = Schnorr::Sign(input_coin.key.value().data(), InputMessage());
                 return Input(Commitment(input_coin.commitment), std::move(sig));
             }
         );

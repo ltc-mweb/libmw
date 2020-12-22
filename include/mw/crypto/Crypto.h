@@ -58,7 +58,7 @@ public:
     // Encrypts the input with AES256 using the given key.
     //
     static std::vector<uint8_t> AES256_Encrypt(
-        const SecureVector& input,
+        const std::vector<uint8_t>& input,
         const SecretKey& key,
         const BigInt<16>& iv
     );
@@ -66,7 +66,7 @@ public:
     //
     // Decrypts the input with AES256 using the given key.
     //
-    static SecureVector AES256_Decrypt(
+    static std::vector<uint8_t> AES256_Decrypt(
         const std::vector<uint8_t>& ciphertext,
         const SecretKey& key,
         const BigInt<16>& iv

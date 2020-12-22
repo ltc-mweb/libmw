@@ -20,12 +20,13 @@ public:
     static Bech32Address FromString(const std::string& address)
     {
         auto decoded = bech32::Decode(address);
-        return Bech32Address(decoded.first, decoded.second);
+        return Bech32Address(decoded.first, DecodeBase32((const char*)decoded.second.data()));
     }
 
     std::string ToString() const
     {
-        return bech32::Encode(m_hrp, m_address);
+        std::string encoded_addr = EncodeBase32(m_address.data(), m_address.size());
+        return bech32::Encode(m_hrp, std::vector<uint8_t>(encoded_addr.cbegin(), encoded_addr.cend()));
     }
 
     //

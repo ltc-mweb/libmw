@@ -36,6 +36,7 @@ public:
     //
     const BigInt<NUM_BYTES>& GetBigInt() const { return m_value; }
     const std::vector<uint8_t>& vec() const { return m_value.vec(); }
+    std::array<uint8_t, 32> array() const noexcept { return m_value.ToArray(); }
     uint8_t* data() { return m_value.data(); }
     const uint8_t* data() const { return m_value.data(); }
     size_t size() const { return m_value.size(); }

@@ -47,8 +47,8 @@ public:
     //
     // Getters
     //
-    const PublicKey GetSenderPubKey() const noexcept { return m_senderPubKey; }
-    const PublicKey GetReceiverPubKey() const noexcept { return m_receiverPubKey; }
+    const PublicKey& GetSenderPubKey() const noexcept { return m_senderPubKey; }
+    const PublicKey& GetReceiverPubKey() const noexcept { return m_receiverPubKey; }
     const PublicKey& GetPubNonce() const noexcept { return m_pubNonce; }
     const std::vector<uint8_t>& GetEncrypted() const noexcept { return m_encrypted; }
     const Signature& GetSignature() const noexcept { return m_signature; }
@@ -64,7 +64,7 @@ public:
         return SignedMessage{ Hashed(serialized_msg), m_senderPubKey, m_signature };
     }
 
-    bool TryDecrypt(const SecretKey& secretKey, SecureVector& decrypted) const noexcept
+    bool TryDecrypt(const SecretKey& secretKey, std::vector<uint8_t>& decrypted) const noexcept
     {
         try {
             decrypted = Crypto::AES256_Decrypt(m_encrypted, secretKey, BigInt<16>()); // TODO: Use IV?

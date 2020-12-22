@@ -7,6 +7,7 @@
 #include <mw/models/crypto/PublicKey.h>
 #include <mw/models/crypto/SecretKey.h>
 
+// TODO: Make this more efficient
 class Keys
 {
 public:
@@ -30,6 +31,14 @@ public:
     Keys& Add(const PublicKey& public_key)
     {
         m_pubkey = Crypto::AddPublicKeys({ m_pubkey, public_key });
+        return *this;
+    }
+
+    Keys& Add(const std::vector<PublicKey>& public_keys)
+    {
+        std::vector<PublicKey> pubkeys = public_keys;
+        pubkeys.push_back(m_pubkey);
+        m_pubkey = Crypto::AddPublicKeys(pubkeys);
         return *this;
     }
 

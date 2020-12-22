@@ -8,6 +8,7 @@
 #include <mw/models/crypto/PublicKey.h>
 #include <mw/models/crypto/Bech32Address.h>
 #include <mw/models/wallet/PartialTx.h>
+#include <mw/models/wallet/StealthAddress.h>
 
 class Wallet
 {
@@ -24,9 +25,13 @@ public:
         const Bech32Address& address
     );
 
-    PartialTx Send(const uint64_t amount, const uint64_t fee_base);
-    mw::Transaction::CPtr Receive(const PartialTx& partial_tx);
+    mw::Transaction::CPtr Send(
+        const uint64_t amount,
+        const uint64_t fee_base,
+        const StealthAddress& receiver_address
+    );
 
+    StealthAddress GetStealthAddress() const;
     libmw::MWEBAddress GetAddress() const;
     libmw::WalletBalance GetBalance() const;
 
@@ -42,7 +47,9 @@ private:
     Output CreateOutput(
         const uint64_t amount,
         const EOutputFeatures features,
-        const libmw::PrivateKey& private_key
+        const BlindingFactor& blind,
+        const libmw::PrivateKey& sender_privkey,
+        const StealthAddress& address
     ) const;
 
     SecretKey RewindNonce(const Commitment& commitment) const;

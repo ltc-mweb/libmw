@@ -123,7 +123,7 @@ SecretKey Crypto::AddPrivateKeys(const SecretKey& secretKey1, const SecretKey& s
 }
 
 std::vector<uint8_t> Crypto::AES256_Encrypt(
-    const SecureVector& input,
+    const std::vector<uint8_t>& input,
     const SecretKey& key,
     const BigInt<16>& iv)
 {
@@ -146,7 +146,7 @@ std::vector<uint8_t> Crypto::AES256_Encrypt(
     return ciphertext;
 }
 
-SecureVector Crypto::AES256_Decrypt(
+std::vector<uint8_t> Crypto::AES256_Decrypt(
     const std::vector<uint8_t>& ciphertext,
     const SecretKey& key,
     const BigInt<16>& iv)
@@ -154,7 +154,7 @@ SecureVector Crypto::AES256_Decrypt(
     assert(ciphertext.size() <= INT_MAX);
 
     // plaintext will always be equal to or lesser than length of ciphertext
-    SecureVector plaintext(ciphertext.size());
+    std::vector<uint8_t> plaintext(ciphertext.size());
 
     AES256CBCDecrypt dec(key.data(), iv.data(), true);
     size_t nLen = dec.Decrypt(ciphertext.data(), (int)ciphertext.size(), plaintext.data());

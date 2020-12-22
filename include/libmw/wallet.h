@@ -40,23 +40,12 @@ MWIMPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
 /// <param name="amount">The amount to send. Must be positive.</param>
 /// <param name="fee_base">The base fee rate to be multiplied by transaction weight.</param>
 /// <param name="address">The address to send to.</param>
-/// <returns>A partial transaction to be finalized by the receiver.</returns>
-MWIMPORT libmw::PartialTransaction Send(
+/// <returns>A complete transaction, ready to be broadcast.</returns>
+MWIMPORT libmw::TxRef Send(
     const libmw::IWallet::Ptr& pWallet,
     const uint64_t amount,
     const uint64_t fee_base,
     const libmw::MWEBAddress& address
-);
-
-/// <summary>
-/// Receives coins by finishing a PartialTransaction.
-/// </summary>
-/// <param name="pWallet">The wallet to receive to. Must not be null.</param>
-/// <param name="partialTx">The partial transaction to finish.</param>
-/// <returns>The finished transaction, ready to be broadcast.</returns>
-MWIMPORT libmw::TxRef Receive(
-    const libmw::IWallet::Ptr& pWallet,
-    const libmw::PartialTransaction& partialTx
 );
 
 /// <summary>

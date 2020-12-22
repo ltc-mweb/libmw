@@ -165,7 +165,11 @@ struct Coin
 
     // The private key needed in order to spend the coin.
     // May be empty for watch-only wallets.
-    boost::optional<PrivateKey> key;
+    boost::optional<libmw::BlindingFactor> key;
+
+    // The blinding factor needed in order to spend the coin.
+    // May be empty for watch-only wallets.
+    boost::optional<libmw::BlindingFactor> blind;
 
     // The output amount in litoshis.
     // Typically positive, but could be 0 in the future when we start using decoys to improve privacy.

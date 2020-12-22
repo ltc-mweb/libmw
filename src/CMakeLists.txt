@@ -1,5 +1,6 @@
 add_subdirectory(common)
 add_subdirectory(traits)
+add_subdirectory(models)
 add_subdirectory(file)
 add_subdirectory(crypto)
 add_subdirectory(db)
