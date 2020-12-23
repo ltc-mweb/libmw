@@ -61,7 +61,7 @@ public:
             KernelType::PEGIN_KERNEL,
             0,
             0, // TODO: Can peg-in kernels have lock-heights?
-            amount, // TODO: Technically, peg-in amounts are redundant, since their UTXOs
+            amount,
             boost::none,
             std::vector<uint8_t>(),
             std::move(excess),

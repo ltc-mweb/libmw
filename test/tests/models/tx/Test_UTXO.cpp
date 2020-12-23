@@ -6,7 +6,6 @@
 
 TEST_CASE("Tx UTXO")
 {
-    EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT;
     Commitment commit = Random::CSPRNG<33>().GetBigInt();
     OwnerData ownerData{}; // TODO: Populate this
     RangeProof::CPtr rangeProof = std::make_shared<const RangeProof>(
@@ -14,7 +13,6 @@ TEST_CASE("Tx UTXO")
     );
 
     Output output(
-        features,
         Commitment(commit),
         OwnerData(ownerData),
         rangeProof
@@ -33,7 +31,6 @@ TEST_CASE("Tx UTXO")
     //
     {
         std::vector<uint8_t> serialized = utxo.Serialized();
-        REQUIRE(serialized.size() == 822);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint64_t>() == blockHeight);

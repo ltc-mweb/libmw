@@ -26,7 +26,7 @@ public:
             blindingFactor
         );
 
-        OwnerData owner_data = CreateOwnerData(sender_privkey, receiver_addr);
+        OwnerData owner_data = CreateOwnerData(features, sender_privkey, receiver_addr);
 
         RangeProof::CPtr pRangeProof = Bulletproofs::Generate(
             amount,
@@ -40,11 +40,15 @@ public:
         return TxOutput(
             blindingFactor,
             amount,
-            Output{ features, std::move(commitment), std::move(owner_data), pRangeProof }
+            Output{ std::move(commitment), std::move(owner_data), pRangeProof }
         );
     }
 
-    static OwnerData CreateOwnerData(const SecretKey& sender_privkey, const StealthAddress& receiver_addr)
+    // TODO: Use OutputFactory instead
+    static OwnerData CreateOwnerData(
+        const EOutputFeatures features,
+        const SecretKey& sender_privkey,
+        const StealthAddress& receiver_addr)
     {
         PublicKey sender_pubkey = Keys::From(sender_privkey).PubKey();
         SecretKey r = Random::CSPRNG<32>();
@@ -54,6 +58,7 @@ public:
         std::vector<uint8_t> encrypted_data{}; // TODO: Encrypt blinding factor & amount
 
         auto serialized_msg = Serializer()
+            .Append<uint8_t>(features)
             .Append(receiver_pubkey)
             .Append(R)
             .Append<uint8_t>((uint8_t)encrypted_data.size())
@@ -62,6 +67,7 @@ public:
         Signature signature = Schnorr::Sign(sender_privkey.data(), Hashed(serialized_msg));
 
         return OwnerData(
+            features,
             std::move(sender_pubkey),
             std::move(receiver_pubkey),
             std::move(R),

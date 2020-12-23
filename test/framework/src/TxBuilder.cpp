@@ -49,7 +49,7 @@ TxBuilder& TxBuilder::AddOutput(
     m_kernelOffset.Add(output_bf);
     m_ownerOffset.Add(sender_privkey);
 
-    OwnerData owner_data = TxOutput::CreateOwnerData(sender_privkey, receiver_addr);
+    OwnerData owner_data = TxOutput::CreateOwnerData(features, sender_privkey, receiver_addr);
     RangeProof::CPtr pRangeProof = Bulletproofs::Generate(
         amount,
         SecretKey(output_bf.vec()),
@@ -59,7 +59,7 @@ TxBuilder& TxBuilder::AddOutput(
         owner_data.Serialized()
     );
 
-    Output output{ features, Crypto::CommitBlinded(amount, output_bf), std::move(owner_data), pRangeProof };
+    Output output{ Crypto::CommitBlinded(amount, output_bf), std::move(owner_data), pRangeProof };
     m_outputs.push_back(std::move(output));
     m_amount -= (int64_t)amount;
     return *this;

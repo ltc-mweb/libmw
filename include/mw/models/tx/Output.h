@@ -12,7 +12,6 @@
 #include <mw/traits/Committed.h>
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
-#include <mw/traits/Jsonable.h>
 
 ////////////////////////////////////////
 // OUTPUT
@@ -20,15 +19,14 @@
 class Output :
     public Traits::ICommitted,
     public Traits::IHashable,
-    public Traits::ISerializable,
-    public Traits::IJsonable
+    public Traits::ISerializable
 {
 public:
     //
     // Constructors
     //
-    Output(const EOutputFeatures features, Commitment&& commitment, OwnerData&& owner_data, const RangeProof::CPtr& pProof)
-        : m_features(features), m_commitment(std::move(commitment)), m_ownerData(std::move(owner_data)), m_pProof(pProof)
+    Output(Commitment&& commitment, OwnerData&& owner_data, const RangeProof::CPtr& pProof)
+        : m_commitment(std::move(commitment)), m_ownerData(std::move(owner_data)), m_pProof(pProof)
     {
         m_hash = Hashed(*this);
     }
@@ -52,14 +50,14 @@ public:
     //
     // Getters
     //
-    EOutputFeatures GetFeatures() const noexcept { return m_features; }
+    EOutputFeatures GetFeatures() const noexcept { return m_ownerData.GetFeatures(); }
     const Commitment& GetCommitment() const noexcept final { return m_commitment; }
     const OwnerData& GetOwnerData() const noexcept { return m_ownerData; }
     const RangeProof::CPtr& GetRangeProof() const noexcept { return m_pProof; }
 
-    bool IsPeggedIn() const noexcept { return (m_features & EOutputFeatures::PEGGED_IN) == EOutputFeatures::PEGGED_IN; }
+    bool IsPeggedIn() const noexcept { return (GetFeatures() & EOutputFeatures::PEGGED_IN) == EOutputFeatures::PEGGED_IN; }
 
-    OutputId ToIdentifier() const noexcept { return OutputId(m_features, m_commitment); }
+    OutputId ToIdentifier() const noexcept { return OutputId(GetFeatures(), m_commitment); }
 
     //
     // Serialization/Deserialization
@@ -67,7 +65,6 @@ public:
     Serializer& Serialize(Serializer& serializer) const noexcept final
     {
         return serializer
-            .Append<uint8_t>((uint8_t)m_features)
             .Append(m_commitment)
             .Append(m_ownerData)
             .Append(m_pProof);
@@ -75,31 +72,10 @@ public:
 
     static Output Deserialize(Deserializer& deserializer)
     {
-        const EOutputFeatures features = (EOutputFeatures)deserializer.Read<uint8_t>();
         Commitment commitment = Commitment::Deserialize(deserializer);
         OwnerData owner_data = OwnerData::Deserialize(deserializer);
         RangeProof::CPtr pProof = std::make_shared<const RangeProof>(RangeProof::Deserialize(deserializer));
-        return Output(features, std::move(commitment), std::move(owner_data), pProof);
-    }
-
-    json ToJSON() const noexcept final
-    {
-        return json({
-            {"features", OutputFeatures::ToString(m_features)},
-            {"commit", m_commitment},
-            {"owner_data", m_ownerData},
-            {"proof", m_pProof}
-        });
-    }
-
-    static Output FromJSON(const Json& json)
-    {
-        return Output(
-            OutputFeatures::FromString(json.GetRequired<std::string>("features")),
-            json.GetRequired<Commitment>("commit"),
-            json.GetRequired<OwnerData>("owner_data"),
-            std::make_shared<const RangeProof>(json.GetRequired<RangeProof>("proof"))
-        );
+        return Output(std::move(commitment), std::move(owner_data), pProof);
     }
 
     //
@@ -108,9 +84,6 @@ public:
     mw::Hash GetHash() const noexcept final { return m_hash; }
 
 private:
-    // Options for an output's structure or use
-    EOutputFeatures m_features; // TODO: This should probably be part of the OwnerData. See: https://github.com/ltc-mweb/libmw/issues/7#issuecomment-716549586
-
     // The homomorphic commitment representing the output amount
     Commitment m_commitment;
 
