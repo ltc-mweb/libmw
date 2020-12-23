@@ -33,19 +33,6 @@ TEST_CASE("Tx Transaction")
     }
 
     //
-    // JSON
-    //
-    {
-        Json json(tx->ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "body", "kernel_offset", "owner_offset" }));
-        REQUIRE(BlindingFactor::FromHex(json.GetRequired<std::string>("kernel_offset")) == tx->GetKernelOffset());
-        REQUIRE(BlindingFactor::FromHex(json.GetRequired<std::string>("owner_offset")) == tx->GetOwnerOffset());
-        REQUIRE(json.GetRequired<TxBody>("body") == tx->GetBody());
-
-        REQUIRE(*tx == mw::Transaction::FromJSON(json));
-    }
-
-    //
     // Getters
     //
     {

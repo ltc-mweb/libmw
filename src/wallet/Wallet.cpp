@@ -55,7 +55,8 @@ mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount)
     TxBody body(
         std::vector<Input>{},
         std::vector<Output>{ std::move(output) },
-        std::vector<Kernel>{ std::move(kernel) }
+        std::vector<Kernel>{ std::move(kernel) },
+        std::vector<SignedMessage>{} // TODO: Should we split the offset for peg-ins?
     );
     return std::make_shared<mw::Transaction>(
         std::move(kernel_offset),
@@ -125,7 +126,8 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
     TxBody body(
         inputs,
         std::vector<Output>{ std::move(change_output) },
-        std::vector<Kernel>{ std::move(kernel) }
+        std::vector<Kernel>{ std::move(kernel) },
+        std::vector<SignedMessage>{} // TODO: Need to split the offset for peg-outs
     );
     return std::make_shared<mw::Transaction>(
         std::move(kernel_offset),
@@ -214,7 +216,8 @@ mw::Transaction::CPtr Wallet::Send(
     TxBody body(
         std::move(inputs),
         std::vector<Output>{ std::move(receiver_output), std::move(change_output) },
-        std::vector<Kernel>{ std::move(kernel) }
+        std::vector<Kernel>{ std::move(kernel) },
+        std::vector<SignedMessage>{} // TODO: Should we split the offset for plain txs?
     );
     return std::make_shared<mw::Transaction>(
         std::move(kernel_offset),

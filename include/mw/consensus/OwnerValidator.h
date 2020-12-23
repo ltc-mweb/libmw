@@ -9,10 +9,10 @@
 class OwnerValidator
 {
 public:
-    // TODO: Include owner pubkeys & sigs (mainly for peg-outs)
     static void ValidateOwner(
         const std::vector<UTXO::CPtr>& inputs,
         const std::vector<Output>& outputs,
+        const std::vector<SignedMessage>& owner_sigs,
         const BlindingFactor& owner_offset)
     {
         std::vector<PublicKey> output_pubkeys;
@@ -27,6 +27,12 @@ public:
             inputs.cbegin(), inputs.cend(),
             std::back_inserter(input_pubkeys),
             [](const UTXO::CPtr& pUTXO) { return pUTXO->GetOwnerData().GetReceiverPubKey(); }
+        );
+
+        std::transform(
+            owner_sigs.cbegin(), owner_sigs.cend(),
+            std::back_inserter(input_pubkeys),
+            [](const SignedMessage& owner_sig) { return owner_sig.public_key; }
         );
 
         input_pubkeys.push_back(Crypto::CalculatePublicKey(owner_offset));

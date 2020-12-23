@@ -14,6 +14,8 @@ class OwnerData :
 {
 public:
     OwnerData() = default;
+    OwnerData(const OwnerData&) = default;
+    OwnerData(OwnerData&&) = default;
     OwnerData(
         PublicKey&& senderPubKey,
         PublicKey&& receiverPubKey,
@@ -31,6 +33,7 @@ public:
     // Operators
     //
     OwnerData& operator=(const OwnerData& rhs) = default;
+    OwnerData& operator=(OwnerData&& rhs) noexcept = default;
     bool operator==(const OwnerData& rhs) const noexcept
     {
         if (&rhs == this) {

@@ -123,7 +123,7 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
 
 		if (signatures.size() >= KERNEL_BATCH_SIZE) {
 			if (!Schnorr::BatchVerify(signatures)) {
-				ThrowValidation(EConsensusError::KERNEL_SIG);
+				ThrowValidation(EConsensusError::INVALID_SIG);
 			}
 
 			signatures.clear();
@@ -132,7 +132,7 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
 
 	if (!signatures.empty()) {
 		if (!Schnorr::BatchVerify(signatures)) {
-			ThrowValidation(EConsensusError::KERNEL_SIG);
+			ThrowValidation(EConsensusError::INVALID_SIG);
 		}
 	}
 

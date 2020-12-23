@@ -74,8 +74,9 @@ public:
 
         Tx Build() const
         {
+            // TODO: Support owner sigs
             return Tx(
-                std::make_shared<mw::Transaction>(kernel_offset, owner_offset, TxBody(inputs, outputs, kernels))
+                std::make_shared<mw::Transaction>(kernel_offset, owner_offset, TxBody(inputs, outputs, kernels, {}))
             );
         }
     };

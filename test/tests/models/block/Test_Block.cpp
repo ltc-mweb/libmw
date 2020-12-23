@@ -44,7 +44,6 @@ TEST_CASE("Block")
     REQUIRE(*block.GetHeader() == *block2.GetHeader());
     REQUIRE(block.GetTxBody() == block2.GetTxBody());
 
-    block2 = mw::Block::FromJSON(block.ToJSON());
     REQUIRE(*block.GetHeader() == *block2.GetHeader());
     REQUIRE(block.GetTxBody() == block2.GetTxBody());
 

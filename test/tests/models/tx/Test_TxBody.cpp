@@ -23,25 +23,13 @@ TEST_CASE("Tx Body")
         std::vector<uint8_t> serialized = txBody.Serialized();
 
         Deserializer deserializer(serialized);
-        REQUIRE(deserializer.Read<uint64_t>() == txBody.GetInputs().size());
-        REQUIRE(deserializer.Read<uint64_t>() == txBody.GetOutputs().size());
-        REQUIRE(deserializer.Read<uint64_t>() == txBody.GetKernels().size());
+        REQUIRE(deserializer.Read<uint32_t>() == txBody.GetInputs().size());
+        REQUIRE(deserializer.Read<uint32_t>() == txBody.GetOutputs().size());
+        REQUIRE(deserializer.Read<uint32_t>() == txBody.GetKernels().size());
+        REQUIRE(deserializer.Read<uint32_t>() == txBody.GetOwnerSigs().size());
 
         Deserializer deserializer2(serialized);
         REQUIRE(txBody == TxBody::Deserialize(deserializer2));
-    }
-
-    //
-    // JSON
-    //
-    {
-        Json json(txBody.ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "inputs", "kernels", "outputs" }));
-        REQUIRE(json.GetRequiredVec<Input>("inputs") == txBody.GetInputs());
-        REQUIRE(json.GetRequiredVec<Output>("outputs") == txBody.GetOutputs());
-        REQUIRE(json.GetRequiredVec<Kernel>("kernels") == txBody.GetKernels());
-
-        REQUIRE(txBody == TxBody::FromJSON(json));
     }
 
     //

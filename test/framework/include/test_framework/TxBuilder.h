@@ -13,8 +13,9 @@ TEST_NAMESPACE
 // To make the transaction valid, TxBuilder keeps track of all blinding factors used,
 // and adjusts the tx offset to make a valid transaction.
 //
-struct TxBuilder
+class TxBuilder
 {
+public:
     TxBuilder();
 
     TxBuilder& AddInput(
@@ -38,9 +39,9 @@ struct TxBuilder
         const EOutputFeatures features
     );
 
-    TxBuilder& AddPlainKernel(const uint64_t fee);
-    TxBuilder& AddPeginKernel(const uint64_t amount);
-    TxBuilder& AddPegoutKernel(const uint64_t amount, const uint64_t fee);
+    TxBuilder& AddPlainKernel(const uint64_t fee, const bool add_owner_sig = false);
+    TxBuilder& AddPeginKernel(const uint64_t amount, const bool add_owner_sig = false);
+    TxBuilder& AddPegoutKernel(const uint64_t amount, const uint64_t fee, const bool add_owner_sig = false);
 
     mw::Transaction::CPtr Build();
 
@@ -54,6 +55,7 @@ private:
     std::vector<Input> m_inputs;
     std::vector<Output> m_outputs;
     std::vector<Kernel> m_kernels;
+    std::vector<SignedMessage> m_ownerSigs;
 };
 
 END_NAMESPACE

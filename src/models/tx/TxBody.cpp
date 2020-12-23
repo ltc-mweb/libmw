@@ -1,4 +1,7 @@
 #include <mw/models/tx/TxBody.h>
+#include <mw/exceptions/ValidationException.h>
+
+#include <unordered_set>
 
 std::vector<Kernel> TxBody::GetPegInKernels() const noexcept
 {
@@ -55,24 +58,26 @@ uint64_t TxBody::GetTotalFee() const noexcept
 Serializer& TxBody::Serialize(Serializer& serializer) const noexcept
 {
     serializer
-        .Append<uint64_t>(m_inputs.size())
-        .Append<uint64_t>(m_outputs.size())
-        .Append<uint64_t>(m_kernels.size());
+        .Append<uint32_t>((uint32_t)m_inputs.size())
+        .Append<uint32_t>((uint32_t)m_outputs.size())
+        .Append<uint32_t>((uint32_t)m_kernels.size())
+        .Append<uint32_t>((uint32_t)m_ownerSigs.size());
 
     std::for_each(
-        m_inputs.cbegin(),
-        m_inputs.cend(),
+        m_inputs.cbegin(), m_inputs.cend(),
         [&serializer](const auto& input) { input.Serialize(serializer); }
     );
     std::for_each(
-        m_outputs.cbegin(),
-        m_outputs.cend(),
+        m_outputs.cbegin(), m_outputs.cend(),
         [&serializer](const auto& output) { output.Serialize(serializer); }
     );
     std::for_each(
-        m_kernels.cbegin(),
-        m_kernels.cend(),
+        m_kernels.cbegin(), m_kernels.cend(),
         [&serializer](const auto& kernel) { kernel.Serialize(serializer); }
+    );
+    std::for_each(
+        m_ownerSigs.cbegin(), m_ownerSigs.cend(),
+        [&serializer](const auto& owner_sig) { owner_sig.Serialize(serializer); }
     );
 
     return serializer;
@@ -80,50 +85,40 @@ Serializer& TxBody::Serialize(Serializer& serializer) const noexcept
 
 TxBody TxBody::Deserialize(Deserializer& deserializer)
 {
-    const uint64_t numInputs = deserializer.Read<uint64_t>();
-    const uint64_t numOutputs = deserializer.Read<uint64_t>();
-    const uint64_t numKernels = deserializer.Read<uint64_t>();
+    const uint32_t numInputs = deserializer.Read<uint32_t>();
+    const uint32_t numOutputs = deserializer.Read<uint32_t>();
+    const uint32_t numKernels = deserializer.Read<uint32_t>();
+    const uint32_t numOwnerSigs = deserializer.Read<uint32_t>();
 
     // Deserialize inputs
     std::vector<Input> inputs;
     inputs.reserve(numInputs);
-    for (uint64_t i = 0; i < numInputs; i++) {
+    for (uint32_t i = 0; i < numInputs; i++) {
         inputs.emplace_back(Input::Deserialize(deserializer));
     }
 
     // Deserialize outputs
     std::vector<Output> outputs;
     outputs.reserve(numOutputs);
-    for (uint64_t i = 0; i < numOutputs; i++) {
+    for (uint32_t i = 0; i < numOutputs; i++) {
         outputs.emplace_back(Output::Deserialize(deserializer));
     }
 
     // Deserialize kernels
     std::vector<Kernel> kernels;
     kernels.reserve(numKernels);
-    for (uint64_t i = 0; i < numKernels; i++) {
+    for (uint32_t i = 0; i < numKernels; i++) {
         kernels.emplace_back(Kernel::Deserialize(deserializer));
     }
 
-    return TxBody(std::move(inputs), std::move(outputs), std::move(kernels));
-}
+    // Deserialize owner sigs
+    std::vector<SignedMessage> owner_sigs;
+    owner_sigs.reserve(numOwnerSigs);
+    for (uint32_t i = 0; i < numOwnerSigs; i++) {
+        owner_sigs.emplace_back(SignedMessage::Deserialize(deserializer));
+    }
 
-json TxBody::ToJSON() const noexcept
-{
-    return json({
-        {"inputs", m_inputs},
-        {"outputs", m_outputs},
-        {"kernels", m_kernels}
-    });
-}
-
-TxBody TxBody::FromJSON(const Json& json)
-{
-    return TxBody{
-        json.GetRequiredVec<Input>("inputs"),
-        json.GetRequiredVec<Output>("outputs"),
-        json.GetRequiredVec<Kernel>("kernels")
-    };
+    return TxBody(std::move(inputs), std::move(outputs), std::move(kernels), std::move(owner_sigs));
 }
 
 void TxBody::Validate() const
@@ -131,15 +126,40 @@ void TxBody::Validate() const
     // TODO: Validate Weight
     // TODO: Verify Sorted
 
-    CutThrough::VerifyCutThrough(m_inputs, m_outputs);
+    // Verify no duplicate inputs
+    std::unordered_set<Commitment> input_commits;
+    std::transform(
+        m_inputs.cbegin(), m_inputs.cend(),
+        std::inserter(input_commits, input_commits.end()),
+        [](const Input& input) { return input.GetCommitment(); }
+    );
 
+    if (input_commits.size() != m_inputs.size()) {
+        ThrowValidation(EConsensusError::DUPLICATE_COMMITS);
+    }
+
+    // Verify no duplicate outputs
+    std::unordered_set<Commitment> output_commits;
+    std::transform(
+        m_outputs.cbegin(), m_outputs.cend(),
+        std::inserter(output_commits, output_commits.end()),
+        [](const Output& output) { return output.GetCommitment(); }
+    );
+
+    if (output_commits.size() != m_outputs.size()) {
+        ThrowValidation(EConsensusError::DUPLICATE_COMMITS);
+    }
+
+    //
+    // Verify all signatures
+    //
     std::vector<SignedMessage> signatures;
     std::transform(
         m_kernels.cbegin(), m_kernels.cend(),
         std::back_inserter(signatures),
         [](const Kernel& kernel) {
             PublicKey public_key = Crypto::ToPublicKey(kernel.GetCommitment());
-            return SignedMessage{ kernel.GetSignatureMessage(), std::move(public_key), kernel.GetSignature() };
+            return SignedMessage{ kernel.GetSignatureMessage(), public_key, kernel.GetSignature() };
         }
     );
 
@@ -147,8 +167,8 @@ void TxBody::Validate() const
         m_inputs.cbegin(), m_inputs.cend(),
         std::back_inserter(signatures),
         [](const Input& input) {
-            PublicKey public_key = Crypto::ToPublicKey(input.GetCommitment());
-            return SignedMessage{ InputMessage(), std::move(public_key), input.GetSignature() };
+            PublicKey public_key = Crypto::ToPublicKey(input.GetCommitment()); // TODO: This should be signed by input.GetReceiverPubKey
+            return SignedMessage{ InputMessage(), public_key, input.GetSignature() };
         }
     );
 
@@ -158,7 +178,11 @@ void TxBody::Validate() const
         [](const Output& output) { return output.GetOwnerData().GetSignedMsg(); }
     );
 
-    Schnorr::BatchVerify(signatures);
+    signatures.insert(signatures.end(), m_ownerSigs.begin(), m_ownerSigs.end());
+
+    if (!Schnorr::BatchVerify(signatures)) {
+        ThrowValidation(EConsensusError::INVALID_SIG);
+    }
 
     //
     // Verify RangeProofs

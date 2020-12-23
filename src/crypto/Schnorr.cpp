@@ -61,7 +61,7 @@ bool Schnorr::BatchVerify(const std::vector<SignedMessage>& signatures)
         signatures.cbegin(), signatures.cend(),
         std::back_inserter(parsedPubKeys),
         [](const SignedMessage& signed_message) -> secp256k1_pubkey {
-            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signed_message.public_key);
+            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signed_message.GetPublicKey());
         }
     );
     std::vector<secp256k1_pubkey*> pubKeyPtrs = VectorUtil::ToPointerVec(parsedPubKeys);
@@ -72,7 +72,7 @@ bool Schnorr::BatchVerify(const std::vector<SignedMessage>& signatures)
         signatures.cbegin(), signatures.cend(),
         std::back_inserter(parsedSignatures),
         [](const SignedMessage& signed_message) -> secp256k1_schnorrsig {
-            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signed_message.signature);
+            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signed_message.GetSignature());
         }
     );
     std::vector<secp256k1_schnorrsig*> signaturePtrs = VectorUtil::ToPointerVec(parsedSignatures);
@@ -82,7 +82,7 @@ bool Schnorr::BatchVerify(const std::vector<SignedMessage>& signatures)
     std::transform(
         signatures.cbegin(), signatures.cend(),
         std::back_inserter(messageData),
-        [](const SignedMessage& signed_message) { return signed_message.message_hash.data(); }
+        [](const SignedMessage& signed_message) { return signed_message.GetMsgHash().data(); }
     );
 
     secp256k1_scratch_space* pScratchSpace = secp256k1_scratch_space_create(

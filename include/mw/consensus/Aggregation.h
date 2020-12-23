@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mw/models/tx/Transaction.h>
-#include <mw/consensus/CutThrough.h>
 #include <cassert>
 
 static struct
@@ -11,6 +10,15 @@ static struct
         return a.GetHash() < b.GetHash();
     }
 } SortByHash;
+
+static struct
+{
+    template<typename T>
+    bool operator()(const T& a, const T& b) const
+    {
+        return a.GetCommitment() < b.GetCommitment();
+    }
+} SortByCommitment;
 
 class Aggregation
 {
@@ -33,20 +41,33 @@ public:
         std::vector<Kernel> kernels;
         std::vector<BlindingFactor> kernel_offsets;
         std::vector<BlindingFactor> owner_offsets;
+        std::vector<SignedMessage> owner_sigs;
 
-        // collect all the inputs, outputs and kernels from the txs
+        // collect all the inputs, outputs, kernels, and owner sigs from the txs
         for (const mw::Transaction::CPtr& pTransaction : transactions) {
-            for (const Input& input : pTransaction->GetInputs()) {
-                inputs.push_back(input);
-            }
+            inputs.insert(
+                inputs.end(),
+                pTransaction->GetInputs().begin(),
+                pTransaction->GetInputs().end()
+            );
 
-            for (const Output& output : pTransaction->GetOutputs()) {
-                outputs.push_back(output);
-            }
+            outputs.insert(
+                outputs.end(),
+                pTransaction->GetOutputs().begin(),
+                pTransaction->GetOutputs().end()
+            );
 
-            for (const Kernel& kernel : pTransaction->GetKernels()) {
-                kernels.push_back(kernel);
-            }
+            kernels.insert(
+                kernels.end(),
+                pTransaction->GetKernels().begin(),
+                pTransaction->GetKernels().end()
+            );
+
+            owner_sigs.insert(
+                owner_sigs.end(),
+                pTransaction->GetOwnerSigs().begin(),
+                pTransaction->GetOwnerSigs().end()
+            );
 
             kernel_offsets.push_back(pTransaction->GetKernelOffset());
             owner_offsets.push_back(pTransaction->GetOwnerOffset());
@@ -54,12 +75,13 @@ public:
 
         // Perform cut-through
         // CutThrough::PerformCutThrough(inputs, outputs);
-        // TODO: Prevent spending output that's created in the same transaction
+        // TODO: Prevent spending output that's created in the same transaction?
 
-        // Sort the kernels.
+        // Sort the components
         std::sort(kernels.begin(), kernels.end(), SortByHash);
-        std::sort(inputs.begin(), inputs.end(), SortByHash);
-        std::sort(outputs.begin(), outputs.end(), SortByHash);
+        std::sort(inputs.begin(), inputs.end(), SortByCommitment);
+        std::sort(outputs.begin(), outputs.end(), SortByCommitment);
+        std::sort(owner_sigs.begin(), owner_sigs.end(), SortByHash);
 
         // Sum the offsets up to give us an aggregate offsets for the transaction.
         BlindingFactor kernel_offset = Crypto::AddBlindingFactors(kernel_offsets);
@@ -73,7 +95,7 @@ public:
         return std::make_shared<mw::Transaction>(
             std::move(kernel_offset),
             std::move(owner_offset),
-            TxBody{ std::move(inputs), std::move(outputs), std::move(kernels) }
+            TxBody{ std::move(inputs), std::move(outputs), std::move(kernels), std::move(owner_sigs) }
         );
     }
 };

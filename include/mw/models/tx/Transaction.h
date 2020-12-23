@@ -26,8 +26,7 @@ MW_NAMESPACE
 class Transaction :
     public Traits::IPrintable,
     public Traits::ISerializable,
-    public Traits::IHashable,
-    public Traits::IJsonable
+    public Traits::IHashable
 {
 public:
     using CPtr = std::shared_ptr<const Transaction>;
@@ -69,6 +68,7 @@ public:
     const std::vector<Input>& GetInputs() const noexcept { return m_body.GetInputs(); }
     const std::vector<Output>& GetOutputs() const noexcept { return m_body.GetOutputs(); }
     const std::vector<Kernel>& GetKernels() const noexcept { return m_body.GetKernels(); }
+    const std::vector<SignedMessage>& GetOwnerSigs() const noexcept { return m_body.GetOwnerSigs(); }
     uint64_t GetTotalFee() const noexcept { return m_body.GetTotalFee(); }
 
     std::vector<Kernel> GetPegInKernels() const noexcept { return m_body.GetPegInKernels(); }
@@ -95,29 +95,13 @@ public:
         return Transaction(std::move(kernel_offset), std::move(owner_offset), std::move(body));
     }
 
-    json ToJSON() const noexcept final
-    {
-        return json({
-            {"kernel_offset", m_kernelOffset.ToHex()},
-            {"owner_offset", m_ownerOffset.ToHex()},
-            {"body", m_body.ToJSON()}
-        });
-    }
-
-    static Transaction FromJSON(const Json& json)
-    {
-        return Transaction(
-            BlindingFactor::FromHex(json.GetRequired<std::string>("kernel_offset")),
-            BlindingFactor::FromHex(json.GetRequired<std::string>("owner_offset")),
-            json.GetRequired<TxBody>("body")
-        );
-    }
-
     //
     // Traits
     //
     std::string Format() const final { return GetHash().Format(); }
     mw::Hash GetHash() const noexcept final { return m_hash; }
+
+    void Validate() const;
 
 private:
     // The kernel "offset" k2 excess is k1G after splitting the key k = k1 + k2.

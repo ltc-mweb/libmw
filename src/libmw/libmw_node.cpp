@@ -94,8 +94,7 @@ MWEXPORT void CheckTransaction(const libmw::TxRef& transaction)
 {
     assert(transaction.pTransaction != nullptr);
 
-    transaction.pTransaction->GetBody().Validate();
-    BlockSumValidator::ValidateForTx(*transaction.pTransaction);
+    transaction.pTransaction->Validate();
     // TODO: Validate owner offsets
 }
 

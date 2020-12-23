@@ -9,7 +9,6 @@
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Printable.h>
-#include <mw/traits/Jsonable.h>
 #include <algorithm>
 
 MW_NAMESPACE
@@ -17,8 +16,7 @@ MW_NAMESPACE
 class Block final :
     public Traits::IPrintable,
     public Traits::ISerializable,
-    public Traits::IHashable,
-    public Traits::IJsonable
+    public Traits::IHashable
 {
 public:
     using Ptr = std::shared_ptr<Block>;
@@ -74,23 +72,6 @@ public:
         mw::Header::CPtr pHeader = std::make_shared<mw::Header>(mw::Header::Deserialize(deserializer));
         TxBody body = TxBody::Deserialize(deserializer);
         return Block{ pHeader, std::move(body) };
-    }
-
-    json ToJSON() const noexcept final
-    {
-        assert(m_pHeader != nullptr);
-        return json({
-            { "header", m_pHeader->ToJSON() },
-            { "body", m_body }
-        });
-    }
-
-    static Block FromJSON(const Json& json)
-    {
-        return Block{
-            std::make_shared<mw::Header>(json.GetRequired<mw::Header>("header")),
-            json.GetRequired<TxBody>("body")
-        };
     }
 
     //

@@ -8,11 +8,11 @@
 enum class EConsensusError
 {
     HASH_MISMATCH,
-    CUT_THROUGH,
+    DUPLICATE_COMMITS,
     BLOCK_WEIGHT,
     BLOCK_SUMS,
     OWNER_SUMS,
-    KERNEL_SIG,
+    INVALID_SIG,
     BULLETPROOF,
     PEGIN_MISMATCH,
     PEGOUT_MISMATCH,
@@ -39,16 +39,16 @@ private:
     {
         switch (type)
         {
-            case EConsensusError::CUT_THROUGH:
-                return "CUT_THROUGH";
+            case EConsensusError::DUPLICATE_COMMITS:
+                return "DUPLICATE_COMMITS";
             case EConsensusError::BLOCK_WEIGHT:
                 return "BLOCK_WEIGHT";
             case EConsensusError::BLOCK_SUMS:
                 return "BLOCK_SUMS";
             case EConsensusError::OWNER_SUMS:
                 return "OWNER_SUMS";
-            case EConsensusError::KERNEL_SIG:
-                return "KERNEL_SIG";
+            case EConsensusError::INVALID_SIG:
+                return "INVALID_SIG";
             case EConsensusError::BULLETPROOF:
                 return "BULLETPROOF";
             case EConsensusError::PEGIN_MISMATCH:

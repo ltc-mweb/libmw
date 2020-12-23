@@ -64,7 +64,7 @@ TxBuilder& TxBuilder::AddOutput(
     return *this;
 }
 
-TxBuilder& TxBuilder::AddPlainKernel(const uint64_t fee)
+TxBuilder& TxBuilder::AddPlainKernel(const uint64_t fee, const bool add_owner_sig)
 {
     assert(!m_built);
 
@@ -80,12 +80,21 @@ TxBuilder& TxBuilder::AddPlainKernel(const uint64_t fee)
     Signature signature = Schnorr::Sign(kernel_excess.data(), Hashed(kernel_message));
     Kernel kernel = Kernel::CreatePlain(fee, std::move(excess_commitment), std::move(signature));
 
+    if (add_owner_sig) {
+        SecretKey offset = Random::CSPRNG<32>();
+        m_ownerOffset.Sub(offset);
+
+        mw::Hash msg_hash = kernel.GetHash();
+        Signature sig = Schnorr::Sign(offset.data(), msg_hash);
+        m_ownerSigs.push_back(SignedMessage{ msg_hash,  Keys::From(offset).PubKey(), sig });
+    }
+
     m_kernels.push_back(std::move(kernel));
     m_amount -= (int64_t)fee;
     return *this;
 }
 
-TxBuilder& TxBuilder::AddPeginKernel(const uint64_t amount)
+TxBuilder& TxBuilder::AddPeginKernel(const uint64_t amount, const bool add_owner_sig)
 {
     assert(!m_built);
 
@@ -101,12 +110,21 @@ TxBuilder& TxBuilder::AddPeginKernel(const uint64_t amount)
     Signature signature = Schnorr::Sign(kernel_excess.data(), Hashed(kernel_message));
     Kernel kernel = Kernel::CreatePegIn(amount, std::move(excess_commitment), std::move(signature));
 
+    if (add_owner_sig) {
+        SecretKey offset = Random::CSPRNG<32>();
+        m_ownerOffset.Sub(offset);
+
+        mw::Hash msg_hash = kernel.GetHash();
+        Signature sig = Schnorr::Sign(offset.data(), msg_hash);
+        m_ownerSigs.push_back(SignedMessage{ msg_hash,  Keys::From(offset).PubKey(), sig });
+    }
+
     m_kernels.push_back(std::move(kernel));
     m_amount += amount;
     return *this;
 }
 
-TxBuilder& TxBuilder::AddPegoutKernel(const uint64_t amount, const uint64_t fee)
+TxBuilder& TxBuilder::AddPegoutKernel(const uint64_t amount, const uint64_t fee, const bool add_owner_sig)
 {
     assert(!m_built);
 
@@ -131,6 +149,15 @@ TxBuilder& TxBuilder::AddPegoutKernel(const uint64_t amount, const uint64_t fee)
         std::move(signature)
     );
 
+    if (add_owner_sig) {
+        SecretKey offset = Random::CSPRNG<32>();
+        m_ownerOffset.Sub(offset);
+
+        mw::Hash msg_hash = kernel.GetHash();
+        Signature sig = Schnorr::Sign(offset.data(), msg_hash);
+        m_ownerSigs.push_back(SignedMessage{ msg_hash,  Keys::From(offset).PubKey(), sig });
+    }
+
     m_kernels.push_back(std::move(kernel));
     m_amount -= amount + fee;
     return *this;
@@ -145,7 +172,7 @@ mw::Transaction::CPtr TxBuilder::Build()
     return std::make_shared<mw::Transaction>(
         m_kernelOffset.Total(),
         m_ownerOffset.Total(),
-        TxBody{ m_inputs, m_outputs, m_kernels }
+        TxBody{ m_inputs, m_outputs, m_kernels, m_ownerSigs }
     );
 }
 
