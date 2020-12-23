@@ -2,6 +2,7 @@
 #include <mw/crypto/Blinds.h>
 #include <mw/crypto/Random.h>
 #include <mw/config/ChainParams.h>
+#include <mw/exceptions/InsufficientFundsException.h>
 
 #include "KernelFactory.h"
 #include "WalletUtil.h"
@@ -59,6 +60,10 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
     uint64_t inputs_amount = WalletUtil::TotalAmount(input_coins);
     const uint64_t fee = WalletUtil::CalculateFee(fee_base, input_coins.size(), 1, 2);
     const uint64_t change_amount = inputs_amount - (amount + fee);
+
+    if (amount + fee > inputs_amount) {
+        ThrowInsufficientFunds("The total exceeds the input amount when the transaction fee is included.");
+    }
 
     libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewHDKey();
     BlindingFactor blindingFactor(private_key.keyBytes);
@@ -119,6 +124,10 @@ PartialTx Wallet::Send(const uint64_t amount, const uint64_t fee_base)
     uint64_t inputs_amount = WalletUtil::TotalAmount(input_coins);
     const uint64_t fee = WalletUtil::CalculateFee(fee_base, input_coins.size(), 1, 2);
     const uint64_t change_amount = inputs_amount - (amount + fee);
+
+    if (amount + fee > inputs_amount) {
+        ThrowInsufficientFunds("The total exceeds the input amount when the transaction fee is included.");
+    }
 
     libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewHDKey();
     BlindingFactor change_blind(private_key.keyBytes);
@@ -194,7 +203,10 @@ mw::Transaction::CPtr Wallet::Receive(const PartialTx& partial_tx)
 libmw::MWEBAddress Wallet::GetAddress() const
 {
     SecretKey private_key(m_pWalletInterface->GetHDKey("m/1/0/100").keyBytes);
-    return Bech32Address("mweb", Crypto::CalculatePublicKey(private_key).vec()).ToString();
+    auto id = Crypto::CalculatePublicKey(private_key).vec();
+    std::vector<uint8_t> data = {0};
+    ConvertBits<8, 5, true>([&](uint8_t c) { data.push_back(c); }, id.begin(), id.end());
+    return Bech32Address("mweb", data).ToString();
 }
 
 libmw::WalletBalance Wallet::GetBalance() const
