@@ -168,7 +168,7 @@ std::vector<uint8_t> Crypto::AES256_Decrypt(
     return plaintext;
 }
 
-PublicKey Crypto::CalculatePublicKey(const SecretKey& privateKey)
+PublicKey Crypto::CalculatePublicKey(const BigInt<32>& privateKey)
 {
     return PublicKeys(SECP256K1_CONTEXT).CalculatePublicKey(privateKey);
 }

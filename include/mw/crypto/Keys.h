@@ -18,12 +18,12 @@ public:
 
     static Keys From(const SecretKey& secret_key)
     {
-        return Keys(Crypto::CalculatePublicKey(secret_key));
+        return Keys(Crypto::CalculatePublicKey(secret_key.GetBigInt()));
     }
 
     static Keys Random()
     {
-        return Keys(Crypto::CalculatePublicKey(Random::CSPRNG<32>()));
+        return Keys(Crypto::CalculatePublicKey(Random::CSPRNG<32>().GetBigInt()));
     }
 
     const PublicKey& PubKey() const noexcept { return m_pubkey; }

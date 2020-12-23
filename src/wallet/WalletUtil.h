@@ -67,8 +67,9 @@ public:
             [](const libmw::Coin& input_coin) {
                 assert(input_coin.key.has_value());
 
+                PublicKey pubkey = Crypto::CalculatePublicKey(input_coin.key.value());
                 Signature sig = Schnorr::Sign(input_coin.key.value().data(), InputMessage());
-                return Input(Commitment(input_coin.commitment), std::move(sig));
+                return Input(Commitment(input_coin.commitment), std::move(pubkey), std::move(sig));
             }
         );
 

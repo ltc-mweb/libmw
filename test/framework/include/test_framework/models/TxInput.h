@@ -33,7 +33,11 @@ public:
             blindingFactor,
             sender_privkey,
             amount,
-            Input{ Crypto::CommitBlinded(amount, blindingFactor), std::move(sig) }
+            Input{
+                Crypto::CommitBlinded(amount, blindingFactor),
+                Crypto::CalculatePublicKey(sender_privkey.GetBigInt()),
+                std::move(sig)
+            }
         );
     }
 

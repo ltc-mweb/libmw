@@ -11,15 +11,15 @@ TEST_CASE("AggSig Interaction")
 
     // Generate sender keypairs
     SecretKey secretKeySender = Random::CSPRNG<32>();
-    PublicKey publicKeySender = Crypto::CalculatePublicKey(secretKeySender);
+    PublicKey publicKeySender = Crypto::CalculatePublicKey(secretKeySender.GetBigInt());
     SecretKey secretNonceSender = MuSig::GenerateSecureNonce();
-    PublicKey publicNonceSender = Crypto::CalculatePublicKey(secretNonceSender);
+    PublicKey publicNonceSender = Crypto::CalculatePublicKey(secretNonceSender.GetBigInt());
 
     // Generate receiver keypairs
     SecretKey secretKeyReceiver = Random::CSPRNG<32>();
-    PublicKey publicKeyReceiver = Crypto::CalculatePublicKey(secretKeyReceiver);
+    PublicKey publicKeyReceiver = Crypto::CalculatePublicKey(secretKeyReceiver.GetBigInt());
     SecretKey secretNonceReceiver = MuSig::GenerateSecureNonce();
-    PublicKey publicNonceReceiver = Crypto::CalculatePublicKey(secretNonceReceiver);
+    PublicKey publicNonceReceiver = Crypto::CalculatePublicKey(secretNonceReceiver.GetBigInt());
 
     // Add pubKeys and pubNonces
     PublicKey sumPubKeys = Crypto::AddPublicKeys(
@@ -82,7 +82,7 @@ TEST_CASE("Coinbase Signature")
 {
     mw::Hash message = Random::CSPRNG<32>().GetBigInt();
     SecretKey secret_key = Random::CSPRNG<32>();
-    PublicKey public_key = Crypto::CalculatePublicKey(secret_key);
+    PublicKey public_key = Crypto::CalculatePublicKey(secret_key.GetBigInt());
     Signature signature = Schnorr::Sign(secret_key.data(), message);
 
     const bool valid = Schnorr::Verify(signature, public_key, message);

@@ -4,7 +4,6 @@
 #include "BlockStoreWrapper.h"
 #include "State.h"
 
-#include <mw/consensus/BlockSumValidator.h>
 #include <mw/models/block/Block.h>
 #include <mw/models/block/BlockUndo.h>
 #include <mw/models/tx/Transaction.h>

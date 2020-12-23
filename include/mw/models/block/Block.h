@@ -83,10 +83,7 @@ public:
     //
     // Context-free validation of the block.
     //
-    void Validate() const
-    {
-        m_body.Validate();
-    }
+    void Validate() const;
 
     bool WasValidated() const noexcept { return m_validated; }
     void MarkAsValidated() noexcept { m_validated = true; }

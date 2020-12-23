@@ -8,7 +8,7 @@
 #include <mw/common/Logger.h>
 #include <cstdlib>
 
-class BlockSumValidator
+class KernelSumValidator
 {
 public:
     // Makes sure the sums of all utxo commitments minus the total supply

@@ -12,7 +12,8 @@ class PublicKey :
 {
 public:
     PublicKey() = default;
-    PublicKey(BigInt<33>&& compressed) : m_compressed(std::move(compressed)) { }
+    PublicKey(BigInt<33>&& compressed) : m_compressed(std::move(compressed)) {}
+    PublicKey(const BigInt<33>& compressed) : m_compressed(compressed) {}
     PublicKey(const PublicKey&) = default;
     PublicKey(PublicKey&&) = default;
     virtual ~PublicKey() = default;
@@ -23,6 +24,7 @@ public:
     PublicKey& operator=(const PublicKey& rhs) = default;
     PublicKey& operator=(PublicKey&& other) noexcept = default;
     bool operator==(const PublicKey& rhs) const { return m_compressed == rhs.m_compressed; }
+    bool operator!=(const PublicKey& rhs) const { return m_compressed != rhs.m_compressed; }
 
     const BigInt<33>& GetBigInt() const { return m_compressed; }
     const std::vector<uint8_t>& vec() const { return m_compressed.vec(); }

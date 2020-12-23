@@ -1,7 +1,7 @@
 #include <mw/node/CoinsView.h>
 #include <mw/exceptions/ValidationException.h>
 #include <mw/consensus/Aggregation.h>
-#include <mw/consensus/BlockSumValidator.h>
+#include <mw/consensus/KernelSumValidator.h>
 #include <mw/common/Logger.h>
 
 MW_NAMESPACE
@@ -31,9 +31,7 @@ mw::BlockUndo::CPtr CoinsViewCache::ApplyBlock(const mw::Block::Ptr& pBlock)
     SetBestHeader(pBlock->GetHeader());
 
     BlindingFactor prev_offset = pPreviousHeader != nullptr ? pPreviousHeader->GetKernelOffset() : BlindingFactor();
-    BlockSumValidator::ValidateForBlock(pBlock->GetTxBody(), pBlock->GetKernelOffset(), prev_offset);
-
-    // TODO: Validate owner offset
+    KernelSumValidator::ValidateForBlock(pBlock->GetTxBody(), pBlock->GetKernelOffset(), prev_offset);
 
     std::for_each(
         pBlock->GetKernels().cbegin(), pBlock->GetKernels().cend(),

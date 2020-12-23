@@ -1,6 +1,6 @@
 #include <catch.hpp>
 
-#include <mw/consensus/BlockSumValidator.h>
+#include <mw/consensus/KernelSumValidator.h>
 
 #include <test_framework/TxBuilder.h>
 
@@ -15,7 +15,7 @@ TEST_CASE("Tx Transaction")
         .AddPlainKernel(fee).AddPeginKernel(pegInAmount)
         .Build();
 
-    BlockSumValidator::ValidateForTx(*tx);
+    KernelSumValidator::ValidateForTx(*tx);
 
     //
     // Serialization

@@ -3,39 +3,34 @@
 #include <mw/crypto/Keys.h>
 #include <mw/exceptions/ValidationException.h>
 #include <mw/models/crypto/BlindingFactor.h>
-#include <mw/models/tx/Output.h>
-#include <mw/models/tx/UTXO.h>
+#include <mw/models/tx/TxBody.h>
 
-class OwnerValidator
+class OwnerSumValidator
 {
 public:
-    static void ValidateOwner(
-        const std::vector<UTXO::CPtr>& inputs,
-        const std::vector<Output>& outputs,
-        const std::vector<SignedMessage>& owner_sigs,
-        const BlindingFactor& owner_offset)
+    static void Validate(const BlindingFactor& owner_offset, const TxBody& body)
     {
         std::vector<PublicKey> output_pubkeys;
         std::transform(
-            outputs.cbegin(), outputs.cend(),
+            body.GetOutputs().cbegin(), body.GetOutputs().cend(),
             std::back_inserter(output_pubkeys),
             [](const Output& output) { return output.GetOwnerData().GetSenderPubKey(); }
         );
 
         std::vector<PublicKey> input_pubkeys;
         std::transform(
-            inputs.cbegin(), inputs.cend(),
+            body.GetInputs().cbegin(), body.GetInputs().cend(),
             std::back_inserter(input_pubkeys),
-            [](const UTXO::CPtr& pUTXO) { return pUTXO->GetOwnerData().GetReceiverPubKey(); }
+            [](const Input& input) { return input.GetPubKey(); }
         );
 
         std::transform(
-            owner_sigs.cbegin(), owner_sigs.cend(),
+            body.GetOwnerSigs().cbegin(), body.GetOwnerSigs().cend(),
             std::back_inserter(input_pubkeys),
-            [](const SignedMessage& owner_sig) { return owner_sig.public_key; }
+            [](const SignedMessage& owner_sig) { return owner_sig.GetPublicKey(); }
         );
 
-        input_pubkeys.push_back(Crypto::CalculatePublicKey(owner_offset));
+        input_pubkeys.push_back(Crypto::CalculatePublicKey(owner_offset.GetBigInt()));
 
         PublicKey total_input_pubkey = Crypto::AddPublicKeys(input_pubkeys);
         PublicKey total_output_pubkey = Crypto::AddPublicKeys(output_pubkeys);

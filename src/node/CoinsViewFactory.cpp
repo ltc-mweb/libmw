@@ -4,7 +4,7 @@
 #include <mw/exceptions/ValidationException.h>
 #include <mw/crypto/Bulletproofs.h>
 #include <mw/crypto/Schnorr.h>
-#include <mw/consensus/BlockSumValidator.h>
+#include <mw/consensus/KernelSumValidator.h>
 #include <mw/db/CoinDB.h>
 
 static const size_t KERNEL_BATCH_SIZE = 512;
@@ -56,7 +56,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	);
 
 	// Block sum validation
-	BlockSumValidator::ValidateState(
+	KernelSumValidator::ValidateState(
 		utxos,
 		kernels,
 		pStateHeader->GetKernelOffset()

@@ -75,7 +75,7 @@ public:
     //
     // Calculates the 33 byte public key from the 32 byte private key using curve secp256k1.
     //
-    static PublicKey CalculatePublicKey(const SecretKey& privateKey);
+    static PublicKey CalculatePublicKey(const BigInt<32>& privateKey);
 
     //
     // Adds a number of public keys together.

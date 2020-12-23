@@ -150,6 +150,8 @@ void TxBody::Validate() const
         ThrowValidation(EConsensusError::DUPLICATE_COMMITS);
     }
 
+    // TODO: Verify kernel exists with matching hash for each owner sig
+
     //
     // Verify all signatures
     //
@@ -167,8 +169,7 @@ void TxBody::Validate() const
         m_inputs.cbegin(), m_inputs.cend(),
         std::back_inserter(signatures),
         [](const Input& input) {
-            PublicKey public_key = Crypto::ToPublicKey(input.GetCommitment()); // TODO: This should be signed by input.GetReceiverPubKey
-            return SignedMessage{ InputMessage(), public_key, input.GetSignature() };
+            return SignedMessage{ InputMessage(), input.GetPubKey(), input.GetSignature() };
         }
     );
 

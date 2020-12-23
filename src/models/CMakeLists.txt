@@ -1,6 +1,7 @@
 set(TARGET_NAME Models)
 
 file(GLOB SOURCE_CODE
+	"block/Block.cpp"
 	"tx/Transaction.cpp"
 	"tx/TxBody.cpp"
 )

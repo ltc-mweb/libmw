@@ -19,6 +19,11 @@ public:
         const mw::Hash& message
     );
 
+    static SignedMessage SignMessage(
+        const BigInt<32>& secretKey,
+        const mw::Hash& message
+    );
+
     static bool Verify(
         const Signature& signature,
         const PublicKey& sumPubKeys,

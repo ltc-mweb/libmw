@@ -1,6 +1,7 @@
 #include <mw/crypto/Schnorr.h>
 #include "Context.h"
 #include "ConversionUtil.h"
+#include "PublicKeys.h"
 
 #include <mw/common/Logger.h>
 #include <mw/exceptions/CryptoException.h>
@@ -32,6 +33,16 @@ Signature Schnorr::Sign(
     return ConversionUtil(SCHNORR_CONTEXT).ToSignature(signature);
 }
 
+SignedMessage Schnorr::SignMessage(
+    const BigInt<32>& secretKey,
+    const mw::Hash& message)
+{
+    PublicKey pubkey = PublicKeys(SCHNORR_CONTEXT).CalculatePublicKey(secretKey);
+    Signature sig = Sign(secretKey.data(), message);
+
+    return SignedMessage(message, pubkey, sig);
+}
+
 bool Schnorr::Verify(
     const Signature& signature,
     const PublicKey& sumPubKeys,
@@ -53,6 +64,7 @@ bool Schnorr::Verify(
     return verifyResult == 1;
 }
 
+// TODO: Cache validated SignedMessages
 bool Schnorr::BatchVerify(const std::vector<SignedMessage>& signatures)
 {
     // Parse pubkeys

@@ -25,8 +25,9 @@ TxBuilder& TxBuilder::AddInput(const uint64_t amount, const SecretKey& privkey, 
     // TODO: Do we still need to multiply by hash of pubkey?
     m_ownerOffset.Sub(privkey);
 
-    Signature sig = Schnorr::Sign(input_bf.data(), InputMessage());
-    m_inputs.push_back(Input{ Crypto::CommitBlinded(amount, input_bf), std::move(sig) });
+    PublicKey pubkey = Crypto::CalculatePublicKey(privkey.GetBigInt());
+    Signature sig = Schnorr::Sign(privkey.data(), InputMessage());
+    m_inputs.push_back(Input{ Crypto::CommitBlinded(amount, input_bf), std::move(pubkey), std::move(sig) });
     m_amount += (int64_t)amount;
     return *this;
 }

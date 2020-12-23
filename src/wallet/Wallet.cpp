@@ -15,7 +15,7 @@ Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
     assert(pWalletInterface != nullptr);
 
     SecretKey master_key(pWalletInterface->GetHDKey("m/1/0/0").keyBytes);
-    PublicKey master_pub(Crypto::CalculatePublicKey(master_key));
+    PublicKey master_pub(Crypto::CalculatePublicKey(master_key.GetBigInt()));
     return Wallet(pWalletInterface, std::move(master_key), std::move(master_pub));
 }
 
@@ -23,7 +23,7 @@ mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount)
 {
     libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewHDKey();
     BlindingFactor kernel_offset = Random::CSPRNG<32>();
-    BlindingFactor owner_offset = private_key.keyBytes; // TODO: Confirm this
+    BlindingFactor owner_offset = private_key.keyBytes;
 
     BlindingFactor blind = Random().CSPRNG<32>();
     Output output = CreateOutput(
@@ -56,7 +56,7 @@ mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount)
         std::vector<Input>{},
         std::vector<Output>{ std::move(output) },
         std::vector<Kernel>{ std::move(kernel) },
-        std::vector<SignedMessage>{} // TODO: Should we split the offset for peg-ins?
+        std::vector<SignedMessage>{} // TODO: Needed when pegging in to another user's address
     );
     return std::make_shared<mw::Transaction>(
         std::move(kernel_offset),
@@ -87,9 +87,6 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
         GetStealthAddress()
     );
 
-    std::vector<BlindingFactor> input_keys = WalletUtil::GetKeys(input_coins);
-    BlindingFactor owner_offset = Blinds().Sub(input_keys).Total();
-
     BlindingFactor kernel_offset = Random::CSPRNG<32>();
     std::vector<BlindingFactor> input_blinds = WalletUtil::GetBlindingFactors(input_coins);
     BlindingFactor kernel_blind = Blinds()
@@ -98,6 +95,11 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
         .Sub(kernel_offset)
         .Total();
     Kernel kernel = KernelFactory::CreatePegOutKernel(kernel_blind, amount, fee, address);
+
+    std::vector<BlindingFactor> input_keys = WalletUtil::GetKeys(input_coins);
+    BlindingFactor owner_key = Random().CSPRNG<32>();
+    SignedMessage signed_message = Schnorr::SignMessage(owner_key.GetBigInt(), kernel.GetHash()); // TODO: Only necessary when no change
+    BlindingFactor owner_offset = Blinds().Sub(input_keys).Add(owner_key).Total();
 
     std::vector<libmw::Coin> coins_to_update;
     std::transform(
@@ -127,7 +129,7 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
         inputs,
         std::vector<Output>{ std::move(change_output) },
         std::vector<Kernel>{ std::move(kernel) },
-        std::vector<SignedMessage>{} // TODO: Need to split the offset for peg-outs
+        std::vector<SignedMessage>{ std::move(signed_message) }
     );
     return std::make_shared<mw::Transaction>(
         std::move(kernel_offset),
@@ -217,7 +219,7 @@ mw::Transaction::CPtr Wallet::Send(
         std::move(inputs),
         std::vector<Output>{ std::move(receiver_output), std::move(change_output) },
         std::vector<Kernel>{ std::move(kernel) },
-        std::vector<SignedMessage>{} // TODO: Should we split the offset for plain txs?
+        std::vector<SignedMessage>{} // TODO: Split the offset when there's no change
     );
     return std::make_shared<mw::Transaction>(
         std::move(kernel_offset),
@@ -381,7 +383,7 @@ void Wallet::BlockDisconnected(const mw::Block::CPtr& pBlock)
 }
 
 // TODO: Implement
-void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
+void Wallet::ScanForOutputs(const libmw::IChain::Ptr&)
 {
     //std::vector<libmw::Coin> orig_coins = m_pWalletInterface->ListCoins();
     //std::cout << "Original coins size: " << orig_coins.size() << std::endl;
