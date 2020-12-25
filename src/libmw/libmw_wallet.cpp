@@ -38,10 +38,7 @@ MWEXPORT libmw::TxRef Send(
     const uint64_t fee_base,
     const libmw::MWEBAddress& address)
 {
-    std::vector<uint8_t> decoded = DecodeBase32(address.c_str()); // TODO: Determine encoding
-    Deserializer deserializer(decoded);
-    StealthAddress receiver_addr = StealthAddress::Deserialize(deserializer);
-    auto pTx = Wallet::Open(pWallet).Send(amount, fee_base, receiver_addr);
+    auto pTx = Wallet::Open(pWallet).Send(amount, fee_base, StealthAddress::Decode(address));
     return libmw::TxRef{ pTx };
 }
 

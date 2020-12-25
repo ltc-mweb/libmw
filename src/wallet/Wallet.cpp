@@ -207,9 +207,7 @@ StealthAddress Wallet::GetStealthAddress() const
 
 libmw::MWEBAddress Wallet::GetAddress() const
 {
-    StealthAddress stealth_address = GetStealthAddress();
-    std::vector<uint8_t> serialized = stealth_address.Serialized();
-    return EncodeBase32(serialized.data(), serialized.size()); // TODO: Determine encoding
+    return GetStealthAddress().Encode();
 }
 
 libmw::WalletBalance Wallet::GetBalance() const
