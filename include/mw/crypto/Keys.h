@@ -34,6 +34,12 @@ public:
         return *this;
     }
 
+    Keys& Add(const SecretKey& secret_key)
+    {
+        m_pubkey = Crypto::AddPublicKeys({ m_pubkey, Crypto::CalculatePublicKey(secret_key.GetBigInt()) });
+        return *this;
+    }
+
     Keys& Add(const std::vector<PublicKey>& public_keys)
     {
         std::vector<PublicKey> pubkeys = public_keys;

@@ -14,7 +14,7 @@ public:
         std::transform(
             body.GetOutputs().cbegin(), body.GetOutputs().cend(),
             std::back_inserter(output_pubkeys),
-            [](const Output& output) { return output.GetOwnerData().GetSenderPubKey(); }
+            [](const Output& output) { return output.GetSenderPubKey(); }
         );
 
         std::vector<PublicKey> input_pubkeys;
@@ -35,6 +35,7 @@ public:
         PublicKey total_input_pubkey = Crypto::AddPublicKeys(input_pubkeys);
         PublicKey total_output_pubkey = Crypto::AddPublicKeys(output_pubkeys);
 
+        // inputs.pubkeys + owner_sigs.pubkeys + (owner_offset*G) = outputs.pubkeys
         if (total_input_pubkey != total_output_pubkey) {
             ThrowValidation(EConsensusError::OWNER_SUMS);
         }

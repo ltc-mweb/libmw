@@ -8,9 +8,10 @@
 LIBMW_NAMESPACE
 WALLET_NAMESPACE
 
+// TODO: Support passing in receiver_addr
 MWEXPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(const libmw::IWallet::Ptr& pWallet, const uint64_t amount)
 {
-    mw::Transaction::CPtr pTx = Wallet::Open(pWallet).CreatePegInTx(amount);
+    mw::Transaction::CPtr pTx = Wallet::Open(pWallet).CreatePegInTx(amount, boost::none);
 
     assert(!pTx->GetKernels().empty());
     libmw::Commitment commit = pTx->GetKernels().front().GetCommitment().array();

@@ -18,7 +18,11 @@ public:
 
     static Wallet Open(const libmw::IWallet::Ptr& pWalletInterface);
     
-    mw::Transaction::CPtr CreatePegInTx(const uint64_t amount);
+    mw::Transaction::CPtr CreatePegInTx(
+        const uint64_t amount,
+        const boost::optional<StealthAddress>& receiver_addr
+    );
+
     mw::Transaction::CPtr CreatePegOutTx(
         const uint64_t amount,
         const uint64_t fee_base,
@@ -38,6 +42,10 @@ public:
     void BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canonical_block_hash);
     void BlockDisconnected(const mw::Block::CPtr& pBlock);
     void ScanForOutputs(const libmw::IChain::Ptr& pChain);
+
+    libmw::IWallet::Ptr GetInterface() const noexcept { return m_pWalletInterface; }
+
+    libmw::Coin RewindOutput(const Output& output) const;
 
 private:
     libmw::IWallet::Ptr m_pWalletInterface;

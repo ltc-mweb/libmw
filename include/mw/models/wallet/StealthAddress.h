@@ -17,6 +17,11 @@ public:
         return StealthAddress(Keys::Random().PubKey(), Keys::Random().PubKey());
     }
 
+    bool operator==(const StealthAddress& rhs) const noexcept
+    {
+        return m_scan == rhs.m_scan && m_spend == rhs.m_spend;
+    }
+
     const PublicKey& A() const noexcept { return m_scan; }
     const PublicKey& B() const noexcept { return m_spend; }
 

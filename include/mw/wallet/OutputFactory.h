@@ -15,8 +15,6 @@ public:
         const BlindingFactor& blinding_factor,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
-        const SecretKey& rewind_nonce, // TODO: Is this still needed?
-        const ProofMessage& proofMessage, // TODO: Is this still needed?
         const uint64_t amount)
     {
         Commitment commitment = Crypto::CommitBlinded(
@@ -26,12 +24,14 @@ public:
 
         OwnerData owner_data = CreateOwnerData(features, sender_privkey, receiver_addr, blinding_factor, amount);
 
+        // TODO: Determine how to use bulletproof rewind messages.
+        // Probably best to store sender_key so sender can identify all outputs they've sent?
         RangeProof::CPtr pRangeProof = Bulletproofs::Generate(
             amount,
             SecretKey(blinding_factor.vec()),
-            rewind_nonce,
-            rewind_nonce,
-            proofMessage,
+            Random().CSPRNG<32>(),
+            Random().CSPRNG<32>(),
+            ProofMessage{},
             owner_data.Serialized()
         );
 
@@ -51,6 +51,7 @@ public:
         PublicKey rA = Keys::From(receiver_addr.A()).Mul(r).PubKey();
         PublicKey receiver_pubkey = Keys::From(Hashed(rA)).Add(receiver_addr.B()).PubKey();
 
+        // TODO: Include version in plaintext
         std::vector<uint8_t> plaintext = Serializer()
             .Append(blinding_factor)
             .Append<uint64_t>(amount)

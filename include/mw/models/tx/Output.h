@@ -54,6 +54,11 @@ public:
     const Commitment& GetCommitment() const noexcept final { return m_commitment; }
     const OwnerData& GetOwnerData() const noexcept { return m_ownerData; }
     const RangeProof::CPtr& GetRangeProof() const noexcept { return m_pProof; }
+    const PublicKey& GetSenderPubKey() const noexcept { return m_ownerData.GetSenderPubKey(); }
+    const PublicKey& GetReceiverPubKey() const noexcept { return m_ownerData.GetReceiverPubKey(); }
+    const PublicKey& GetPubNonce() const noexcept { return m_ownerData.GetPubNonce(); }
+    const std::vector<uint8_t>& GetEncrypted() const noexcept { return m_ownerData.GetEncrypted(); }
+    const Signature& GetSignature() const noexcept { return m_ownerData.GetSignature(); }
 
     bool IsPeggedIn() const noexcept { return (GetFeatures() & EOutputFeatures::PEGGED_IN) == EOutputFeatures::PEGGED_IN; }
 

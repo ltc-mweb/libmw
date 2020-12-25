@@ -1,6 +1,7 @@
 set(TARGET_NAME Wallet)
 
 file(GLOB SOURCE_CODE
+	"PegIn.cpp"
 	"Wallet.cpp"
 )
 

@@ -19,7 +19,8 @@ public:
     secret_key_t(BigInt<NUM_BYTES>&& value) : m_value(std::move(value)) { }
     secret_key_t(const SecureVector& bytes) : m_value(BigInt<NUM_BYTES>(bytes.data())) { }
     secret_key_t(std::vector<uint8_t>&& bytes) : m_value(BigInt<NUM_BYTES>(std::move(bytes))) { }
-    secret_key_t(std::array<uint8_t, NUM_BYTES>& bytes) : m_value(BigInt<NUM_BYTES>(std::move(bytes))) { }
+    secret_key_t(const std::array<uint8_t, NUM_BYTES>& bytes) : m_value(BigInt<NUM_BYTES>(bytes)) {}
+    secret_key_t(std::array<uint8_t, NUM_BYTES>&& bytes) : m_value(BigInt<NUM_BYTES>(std::move(bytes))) { }
 
     //
     // Destructor
