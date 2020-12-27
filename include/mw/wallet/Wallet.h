@@ -44,6 +44,7 @@ public:
     void ScanForOutputs(const libmw::IChain::Ptr& pChain);
 
     libmw::IWallet::Ptr GetInterface() const noexcept { return m_pWalletInterface; }
+    SecretKey NewKey() const { return m_pWalletInterface->GenerateNewHDKey().keyBytes; }
 
     libmw::Coin RewindOutput(const Output& output) const;
 

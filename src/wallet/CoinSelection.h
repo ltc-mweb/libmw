@@ -1,11 +1,31 @@
 #pragma once
 
 #include <libmw/defs.h>
+#include <libmw/interfaces/wallet_interface.h>
 #include <mw/exceptions/InsufficientFundsException.h>
 
 class CoinSelection
 {
 public:
+    static std::vector<libmw::Coin> SelectCoins(
+        const libmw::IWallet::Ptr& pWallet,
+        const uint64_t amount,
+        const uint64_t fee_base)
+    {
+        std::vector<libmw::Coin> selected_coins = SelectCoins(
+            pWallet->ListCoins(),
+            amount,
+            fee_base
+        );
+
+        for (libmw::Coin& coin : selected_coins) {
+            coin.spent = true;
+            coin.spent_block.reset();
+        }
+
+        return selected_coins;
+    }
+
     static std::vector<libmw::Coin> SelectCoins(
         const std::vector<libmw::Coin>& coins,
         const uint64_t amount,

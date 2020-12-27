@@ -19,7 +19,7 @@ public:
 
     static Bech32Address FromString(const std::string& address)
     {
-        auto decoded = bech32::Decode(address);
+        auto decoded = bech32::Decode(address); // TODO: Validate checksum
 
         std::vector<uint8_t> addr;
         ConvertBits<5, 8, false>([&](uint8_t c) { addr.push_back(c); }, decoded.second.begin(), decoded.second.end());
