@@ -24,6 +24,21 @@
 * Signed owner messages must be in ascending order by their raw hashed value.
 ---
 
+#### PMMRs
+
+* After adding all kernels from a block to the end of the kernel MMR, the root must match the header's kernel root.
+* After adding all kernels from a block to the end of the kernel MMR, the size must match the header's kernel size.
+* After adding all outputs from a block to the end of the output MMR, the root must match the header's output root.
+* After adding all outputs from a block to the end of the output MMR, the size must match the header's output size.
+* After adding all rangeproofs from a block to the end of the rangeproof MMR, the root must match the header's rangeproof root.
+* After adding all rangeproofs from a block to the end of the rangeproof MMR, the size must match the header's output size.
+---
+
+#### UTXO LeafSet
+
+* TODO
+---
+
 #### Signatures
 
 * Each kernel must have a valid signature of the `signature_message` for the kernel's `commitment`.
