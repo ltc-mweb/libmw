@@ -5,6 +5,7 @@
 #include <mw/wallet/KernelFactory.h>
 #include <mw/wallet/OutputFactory.h>
 
+// TODO: Sort inputs, outputs, kernels, and owner_sigs
 mw::Transaction::CPtr PegIn::CreatePegInTx(const uint64_t amount, const StealthAddress& receiver_addr) const
 {
     // Create peg-in output.

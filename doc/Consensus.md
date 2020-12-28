@@ -26,8 +26,33 @@
 
 #### Signatures
 
+* Each kernel must have a valid signature of the `signature_message` for the kernel's `commitment`.
+  * TODO: Define`signature_message` serialization for each kernel type
+* Each input must have a valid signature of the message "MWEB" for the input's `commitment`.
+* Each output must have a valid signature of the `signature_message` for the output's `sender_pubkey`.
+  * `signature_message` is serialized as `[features, receiver_pubkey, pub_nonce, encrypted_data]`
+* Each signed owner message must be a valid signature of the hash of a kernel in the block.
+---
+
 #### Bulletproofs
 
-#### Block Sums
+* Each output must be coupled with a bulletproof that proves the commitment is to a value in the range `[0, 2^64)`.
+* Each bulletproof must commit to the `owner_data` using its `extra_commit` functionality.
+  * TODO: Define `owner_data` serialization
+---
+
+#### Kernel Sums
+
+* The sum of all output commitments in the UTXO set at a given block height must equal the sum of all kernel commitments plus the `total_kernel_offset*G` of the block.
+  * `sum(utxo.commitments) = sum(kernel.commitments) + (block.total_kernel_offset*G)`
+---
 
 #### Owner Sums
+
+* The sum of all receiver pubkeys for the inputs in a block, plus the sum of all owner pubkeys in the block, plus the `total_owner_offset*G` of the block must equal the sum of all output sender pubkeys in the block.
+  * `sum(input.receiver_pubkey) + sum(owner_pubkey) + (block.total_owner_offset*G) = sum(output.sender_pubkey)`
+---
+
+#### Block Weight
+
+TBD

@@ -150,7 +150,19 @@ void TxBody::Validate() const
         ThrowValidation(EConsensusError::DUPLICATE_COMMITS);
     }
 
-    // TODO: Verify kernel exists with matching hash for each owner sig
+    // Verify kernel exists with matching hash for each owner sig
+    std::unordered_set<mw::Hash> kernel_hashes;
+    std::transform(
+        m_kernels.cbegin(), m_kernels.cend(),
+        std::inserter(kernel_hashes, kernel_hashes.end()),
+        [](const Kernel& kernel) { return kernel.GetHash(); }
+    );
+
+    for (const auto& owner_sig : m_ownerSigs) {
+        if (kernel_hashes.find(owner_sig.GetMsgHash()) == kernel_hashes.end()) {
+            ThrowValidation(EConsensusError::KERNEL_MISSING);
+        }
+    }
 
     //
     // Verify all signatures

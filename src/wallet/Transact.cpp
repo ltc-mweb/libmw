@@ -8,6 +8,7 @@
 #include <mw/wallet/KernelFactory.h>
 #include <mw/wallet/OutputFactory.h>
 
+// TODO: Sort inputs, outputs, kernels, and owner_sigs
 mw::Transaction::CPtr Transact::CreateTx(
     const uint64_t amount,
     const uint64_t fee_base,

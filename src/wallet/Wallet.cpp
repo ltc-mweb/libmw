@@ -22,7 +22,6 @@ Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
     return Wallet(pWalletInterface, std::move(master_key), std::move(master_pub));
 }
 
-// TODO: Support passing in a stealth address to send to.
 mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount, const boost::optional<StealthAddress>& receiver_addr)
 {
     return PegIn(*this).CreatePegInTx(amount, receiver_addr.value_or(GetStealthAddress()));
