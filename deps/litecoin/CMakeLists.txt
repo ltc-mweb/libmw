@@ -33,7 +33,7 @@ file(GLOB SOURCE_CODE
 add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})
 
 if (WIN32)
-    target_link_libraries(${TARGET_NAME} PUBLIC Ws2_32)
+    target_link_libraries(${TARGET_NAME} PUBLIC ws2_32)
 endif()
 
 target_link_libraries(${TARGET_NAME} PUBLIC ${Boost_LIBRARIES} OpenSSL::SSL OpenSSL::Crypto)

@@ -16,4 +16,9 @@ add_library(MW::${TARGET_NAME} ALIAS ${TARGET_NAME})
 target_compile_definitions(${TARGET_NAME} PRIVATE MW_CRYPTO)
 
 add_dependencies(${TARGET_NAME} secp256k1-zkp fmt::fmt MW::Common MW::Traits)
+
+if (WIN32)
+    target_link_libraries(${TARGET_NAME} PUBLIC bcrypt)
+endif()
+
 target_link_libraries(${TARGET_NAME} PUBLIC secp256k1-zkp fmt::fmt MW::Common MW::Traits)

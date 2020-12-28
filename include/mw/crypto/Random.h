@@ -8,8 +8,8 @@
 #include <mw/exceptions/CryptoException.h>
 #include <support/allocators/secure.h>
 
-#if defined(_MSC_VER)
-#include <Windows.h>
+#if defined(_WIN32)
+#include <windows.h>
 #else
 #include <sys/mman.h>
 #endif

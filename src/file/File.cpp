@@ -2,7 +2,7 @@
 #include <mw/common/Logger.h>
 
 #if defined(_WIN32)
-#include <Windows.h>
+#include <windows.h>
 #else
 #include <unistd.h>
 #endif

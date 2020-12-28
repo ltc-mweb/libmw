@@ -10,7 +10,7 @@
 
 #include <boost/optional.hpp>
 
-#if defined(_MSC_VER)
+#if defined(_WIN32)
 //  Microsoft 
 #ifdef LIBMW
 #define MWEXPORT __declspec(dllexport)
