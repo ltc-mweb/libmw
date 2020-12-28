@@ -32,7 +32,7 @@ jobs:
           echo "::set-env name=CC::gcc-${{ matrix.version }}"
           echo "::set-env name=CXX::g++-${{ matrix.version }}"
       - name: Run vcpkg
-        uses: lukka/run-vcpkg@v4
+        uses: lukka/run-vcpkg@v6
         with:
           # Response file stored in source control, it provides the list of ports and triplet(s).
           vcpkgArguments: '--debug --overlay-triplets=${{ github.workspace }}/vcpkg/triplets --triplet ${{ matrix.vcpkg_triplet }} @${{ github.workspace }}/vcpkg/packages.txt'
@@ -42,7 +42,7 @@ jobs:
           # compute its hash and append this to the computed cache's key.
           appendedCacheKey: ${{ hashFiles('${{ github.workspace }}/vcpkg/packages.txt') }}
       - name: 'Run CMake'
-        uses: lukka/run-cmake@v2
+        uses: lukka/run-cmake@v3.2
         with:
           cmakeGenerator: ${{ matrix.cmake_generator }}
           cmakeBuildType: 'Release'
