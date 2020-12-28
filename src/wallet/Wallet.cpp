@@ -11,6 +11,7 @@
 #include "WalletUtil.h"
 #include "PegIn.h"
 #include "PegOut.h"
+#include "Transact.h"
 
 Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
 {
@@ -40,89 +41,7 @@ mw::Transaction::CPtr Wallet::Send(
     const uint64_t fee_base,
     const StealthAddress& receiver_address)
 {
-    std::vector<libmw::Coin> coins = m_pWalletInterface->ListCoins();
-
-    std::vector<libmw::Coin> input_coins = CoinSelection::SelectCoins(coins, amount, fee_base);
-    uint64_t inputs_amount = WalletUtil::TotalAmount(input_coins);
-    const uint64_t fee = WalletUtil::CalculateFee(fee_base, input_coins.size(), 1, 2);
-
-    // Create receiver's output
-    BlindingFactor receiver_blind = Random().CSPRNG<32>();
-    libmw::PrivateKey ephemeral_key = m_pWalletInterface->GenerateNewHDKey();
-    Output receiver_output = CreateOutput(
-        amount,
-        EOutputFeatures::DEFAULT_OUTPUT,
-        receiver_blind,
-        ephemeral_key,
-        receiver_address
-    );
-
-    // Create change output
-    const uint64_t change_amount = inputs_amount - (amount + fee);
-    BlindingFactor change_blind = Random().CSPRNG<32>();
-    libmw::PrivateKey change_key = m_pWalletInterface->GenerateNewHDKey();
-    Output change_output = CreateOutput(
-        change_amount,
-        EOutputFeatures::DEFAULT_OUTPUT,
-        change_blind,
-        change_key,
-        GetStealthAddress()
-    );
-
-    std::vector<BlindingFactor> input_blinds = WalletUtil::GetBlindingFactors(input_coins);
-    BlindingFactor kernel_offset = Random::CSPRNG<32>();
-    BlindingFactor kernel_blind = Blinds()
-        .Add(receiver_blind)
-        .Add(change_blind)
-        .Sub(input_blinds)
-        .Sub(kernel_offset)
-        .Total();
-
-    Kernel kernel = KernelFactory::CreatePlainKernel(kernel_blind, fee);
-
-    std::vector<Input> inputs = WalletUtil::SignInputs(input_coins);
-
-    std::vector<libmw::Coin> coins_to_update;
-    std::transform(
-        input_coins.cbegin(), input_coins.cend(),
-        std::back_inserter(coins_to_update),
-        [](libmw::Coin input_coin) {
-            input_coin.spent = true;
-            return input_coin;
-        }
-    );
-    libmw::Coin change_coin{
-        EOutputFeatures::DEFAULT_OUTPUT,
-        change_key.keyBytes,
-        change_blind.array(),
-        change_amount,
-        change_output.GetCommitment().array(),
-        boost::none,
-        false,
-        boost::none
-    };
-    coins_to_update.push_back(std::move(change_coin));
-
-    m_pWalletInterface->AddCoins(coins_to_update);
-
-    std::vector<BlindingFactor> input_keys = WalletUtil::GetKeys(input_coins);
-    BlindingFactor owner_offset = Blinds()
-        .Add(ephemeral_key.keyBytes)
-        .Add(change_key.keyBytes)
-        .Sub(input_keys)
-        .Total();
-
-    TxBody body(
-        std::move(inputs),
-        std::vector<Output>{ std::move(receiver_output), std::move(change_output) },
-        std::vector<Kernel>{ std::move(kernel) },
-        std::vector<SignedMessage>{} // TODO: Split the offset when there's no change
-    );
-    return std::make_shared<mw::Transaction>(
-        std::move(kernel_offset),
-        std::move(owner_offset),
-        std::move(body)
-    );
+    return Transact(*this).CreateTx(amount, fee_base, receiver_address);
 }
 
 StealthAddress Wallet::GetStealthAddress() const
@@ -134,11 +53,6 @@ StealthAddress Wallet::GetStealthAddress() const
         Keys::From(scan_secret).PubKey(),
         Keys::From(spend_secret).PubKey()
     );
-}
-
-libmw::MWEBAddress Wallet::GetAddress() const
-{
-    return GetStealthAddress().Encode();
 }
 
 libmw::WalletBalance Wallet::GetBalance() const
@@ -356,23 +270,6 @@ libmw::Coin Wallet::RewindOutput(const Output& output) const
     }
 
     throw std::runtime_error("Unable to rewind output");
-}
-
-Output Wallet::CreateOutput(
-    const uint64_t amount,
-    const EOutputFeatures features,
-    const BlindingFactor& blind,
-    const libmw::PrivateKey& sender_privkey,
-    const StealthAddress& address) const
-{
-    Commitment commitment = Crypto::CommitBlinded(amount, blind);
-    return OutputFactory::Create(
-        features,
-        blind,
-        SecretKey(sender_privkey.keyBytes),
-        address,
-        amount
-    );
 }
 
 SecretKey Wallet::RewindNonce(const Commitment& commitment) const

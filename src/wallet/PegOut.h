@@ -16,7 +16,7 @@ public:
     /// Creates a peg-out transaction.
     /// </summary>
     /// <param name="amount">The amount to peg-out.</param>
-    /// <param name="amount">The fee base rate.</param>
+    /// <param name="fee_base">The fee base rate.</param>
     /// <param name="address">The canonical LTC address to send to.</param>
     /// <returns>The non-null peg-out transaction that was created.</returns>
     /// <throws>When a failure occurs in one of the underlying libraries.</throws>

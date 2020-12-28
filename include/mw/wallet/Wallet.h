@@ -36,7 +36,6 @@ public:
     );
 
     StealthAddress GetStealthAddress() const;
-    libmw::MWEBAddress GetAddress() const;
     libmw::WalletBalance GetBalance() const;
 
     void BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canonical_block_hash);
@@ -52,14 +51,6 @@ private:
     libmw::IWallet::Ptr m_pWalletInterface;
     SecretKey m_masterKey;
     PublicKey m_masterPub;
-
-    Output CreateOutput(
-        const uint64_t amount,
-        const EOutputFeatures features,
-        const BlindingFactor& blind,
-        const libmw::PrivateKey& sender_privkey,
-        const StealthAddress& address
-    ) const;
 
     SecretKey RewindNonce(const Commitment& commitment) const;
     SecretKey SecretNonce(const Commitment& commitment) const;

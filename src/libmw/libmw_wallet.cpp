@@ -64,7 +64,7 @@ MWEXPORT void ScanForOutputs(const libmw::IWallet::Ptr& pWallet, const libmw::IC
 
 MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet)
 {
-    return Wallet::Open(pWallet).GetAddress();
+    return Wallet::Open(pWallet).GetStealthAddress().Encode();
 }
 
 MWEXPORT libmw::WalletBalance GetBalance(const libmw::IWallet::Ptr& pWallet)
