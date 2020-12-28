@@ -53,6 +53,12 @@
   * `sum(input.receiver_pubkey) + sum(owner_pubkey) + (block.total_owner_offset*G) = sum(output.sender_pubkey)`
 ---
 
+#### Peg-In/Peg-Out Maturity
+
+TBD
+
+---
+
 #### Block Weight
 
 TBD

@@ -3,23 +3,6 @@
 #include <mw/models/tx/Transaction.h>
 #include <cassert>
 
-static struct
-{
-    bool operator()(const Traits::IHashable& a, const Traits::IHashable& b) const
-    {
-        return a.GetHash() < b.GetHash();
-    }
-} SortByHash;
-
-static struct
-{
-    template<typename T>
-    bool operator()(const T& a, const T& b) const
-    {
-        return a.GetCommitment() < b.GetCommitment();
-    }
-} SortByCommitment;
-
 class Aggregation
 {
 public:
@@ -78,9 +61,9 @@ public:
         // TODO: Prevent spending output that's created in the same transaction?
 
         // Sort the components
-        std::sort(kernels.begin(), kernels.end(), SortByHash);
         std::sort(inputs.begin(), inputs.end(), SortByCommitment);
         std::sort(outputs.begin(), outputs.end(), SortByCommitment);
+        std::sort(kernels.begin(), kernels.end(), SortByHash);
         std::sort(owner_sigs.begin(), owner_sigs.end(), SortByHash);
 
         // Sum the offsets up to give us an aggregate offsets for the transaction.

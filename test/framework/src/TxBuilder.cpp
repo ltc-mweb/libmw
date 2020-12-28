@@ -169,6 +169,11 @@ mw::Transaction::CPtr TxBuilder::Build()
     assert(m_amount == 0);
     assert(!m_built);
 
+    std::sort(m_inputs.begin(), m_inputs.end(), SortByCommitment);
+    std::sort(m_outputs.begin(), m_outputs.end(), SortByCommitment);
+    std::sort(m_kernels.begin(), m_kernels.end(), SortByHash);
+    std::sort(m_ownerSigs.begin(), m_ownerSigs.end(), SortByHash);
+
     m_built = true;
     return std::make_shared<mw::Transaction>(
         m_kernelOffset.Total(),

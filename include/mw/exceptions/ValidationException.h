@@ -18,7 +18,8 @@ enum class EConsensusError
     PEGOUT_MISMATCH,
     MMR_MISMATCH,
 	UTXO_MISSING,
-    KERNEL_MISSING
+    KERNEL_MISSING,
+    NOT_SORTED
 };
 
 class ValidationException : public LTCException
@@ -62,6 +63,8 @@ private:
 				return "UTXO_MISSING";
             case EConsensusError::KERNEL_MISSING:
                 return "KERNEL_MISSING";
+            case EConsensusError::NOT_SORTED:
+                return "NOT_SORTED";
         }
 
         return "UNKNOWN";

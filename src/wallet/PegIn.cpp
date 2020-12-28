@@ -4,6 +4,7 @@
 #include <mw/wallet/Wallet.h>
 #include <mw/wallet/KernelFactory.h>
 #include <mw/wallet/OutputFactory.h>
+#include <mw/wallet/TxFactory.h>
 
 // TODO: Sort inputs, outputs, kernels, and owner_sigs
 mw::Transaction::CPtr PegIn::CreatePegInTx(const uint64_t amount, const StealthAddress& receiver_addr) const
@@ -48,14 +49,12 @@ mw::Transaction::CPtr PegIn::CreatePegInTx(const uint64_t amount, const StealthA
     }
 
     // Build the Transaction
-    return std::make_shared<mw::Transaction>(
-        std::move(kernel_offset),
-        std::move(owner_offset),
-        TxBody{
-            std::vector<Input>{},
-            std::vector<Output>{ std::move(output) },
-            std::vector<Kernel>{ std::move(kernel) },
-            std::vector<SignedMessage>{ std::move(owner_sig) }
-        }
+    return TxFactory::CreateTx(
+        kernel_offset,
+        owner_offset,
+        std::vector<Input>{},
+        std::vector<Output>{ std::move(output) },
+        std::vector<Kernel>{ std::move(kernel) },
+        std::vector<SignedMessage>{ std::move(owner_sig) }
     );
 }

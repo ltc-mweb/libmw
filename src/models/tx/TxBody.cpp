@@ -124,7 +124,15 @@ TxBody TxBody::Deserialize(Deserializer& deserializer)
 void TxBody::Validate() const
 {
     // TODO: Validate Weight
-    // TODO: Verify Sorted
+
+    // Verify inputs, outputs, kernels, and owner signatures are sorted
+    if (!std::is_sorted(m_inputs.cbegin(), m_inputs.cend(), SortByCommitment)
+        || !std::is_sorted(m_outputs.cbegin(), m_outputs.cend(), SortByCommitment)
+        || !std::is_sorted(m_kernels.cbegin(), m_kernels.cend(), SortByHash)
+        || !std::is_sorted(m_ownerSigs.cbegin(), m_ownerSigs.cend(), SortByHash))
+    {
+        ThrowValidation(EConsensusError::NOT_SORTED);
+    }
 
     // Verify no duplicate inputs
     std::unordered_set<Commitment> input_commits;
