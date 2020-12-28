@@ -31,6 +31,8 @@ jobs:
           brew install gcc cmake
           echo "::set-env name=CC::gcc-${{ matrix.version }}"
           echo "::set-env name=CXX::g++-${{ matrix.version }}"
+        env:
+            ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v6
         with:
