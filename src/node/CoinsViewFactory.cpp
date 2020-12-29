@@ -2,8 +2,9 @@
 
 #include <mw/mmr/backends/FileBackend.h>
 #include <mw/exceptions/ValidationException.h>
+#include <mw/crypto/Bulletproofs.h>
 #include <mw/crypto/Schnorr.h>
-#include <mw/consensus/BlockSumValidator.h>
+#include <mw/consensus/KernelSumValidator.h>
 #include <mw/db/CoinDB.h>
 
 static const size_t KERNEL_BATCH_SIZE = 512;
@@ -55,10 +56,10 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	);
 
 	// Block sum validation
-	BlockSumValidator::ValidateState(
+	KernelSumValidator::ValidateState(
 		utxos,
 		kernels,
-		pStateHeader->GetOffset()
+		pStateHeader->GetKernelOffset()
 	);
 
 	// Add UTXOs to database
@@ -114,14 +115,15 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
     }
 
 	// Verify kernel signatures
-	std::vector<std::tuple<Signature, Commitment, mw::Hash>> signatures;
+	std::vector<SignedMessage> signatures;
 	for (const Kernel& kernel : kernels)
 	{
-		signatures.push_back({ kernel.GetSignature(), kernel.GetCommitment(), kernel.GetSignatureMessage() });
+		PublicKey pubkey = Crypto::ToPublicKey(kernel.GetCommitment());
+		signatures.push_back({ kernel.GetSignatureMessage(), std::move(pubkey), kernel.GetSignature() });
 
 		if (signatures.size() >= KERNEL_BATCH_SIZE) {
 			if (!Schnorr::BatchVerify(signatures)) {
-				ThrowValidation(EConsensusError::KERNEL_SIG);
+				ThrowValidation(EConsensusError::INVALID_SIG);
 			}
 
 			signatures.clear();
@@ -130,7 +132,7 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
 
 	if (!signatures.empty()) {
 		if (!Schnorr::BatchVerify(signatures)) {
-			ThrowValidation(EConsensusError::KERNEL_SIG);
+			ThrowValidation(EConsensusError::INVALID_SIG);
 		}
 	}
 
@@ -189,16 +191,16 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
     auto pBackend = mmr::FileBackend::Open('R', mmrPath, pDBWrapper);
 	mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
 
-	std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>> proofs;
+	std::vector<ProofData> proofs;
 
 	// TODO: Need parent hashes
 	for (const UTXO::CPtr& pUTXO : utxos)
 	{
 		pBackend->AddLeaf(mmr::Leaf::Create(pUTXO->GetLeafIndex(), pUTXO->GetRangeProof()->Serialized()));
 
-		proofs.push_back({ pUTXO->GetCommitment(), pUTXO->GetRangeProof(), pUTXO->GetExtraData() });
+		proofs.push_back({ pUTXO->GetCommitment(), pUTXO->GetRangeProof(), pUTXO->GetOwnerData().Serialized() });
 		if (proofs.size() >= PROOF_BATCH_SIZE) {
-			if (!Crypto::VerifyRangeProofs(proofs)) {
+			if (!Bulletproofs::BatchVerify(proofs)) {
 				ThrowValidation(EConsensusError::BULLETPROOF);
 			}
 
@@ -207,7 +209,7 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
 	}
 
 	if (!proofs.empty()) {
-		if (!Crypto::VerifyRangeProofs(proofs)) {
+		if (!Bulletproofs::BatchVerify(proofs)) {
 			ThrowValidation(EConsensusError::BULLETPROOF);
 		}
 	}

@@ -16,7 +16,6 @@ TEST_CASE("Plain Kernel")
     //
     {
         std::vector<uint8_t> serialized = kernel.Serialized();
-        REQUIRE(serialized.size() == 106);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint8_t>() == 0);
@@ -81,7 +80,6 @@ TEST_CASE("Peg-In Kernel")
     //
     {
         std::vector<uint8_t> serialized = kernel.Serialized();
-        REQUIRE(serialized.size() == 106);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint8_t>() == 1);
@@ -148,7 +146,6 @@ TEST_CASE("Peg-Out Kernel")
     //
     {
         std::vector<uint8_t> serialized = kernel.Serialized();
-        REQUIRE(serialized.size() == 168);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint8_t>() == 2);
@@ -220,7 +217,6 @@ TEST_CASE("Height-Locked")
     //
     {
         std::vector<uint8_t> serialized = kernel.Serialized();
-        REQUIRE(serialized.size() == 114);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint8_t>() == 3);
@@ -300,7 +296,6 @@ TEST_CASE("Unknown Kernel")
     //
     {
         std::vector<uint8_t> serialized = kernel.Serialized();
-        REQUIRE(serialized.size() == 110);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint8_t>() == features);

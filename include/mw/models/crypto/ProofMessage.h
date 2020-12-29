@@ -10,6 +10,7 @@
 class ProofMessage
 {
 public:
+    ProofMessage() = default;
     ProofMessage(BigInt<20>&& bytes) : m_bytes(std::move(bytes)) { }
 
     static ProofMessage FromKeyChain(const KeyChainPath& keyChainPath)
@@ -39,8 +40,7 @@ public:
         deserializer.Read<uint8_t>(); // Switch Commits - Always true for now.
         size_t length = deserializer.Read<uint8_t>();
 
-        if (length == 0)
-        {
+        if (length == 0) {
             length = 3;
         }
 

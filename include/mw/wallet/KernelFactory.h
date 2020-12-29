@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mw/crypto/Crypto.h>
+#include <mw/crypto/Schnorr.h>
 #include <mw/models/tx/Kernel.h>
 #include <mw/models/crypto/BlindingFactor.h>
 
@@ -15,7 +16,7 @@ public:
             .Append<uint8_t>(KernelType::PLAIN_KERNEL)
             .Append<uint64_t>(fee)
             .vec();
-        Signature sig = Crypto::BuildSignature(BlindingFactor(kernel_blind).ToSecretKey(), Hashed(sig_message));
+        Signature sig = Schnorr::Sign(kernel_blind.data(), Hashed(sig_message));
         return Kernel::CreatePlain(
             fee,
             std::move(kernel_commit),
@@ -30,7 +31,7 @@ public:
             .Append<uint8_t>(KernelType::PEGIN_KERNEL)
             .Append<uint64_t>(amount)
             .vec();
-        Signature sig = Crypto::BuildSignature(BlindingFactor(kernel_blind).ToSecretKey(), Hashed(sig_message));
+        Signature sig = Schnorr::Sign(kernel_blind.data(), Hashed(sig_message));
         return Kernel::CreatePegIn(amount, std::move(kernel_commit), std::move(sig));
     }
 
@@ -48,7 +49,7 @@ public:
             .Append<uint64_t>(amount)
             .Append(address)
             .vec();
-        Signature sig = Crypto::BuildSignature(BlindingFactor(kernel_blind).ToSecretKey(), Hashed(sig_message));
+        Signature sig = Schnorr::Sign(kernel_blind.data(), Hashed(sig_message));
         return Kernel::CreatePegOut(
             amount,
             fee,

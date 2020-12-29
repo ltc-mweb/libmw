@@ -16,3 +16,11 @@ namespace Traits
         virtual mw::Hash GetHash() const noexcept = 0;
     };
 }
+
+static struct
+{
+    bool operator()(const Traits::IHashable& a, const Traits::IHashable& b) const
+    {
+        return a.GetHash() < b.GetHash();
+    }
+} SortByHash;

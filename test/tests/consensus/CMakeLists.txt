@@ -1,7 +1,6 @@
 set(Consensus_Tests
     "Test_Aggregation.cpp"
-    "Test_BlockSumValidator.cpp"
-    "Test_CutThrough.cpp"
+    "Test_KernelSumValidator.cpp"
 )
 
 list_prepend(Consensus_Tests ${CMAKE_CURRENT_LIST_DIR}/)

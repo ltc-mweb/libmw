@@ -19,6 +19,9 @@ public:
     const mw::Header::CPtr& GetHeader() const noexcept { return m_pBlock->GetHeader(); }
     const mw::Block::Ptr& GetBlock() const noexcept { return m_pBlock; }
 
+    const BlindingFactor& GetKernelOffset() const noexcept { return m_pBlock->GetKernelOffset(); }
+    const BlindingFactor& GetOwnerOffset() const noexcept { return m_pBlock->GetOwnerOffset(); }
+
 private:
     mw::Block::Ptr m_pBlock;
     std::vector<Tx> m_txs;

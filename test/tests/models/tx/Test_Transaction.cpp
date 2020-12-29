@@ -1,6 +1,6 @@
 #include <catch.hpp>
 
-#include <mw/consensus/BlockSumValidator.h>
+#include <mw/consensus/KernelSumValidator.h>
 
 #include <test_framework/TxBuilder.h>
 
@@ -15,33 +15,21 @@ TEST_CASE("Tx Transaction")
         .AddPlainKernel(fee).AddPeginKernel(pegInAmount)
         .Build();
 
-    BlockSumValidator::ValidateForTx(*tx);
+    KernelSumValidator::ValidateForTx(*tx);
 
     //
     // Serialization
     //
     {
         std::vector<uint8_t> serialized = tx->Serialized();
-        REQUIRE(serialized.size() == 1772);
 
         Deserializer deserializer(serialized);
-        REQUIRE(BlindingFactor::Deserialize(deserializer) == tx->GetOffset());
+        REQUIRE(BlindingFactor::Deserialize(deserializer) == tx->GetKernelOffset());
+        REQUIRE(BlindingFactor::Deserialize(deserializer) == tx->GetOwnerOffset());
         REQUIRE(TxBody::Deserialize(deserializer) == tx->GetBody());
 
         Deserializer deserializer2(serialized);
         REQUIRE(*tx == mw::Transaction::Deserialize(deserializer2));
-    }
-
-    //
-    // JSON
-    //
-    {
-        Json json(tx->ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "body", "offset" }));
-        REQUIRE(BlindingFactor::FromHex(json.GetRequired<std::string>("offset")) == tx->GetOffset());
-        REQUIRE(json.GetRequired<TxBody>("body") == tx->GetBody());
-
-        REQUIRE(*tx == mw::Transaction::FromJSON(json));
     }
 
     //

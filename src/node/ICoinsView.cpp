@@ -1,5 +1,7 @@
 #include <mw/node/CoinsView.h>
 
+#include <mw/exceptions/ValidationException.h>
+
 MW_NAMESPACE
 
 void ICoinsView::ValidateMMRs(const mw::Header::CPtr& pHeader) const

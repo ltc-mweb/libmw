@@ -4,7 +4,7 @@
 #include <mw/exceptions/CryptoException.h>
 #include <mw/util/VectorUtil.h>
 
-PublicKey PublicKeys::CalculatePublicKey(const SecretKey& privateKey) const
+PublicKey PublicKeys::CalculatePublicKey(const BigInt<32>& privateKey) const
 {
     const int verifyResult = secp256k1_ec_seckey_verify(m_context.Read()->Get(), privateKey.data());
     if (verifyResult != 1)

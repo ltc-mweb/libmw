@@ -15,7 +15,6 @@ void BlockValidator::Validate(
     }
 
     if (pBlock->GetHash() != mweb_hash) {
-        std::cout << "Hash mismatch! Expected " << mweb_hash.ToHex() << " but was " << pBlock->GetHash().ToHex() << std::endl;
         ThrowValidation(EConsensusError::HASH_MISMATCH);
     }
 

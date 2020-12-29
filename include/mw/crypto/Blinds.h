@@ -19,6 +19,12 @@ public:
         return *this;
     }
 
+    Blinds& Add(const std::vector<BlindingFactor>& blinds)
+    {
+        m_positive.insert(m_positive.end(), blinds.cbegin(), blinds.cend());
+        return *this;
+    }
+
     Blinds& Sub(const BlindingFactor& blind)
     {
         m_negative.push_back(blind);
@@ -28,6 +34,12 @@ public:
     Blinds& Sub(BlindingFactor&& blind)
     {
         m_negative.push_back(std::move(blind));
+        return *this;
+    }
+
+    Blinds& Sub(const std::vector<BlindingFactor>& blinds)
+    {
+        m_negative.insert(m_negative.end(), blinds.cbegin(), blinds.cend());
         return *this;
     }
 

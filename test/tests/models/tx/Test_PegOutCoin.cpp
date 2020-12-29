@@ -14,7 +14,6 @@ TEST_CASE("Tx Peg-Out Coin")
     //
     {
         std::vector<uint8_t> serialized = pegOutCoin.Serialized();
-        REQUIRE(serialized.size() == 42);
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint64_t>() == amount);

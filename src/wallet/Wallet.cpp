@@ -1,51 +1,29 @@
 #include <mw/wallet/Wallet.h>
+#include <mw/wallet/KernelFactory.h>
+#include <mw/wallet/OutputFactory.h>
 #include <mw/crypto/Blinds.h>
+#include <mw/crypto/Bulletproofs.h>
+#include <mw/crypto/Keys.h>
 #include <mw/crypto/Random.h>
 #include <mw/config/ChainParams.h>
 #include <mw/exceptions/InsufficientFundsException.h>
 
-#include "KernelFactory.h"
-#include "WalletUtil.h"
+#include "PegIn.h"
+#include "PegOut.h"
+#include "Transact.h"
 
 Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
 {
     assert(pWalletInterface != nullptr);
 
     SecretKey master_key(pWalletInterface->GetHDKey("m/1/0/0").keyBytes);
-    PublicKey master_pub(Crypto::CalculatePublicKey(master_key));
+    PublicKey master_pub(Crypto::CalculatePublicKey(master_key.GetBigInt()));
     return Wallet(pWalletInterface, std::move(master_key), std::move(master_pub));
 }
 
-mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount)
+mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount, const boost::optional<StealthAddress>& receiver_addr)
 {
-    libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewHDKey();
-    BlindingFactor offset = Random::CSPRNG<32>();
-
-    Output output = CreateOutput(amount, EOutputFeatures::PEGGED_IN, private_key);
-
-    BlindingFactor kernel_blind = Blinds()
-        .Add(private_key.keyBytes)
-        .Sub(offset)
-        .Total();
-    Kernel kernel = KernelFactory::CreatePegInKernel(kernel_blind, amount);
-
-    libmw::Coin pegin_coin{
-        EOutputFeatures::PEGGED_IN,
-        private_key,
-        amount,
-        output.GetCommitment().array(),
-        boost::none,
-        false,
-        boost::none
-    };
-    m_pWalletInterface->AddCoins({ std::move(pegin_coin) });
-
-    TxBody body(
-        std::vector<Input>{},
-        std::vector<Output>{ std::move(output) },
-        std::vector<Kernel>{ std::move(kernel) }
-    );
-    return std::make_shared<mw::Transaction>(std::move(offset), std::move(body));
+    return PegIn(*this).CreatePegInTx(amount, receiver_addr.value_or(GetStealthAddress()));
 }
 
 mw::Transaction::CPtr Wallet::CreatePegOutTx(
@@ -53,160 +31,26 @@ mw::Transaction::CPtr Wallet::CreatePegOutTx(
     const uint64_t fee_base,
     const Bech32Address& address)
 {
-    std::vector<libmw::Coin> coins = AvailableCoins();
-
-    std::vector<libmw::Coin> input_coins = m_pWalletInterface->SelectCoins(coins, amount, fee_base);
-    BlindingFactor input_blinds = WalletUtil::AddBlindingFactors(input_coins);
-    uint64_t inputs_amount = WalletUtil::TotalAmount(input_coins);
-    const uint64_t fee = WalletUtil::CalculateFee(fee_base, input_coins.size(), 1, 2);
-    const uint64_t change_amount = inputs_amount - (amount + fee);
-
-    if (amount + fee > inputs_amount) {
-        ThrowInsufficientFunds("The total exceeds the input amount when the transaction fee is included.");
-    }
-
-    libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewHDKey();
-    BlindingFactor blindingFactor(private_key.keyBytes);
-    Output change_output = CreateOutput(change_amount, EOutputFeatures::DEFAULT_OUTPUT, private_key);
-
-    BlindingFactor offset = Random::CSPRNG<32>();
-    BlindingFactor kernel_blind = Blinds()
-        .Add(blindingFactor)
-        .Sub(input_blinds)
-        .Sub(offset)
-        .Total();
-    Kernel kernel = KernelFactory::CreatePegOutKernel(kernel_blind, amount, fee, address);
-
-    std::vector<libmw::Coin> coins_to_update;
-    std::transform(
-        input_coins.cbegin(), input_coins.cend(),
-        std::back_inserter(coins_to_update),
-        [](libmw::Coin input_coin) {
-            input_coin.spent = true;
-            return input_coin;
-        }
-    );
-    libmw::Coin change_coin{
-        EOutputFeatures::DEFAULT_OUTPUT,
-        private_key,
-        change_amount,
-        change_output.GetCommitment().array(),
-        boost::none,
-        false,
-        boost::none
-    };
-    coins_to_update.push_back(std::move(change_coin));
-    m_pWalletInterface->AddCoins(coins_to_update);
-
-    std::vector<Input> inputs;
-    std::transform(
-        input_coins.cbegin(), input_coins.cend(),
-        std::back_inserter(inputs),
-        [](const libmw::Coin& input_coin) {
-            return Input((EOutputFeatures)input_coin.features, Commitment(input_coin.commitment));
-        }
-    );
-
-    TxBody body(
-        inputs,
-        std::vector<Output>{ std::move(change_output) },
-        std::vector<Kernel>{ std::move(kernel) }
-    );
-    return std::make_shared<mw::Transaction>(std::move(offset), std::move(body));
+    return PegOut(*this).CreatePegOutTx(amount, fee_base, address);
 }
 
-PartialTx Wallet::Send(const uint64_t amount, const uint64_t fee_base)
+mw::Transaction::CPtr Wallet::Send(
+    const uint64_t amount,
+    const uint64_t fee_base,
+    const StealthAddress& receiver_address)
 {
-    std::vector<libmw::Coin> coins = AvailableCoins();
-
-    std::vector<libmw::Coin> input_coins = m_pWalletInterface->SelectCoins(coins, amount, fee_base);
-    BlindingFactor input_blinds = WalletUtil::AddBlindingFactors(input_coins);
-    uint64_t inputs_amount = WalletUtil::TotalAmount(input_coins);
-    const uint64_t fee = WalletUtil::CalculateFee(fee_base, input_coins.size(), 1, 2);
-    const uint64_t change_amount = inputs_amount - (amount + fee);
-
-    if (amount + fee > inputs_amount) {
-        ThrowInsufficientFunds("The total exceeds the input amount when the transaction fee is included.");
-    }
-
-    libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewHDKey();
-    BlindingFactor change_blind(private_key.keyBytes);
-    Output change_output = CreateOutput(change_amount, EOutputFeatures::DEFAULT_OUTPUT, private_key);
-
-    BlindingFactor blind = Blinds()
-        .Add(change_blind)
-        .Sub(input_blinds)
-        .Total();
-
-    std::vector<Input> inputs;
-    std::transform(
-        input_coins.cbegin(), input_coins.cend(),
-        std::back_inserter(inputs),
-        [](const libmw::Coin& input_coin) {
-            return Input((EOutputFeatures)input_coin.features, Commitment(input_coin.commitment));
-        }
-    );
-
-    std::vector<libmw::Coin> coins_to_update;
-    std::transform(
-        input_coins.cbegin(), input_coins.cend(),
-        std::back_inserter(coins_to_update),
-        [](libmw::Coin input_coin) {
-            input_coin.spent = true;
-            return input_coin;
-        }
-    );
-    libmw::Coin change_coin{
-        EOutputFeatures::DEFAULT_OUTPUT,
-        private_key,
-        change_amount,
-        change_output.GetCommitment().array(),
-        boost::none,
-        false,
-        boost::none
-    };
-    coins_to_update.push_back(std::move(change_coin));
-
-    m_pWalletInterface->AddCoins(coins_to_update);
-
-    return PartialTx(amount, fee, inputs, { change_output }, blind);
+    return Transact(*this).CreateTx(amount, fee_base, receiver_address);
 }
 
-mw::Transaction::CPtr Wallet::Receive(const PartialTx& partial_tx)
+StealthAddress Wallet::GetStealthAddress() const
 {
-    libmw::PrivateKey private_key = m_pWalletInterface->GenerateNewHDKey();
-    BlindingFactor received_blind(private_key.keyBytes);
-    Output received_output = CreateOutput(partial_tx.GetAmount(), EOutputFeatures::DEFAULT_OUTPUT, private_key);
+    SecretKey scan_secret(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
+    SecretKey spend_secret(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
 
-    BlindingFactor tx_offset = Random::CSPRNG<32>();
-    BlindingFactor kernel_blind = Crypto::AddBlindingFactors({ received_blind, partial_tx.GetBlind() }, { tx_offset });
-    Kernel kernel = KernelFactory::CreatePlainKernel(kernel_blind, partial_tx.GetFee());
-
-    libmw::Coin received_coin{
-        EOutputFeatures::DEFAULT_OUTPUT,
-        private_key,
-        partial_tx.GetAmount(),
-        received_output.GetCommitment().array(),
-        boost::none,
-        false,
-        boost::none
-    };
-    m_pWalletInterface->AddCoins({ received_coin });
-
-    std::vector<Output> outputs = partial_tx.GetChange();
-    outputs.push_back(received_output);
-    TxBody body(partial_tx.GetInputs(), outputs, { kernel });
-
-    return std::make_shared<mw::Transaction>(std::move(tx_offset), std::move(body));
-}
-
-libmw::MWEBAddress Wallet::GetAddress() const
-{
-    SecretKey private_key(m_pWalletInterface->GetHDKey("m/1/0/100").keyBytes);
-    auto id = Crypto::CalculatePublicKey(private_key).vec();
-    std::vector<uint8_t> data = {0};
-    ConvertBits<8, 5, true>([&](uint8_t c) { data.push_back(c); }, id.begin(), id.end());
-    return Bech32Address("mweb", data).ToString();
+    return StealthAddress(
+        Keys::From(scan_secret).PubKey(),
+        Keys::From(spend_secret).PubKey()
+    );
 }
 
 libmw::WalletBalance Wallet::GetBalance() const
@@ -240,32 +84,6 @@ libmw::WalletBalance Wallet::GetBalance() const
     return balance;
 }
 
-std::vector<libmw::Coin> Wallet::AvailableCoins() const
-{
-    std::vector<libmw::Coin> coins = m_pWalletInterface->ListCoins();
-    std::vector<libmw::Coin> result;
-
-    for (const libmw::Coin& coin : coins) {
-        if (coin.spent || coin.spent_block.has_value()) {
-            continue;
-        }
-
-        uint64_t num_confirmations = 0;
-        if (coin.included_block.has_value()) {
-            num_confirmations = m_pWalletInterface->GetDepthInActiveChain(coin.included_block.value());
-        }
-
-        bool isPegin = coin.features & libmw::PEGIN_OUTPUT;
-        bool peginMatured = num_confirmations >= mw::ChainParams::GetPegInMaturity();
-
-        if (num_confirmations > 0 && (!isPegin || peginMatured)) {
-            result.push_back(coin);
-        }
-    }
-
-    return result;
-}
-
 void Wallet::BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canonical_block_hash)
 {
     std::vector<libmw::Coin> coins_to_update;
@@ -279,34 +97,19 @@ void Wallet::BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canon
     );
 
     // Mark outputs as confirmed
-    BlindingFactor master_key = m_pWalletInterface->GetHDKey("m/1/0/0").keyBytes;
+    SecretKey scan_secret(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
+    SecretKey spend_secret(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
+    PublicKey spend_pubkey = Keys::From(spend_secret).PubKey();
     for (const Output& output : pBlock->GetOutputs()) {
         try {
-            SecretKey nonce = RewindNonce(output.GetCommitment());
-            auto pRewound = Crypto::RewindRangeProof(output.GetCommitment(), *output.GetRangeProof(), nonce);
-            if (pRewound == nullptr) {
-                continue;
-            }
-
             auto iter = coinmap.find(output.GetCommitment());
             if (iter != coinmap.cend()) {
                 libmw::Coin coin = iter->second;
                 coin.included_block = canonical_block_hash.ToArray();
                 coins_to_update.push_back(std::move(coin));
             } else {
-                libmw::PrivateKey private_key = m_pWalletInterface->GetHDKey(
-                    pRewound->GetKeyChainPath().Format()
-                );
-
-                libmw::Coin coin{
-                    output.GetFeatures(),
-                    std::move(private_key),
-                    pRewound->GetAmount(),
-                    output.GetCommitment().array(),
-                    canonical_block_hash.ToArray(),
-                    false,
-                    boost::none
-                };
+                libmw::Coin coin = RewindOutput(output);
+                coin.included_block = canonical_block_hash.ToArray();
                 coins_to_update.push_back(std::move(coin));
             }
         } catch (std::exception&) { }
@@ -362,82 +165,109 @@ void Wallet::BlockDisconnected(const mw::Block::CPtr& pBlock)
     m_pWalletInterface->AddCoins(coins_to_update);
 }
 
-void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
+// TODO: Implement
+void Wallet::ScanForOutputs(const libmw::IChain::Ptr&)
 {
-    std::vector<libmw::Coin> orig_coins = m_pWalletInterface->ListCoins();
-    std::cout << "Original coins size: " << orig_coins.size() << std::endl;
-    m_pWalletInterface->DeleteCoins(orig_coins);
+    //std::vector<libmw::Coin> orig_coins = m_pWalletInterface->ListCoins();
+    //std::cout << "Original coins size: " << orig_coins.size() << std::endl;
+    //m_pWalletInterface->DeleteCoins(orig_coins);
 
-    std::vector<libmw::Coin> coins_to_update;
-    std::unordered_map<Commitment, libmw::Coin&> coinmap;
+    //std::vector<libmw::Coin> coins_to_update;
+    //std::unordered_map<Commitment, libmw::Coin&> coinmap;
 
-    auto pChainIter = pChain->NewIterator();
-    while (pChainIter->Valid()) {
-        libmw::BlockRef block_ref = pChainIter->GetBlock();
-        if (block_ref.IsNull()) {
-            // TODO: Use output mmr
-        } else {
-            for (const Output& output : block_ref.pBlock->GetOutputs()) {
-                try {
-                    SecretKey nonce = RewindNonce(output.GetCommitment());
-                    auto pRewound = Crypto::RewindRangeProof(output.GetCommitment(), *output.GetRangeProof(), nonce);
-                    if (pRewound == nullptr) {
-                        continue;
-                    }
+    //auto pChainIter = pChain->NewIterator();
+    //while (pChainIter->Valid()) {
+    //    try {
+    //        libmw::BlockRef block_ref = pChainIter->GetBlock();
+    //        if (block_ref.IsNull()) {
+    //            // TODO: Use output mmr
+    //        } else {
+    //            for (const Output& output : block_ref.pBlock->GetOutputs()) {
+    //                try {
+    //                    SecretKey nonce = RewindNonce(output.GetCommitment());
+    //                    auto pRewound = Bulletproofs::Rewind(
+    //                        output.GetCommitment(),
+    //                        *output.GetRangeProof(),
+    //                        output.GetOwnerData().Serialized(),
+    //                        nonce
+    //                    );
+    //                    if (pRewound == nullptr) {
+    //                        continue;
+    //                    }
 
-                    libmw::PrivateKey private_key = m_pWalletInterface->GetHDKey(
-                        pRewound->GetKeyChainPath().Format()
-                    );
+    //                    libmw::PrivateKey private_key = m_pWalletInterface->GetHDKey(
+    //                        pRewound->GetKeyChainPath().Format()
+    //                    );
 
-                    libmw::Coin coin{
-                        output.GetFeatures(),
-                        boost::make_optional<libmw::PrivateKey>(std::move(private_key)),
-                        pRewound->GetAmount(),
-                        output.GetCommitment().array(),
-                        boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash()),
-                        false,
-                        boost::none
-                    };
+    //                    libmw::Coin coin{
+    //                        output.GetFeatures(),
+    //                        boost::make_optional<libmw::PrivateKey>(std::move(private_key)),
+    //                        pRewound->GetAmount(),
+    //                        output.GetCommitment().array(),
+    //                        boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash()),
+    //                        false,
+    //                        boost::none
+    //                    };
 
-                    std::cout << "Found output " << output.GetCommitment().ToHex() << " - Spent: " << coin.spent_block.has_value() << std::endl;
+    //                    std::cout << "Found output " << output.GetCommitment().ToHex() << " - Spent: " << coin.spent_block.has_value() << std::endl;
 
-                    coins_to_update.push_back(std::move(coin));
-                    coinmap.insert({ output.GetCommitment(), coins_to_update.back() });
-                } catch (std::exception&) { }
-            }
+    //                    coins_to_update.push_back(std::move(coin));
+    //                    coinmap.insert({ output.GetCommitment(), coins_to_update.back() });
+    //                }
+    //                catch (std::exception&) {}
+    //            }
 
-            for (const Input& input : block_ref.pBlock->GetInputs()) {
-                auto pCoinIter = coinmap.find(input.GetCommitment());
-                if (pCoinIter != coinmap.end()) {
-                    pCoinIter->second.spent = true;
-                    pCoinIter->second.spent_block = pChainIter->GetCanonicalHash();
-                }
-            }
-        }
+    //            for (const Input& input : block_ref.pBlock->GetInputs()) {
+    //                auto pCoinIter = coinmap.find(input.GetCommitment());
+    //                if (pCoinIter != coinmap.end()) {
+    //                    pCoinIter->second.spent = true;
+    //                    pCoinIter->second.spent_block = pChainIter->GetCanonicalHash();
+    //                }
+    //            }
+    //        }
+    //    } catch (std::exception&) {}
 
-        pChainIter->Next();
-    }
+    //    pChainIter->Next();
+    //}
 
-    std::cout << "Adding coins: " << coins_to_update.size() << std::endl;
-    m_pWalletInterface->AddCoins(coins_to_update);
+    //std::cout << "Adding coins: " << coins_to_update.size() << std::endl;
+    //m_pWalletInterface->AddCoins(coins_to_update);
 }
 
-Output Wallet::CreateOutput(
-    const uint64_t amount,
-    const EOutputFeatures features,
-    const libmw::PrivateKey& private_key) const
+libmw::Coin Wallet::RewindOutput(const Output& output) const
 {
-    Commitment commitment = Crypto::CommitBlinded(amount, private_key.keyBytes);
+    // Mark outputs as confirmed
+    SecretKey scan_secret(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
+    SecretKey spend_secret(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
 
-    RangeProof::CPtr pRangeProof = Crypto::GenerateRangeProof(
-        amount,
-        SecretKey(private_key.keyBytes),
-        SecretNonce(commitment),
-        RewindNonce(commitment),
-        ProofMessage::FromKeyChain(KeyChainPath::FromString(private_key.bip32Path))
-    );
+    PublicKey pubnonce = Keys::From(output.GetOwnerData().GetPubNonce()).Mul(scan_secret).PubKey();
+    PublicKey receiver_pubkey = Keys::From(Hashed(pubnonce)).Add(spend_secret).PubKey();
+    if (receiver_pubkey == output.GetOwnerData().GetReceiverPubKey()) {
+        // Output is owned by wallet
+        PublicKey ecdh_pubkey = Keys::From(output.GetOwnerData().GetSenderPubKey()).Mul(spend_secret).PubKey();
+        SecretKey shared_secret = Hashed(ecdh_pubkey);
 
-    return Output{ features, std::move(commitment), {}, pRangeProof };
+        std::vector<uint8_t> decrypted;
+        if (output.GetOwnerData().TryDecrypt(shared_secret, decrypted)) {
+            Deserializer deserializer(decrypted);
+            BlindingFactor blind = BlindingFactor::Deserialize(deserializer);
+            uint64_t amount = deserializer.Read<uint64_t>();
+            SecretKey private_key = Crypto::AddPrivateKeys(Hashed(pubnonce), spend_secret);
+
+            return libmw::Coin{
+                output.GetFeatures(),
+                private_key.array(),
+                blind.array(),
+                amount,
+                output.GetCommitment().array(),
+                boost::none,
+                false,
+                boost::none
+            };
+        }
+    }
+
+    throw std::runtime_error("Unable to rewind output");
 }
 
 SecretKey Wallet::RewindNonce(const Commitment& commitment) const

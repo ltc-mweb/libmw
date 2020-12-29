@@ -19,7 +19,8 @@ TEST_CASE("Block")
         mw::Hash::FromHex("001102030405060708090A0B0C0D0E0F1112131415161718191A1B1C1D1E1F20"),
         mw::Hash::FromHex("002102030405060708090A0B0C0D0E0F1112131415161718191A1B1C1D1E1F20"),
         mw::Hash::FromHex("003102030405060708090A0B0C0D0E0F1112131415161718191A1B1C1D1E1F20"),
-        BlindingFactor(pTransaction->GetOffset()),
+        BlindingFactor(pTransaction->GetKernelOffset()),
+        BlindingFactor(pTransaction->GetOwnerOffset()),
         pTransaction->GetOutputs().size(),
         pTransaction->GetKernels().size()
     );
@@ -31,7 +32,8 @@ TEST_CASE("Block")
     REQUIRE(block.GetOutputs() == pTransaction->GetOutputs());
     REQUIRE(block.GetKernels() == pTransaction->GetKernels());
     REQUIRE(block.GetHeight() == pHeader->GetHeight());
-    REQUIRE(block.GetOffset() == pHeader->GetOffset());
+    REQUIRE(block.GetKernelOffset() == pHeader->GetKernelOffset());
+    REQUIRE(block.GetOwnerOffset() == pHeader->GetOwnerOffset());
 
     REQUIRE(block.GetPegInKernels() == pTransaction->GetKernels());
     REQUIRE(block.GetPegInAmount() == 30);
@@ -42,7 +44,6 @@ TEST_CASE("Block")
     REQUIRE(*block.GetHeader() == *block2.GetHeader());
     REQUIRE(block.GetTxBody() == block2.GetTxBody());
 
-    block2 = mw::Block::FromJSON(block.ToJSON());
     REQUIRE(*block.GetHeader() == *block2.GetHeader());
     REQUIRE(block.GetTxBody() == block2.GetTxBody());
 
