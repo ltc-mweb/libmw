@@ -58,8 +58,8 @@
 
 #### Kernel Sums
 
-* The sum of all output commitments in the UTXO set at a given block height must equal the sum of all kernel commitments plus the `total_kernel_offset*G` of the block.
-  * `sum(utxo.commitments) = sum(kernel.commitments) + (block.total_kernel_offset*G)`
+* The sum of all output commitments in the UTXO set at a given block height must equal the sum of all kernel commitments plus the `total_kernel_offset*G` and the `expected_supply*H` of the block.
+  * `sum(utxo.commitments) = sum(kernel.commitments) + (block.total_kernel_offset*G) + (expected_supply*H)`
 ---
 
 #### Owner Sums

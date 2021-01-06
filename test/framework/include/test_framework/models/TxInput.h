@@ -2,9 +2,6 @@
 
 #include <mw/common/Macros.h>
 #include <mw/models/tx/Input.h>
-#include <mw/models/wallet/StealthAddress.h>
-#include <mw/crypto/Bulletproofs.h>
-#include <mw/crypto/Random.h>
 #include <mw/crypto/Schnorr.h>
 
 TEST_NAMESPACE
@@ -34,7 +31,7 @@ public:
             sender_privkey,
             amount,
             Input{
-                Crypto::CommitBlinded(amount, blindingFactor),
+                std::move(commitment),
                 Crypto::CalculatePublicKey(sender_privkey.GetBigInt()),
                 std::move(sig)
             }

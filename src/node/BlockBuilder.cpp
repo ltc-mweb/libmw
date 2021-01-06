@@ -42,8 +42,7 @@ bool BlockBuilder::AddTransaction(const Transaction::CPtr& pTransaction, const s
     }
 
     // Validate transaction
-    pTransaction->GetBody().Validate();
-    KernelSumValidator::ValidateForTx(*pTransaction);
+    pTransaction->Validate();
 
     // Add transaction
     mw::CoinsViewCache cache(m_pCoinsView);

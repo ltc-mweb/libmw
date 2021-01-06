@@ -8,11 +8,11 @@ static mw::Header::CPtr GenerateRandomHeader(const uint64_t height)
 {
     return std::make_shared<mw::Header>(
         height,
-        mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
-        mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
-		mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
-		mw::Hash{ Random().CSPRNG<32>().GetBigInt() },
-        BlindingFactor{ Random().CSPRNG<32>().GetBigInt() },
+        mw::Hash{ Random::CSPRNG<32>().GetBigInt() },
+        mw::Hash{ Random::CSPRNG<32>().GetBigInt() },
+		mw::Hash{ Random::CSPRNG<32>().GetBigInt() },
+		mw::Hash{ Random::CSPRNG<32>().GetBigInt() },
+        BlindingFactor{ Random::CSPRNG<32>().GetBigInt() },
         Random().FastRandom(),
         Random().FastRandom()
     );
@@ -30,7 +30,7 @@ TEST_CASE("Database - Headers - Batch rollback")
         pHeader0->GetHash(),
         pHeader1->GetHash(),
         pHeader2->GetHash(),
-        Random().CSPRNG<32>().GetBigInt()
+        Random::CSPRNG<32>().GetBigInt()
     };
 
     auto batch = blockDB.BatchWrite();
@@ -70,7 +70,7 @@ TEST_CASE("Database - Headers - Batch commit")
     auto pHeader2 = GenerateRandomHeader(2);
 
     std::vector<mw::Hash> hashes{
-        Random().CSPRNG<32>().GetBigInt(),
+        Random::CSPRNG<32>().GetBigInt(),
         pHeader0->GetHash(),
         pHeader1->GetHash(),
         pHeader2->GetHash()
