@@ -44,9 +44,6 @@ TEST_CASE("Block")
     REQUIRE(*block.GetHeader() == *block2.GetHeader());
     REQUIRE(block.GetTxBody() == block2.GetTxBody());
 
-    REQUIRE(*block.GetHeader() == *block2.GetHeader());
-    REQUIRE(block.GetTxBody() == block2.GetTxBody());
-
     REQUIRE_FALSE(block.WasValidated());
     block.Validate();
     block.MarkAsValidated();

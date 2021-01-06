@@ -9,7 +9,6 @@
 #include <mw/wallet/OutputFactory.h>
 #include <mw/wallet/TxFactory.h>
 
-// TODO: Sort inputs, outputs, kernels, and owner_sigs
 mw::Transaction::CPtr PegOut::CreatePegOutTx(
     const uint64_t amount,
     const uint64_t fee_base,
@@ -21,7 +20,7 @@ mw::Transaction::CPtr PegOut::CreatePegOutTx(
 
     // Calculate fee
     const uint64_t fee = WalletUtil::CalculateFee(fee_base, input_coins.size(), 1, 2);
-    if (WalletUtil::TotalAmount(input_coins) <= (amount + fee)) {
+    if (WalletUtil::TotalAmount(input_coins) < (amount + fee)) {
         ThrowInsufficientFunds("Not enough funds");
     }
 
@@ -30,7 +29,7 @@ mw::Transaction::CPtr PegOut::CreatePegOutTx(
     // Receiver key is generate by OutputFactory using the wallet's stealth address.
     const uint64_t change_amount = WalletUtil::TotalAmount(input_coins) - (amount + fee);
     SecretKey change_key = m_wallet.NewKey();
-    BlindingFactor change_blind = Random().CSPRNG<32>();
+    BlindingFactor change_blind = Random::CSPRNG<32>();
     Output change_output = OutputFactory::Create(
         EOutputFeatures::DEFAULT_OUTPUT,
         change_blind,
@@ -51,7 +50,7 @@ mw::Transaction::CPtr PegOut::CreatePegOutTx(
     Kernel kernel = KernelFactory::CreatePegOutKernel(kernel_blind, amount, fee, address);
 
     // TODO: Only necessary when no change?
-    BlindingFactor owner_sig_key = Random().CSPRNG<32>();
+    BlindingFactor owner_sig_key = Random::CSPRNG<32>();
     SignedMessage owner_sig = Schnorr::SignMessage(owner_sig_key.GetBigInt(), kernel.GetHash());
 
     // Total owner offset is split between raw owner_offset and the owner_sig's key.
@@ -69,7 +68,7 @@ mw::Transaction::CPtr PegOut::CreatePegOutTx(
     libmw::Coin change_coin = m_wallet.RewindOutput(change_output);
 
     // Add/update the affected coins in the database.
-    std::vector<libmw::Coin> coins = input_coins;
+    std::vector<libmw::Coin> coins = std::move(input_coins);
     coins.push_back(std::move(change_coin));
     m_wallet.GetInterface()->AddCoins(coins);
 

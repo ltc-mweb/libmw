@@ -9,7 +9,6 @@
 #include <mw/wallet/OutputFactory.h>
 #include <mw/wallet/TxFactory.h>
 
-// TODO: Sort inputs, outputs, kernels, and owner_sigs
 mw::Transaction::CPtr Transact::CreateTx(
     const uint64_t amount,
     const uint64_t fee_base,
@@ -21,12 +20,12 @@ mw::Transaction::CPtr Transact::CreateTx(
 
     // Calculate fee
     const uint64_t fee = WalletUtil::CalculateFee(fee_base, input_coins.size(), 1, 2);
-    if (WalletUtil::TotalAmount(input_coins) <= (amount + fee)) {
+    if (WalletUtil::TotalAmount(input_coins) < (amount + fee)) {
         ThrowInsufficientFunds("Not enough funds");
     }
 
     // Create receiver's output
-    BlindingFactor receiver_blind = Random().CSPRNG<32>();
+    BlindingFactor receiver_blind = Random::CSPRNG<32>();
     SecretKey ephemeral_key = m_wallet.NewKey();
     Output receiver_output = OutputFactory::Create(
         EOutputFeatures::DEFAULT_OUTPUT,
@@ -38,7 +37,7 @@ mw::Transaction::CPtr Transact::CreateTx(
 
     // Create change output
     const uint64_t change_amount = WalletUtil::TotalAmount(input_coins) - (amount + fee);
-    BlindingFactor change_blind = Random().CSPRNG<32>();
+    BlindingFactor change_blind = Random::CSPRNG<32>();
     SecretKey change_key = m_wallet.NewKey();
     Output change_output = OutputFactory::Create(
         EOutputFeatures::DEFAULT_OUTPUT,
@@ -61,7 +60,7 @@ mw::Transaction::CPtr Transact::CreateTx(
     Kernel kernel = KernelFactory::CreatePlainKernel(kernel_blind, fee);
 
     // TODO: Only necessary when no change?
-    BlindingFactor owner_sig_key = Random().CSPRNG<32>();
+    BlindingFactor owner_sig_key = Random::CSPRNG<32>();
     SignedMessage owner_sig = Schnorr::SignMessage(owner_sig_key.GetBigInt(), kernel.GetHash());
 
     // Total owner offset is split between raw owner_offset and the owner_sig's key.

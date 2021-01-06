@@ -92,10 +92,10 @@ public:
 
     static Tx CreatePegIn2(const uint64_t amount, BlindingFactor& outputBF)
     {
-        BlindingFactor txOffset = Random().CSPRNG<32>();
+        BlindingFactor txOffset = Random::CSPRNG<32>();
 
-        outputBF = Random().CSPRNG<32>();
-        SecretKey sender_privkey = Random().CSPRNG<32>();
+        outputBF = Random::CSPRNG<32>();
+        SecretKey sender_privkey = Random::CSPRNG<32>();
         test::TxOutput output = test::TxOutput::Create(
             EOutputFeatures::PEGGED_IN,
             outputBF,
@@ -123,9 +123,9 @@ public:
 
     //static Tx CreateSpend(const Input& input, const BlindingFactor& inputBF, const uint64_t amount, const uint64_t fee)
     //{
-    //    BlindingFactor txOffset = Random().CSPRNG<32>();
+    //    BlindingFactor txOffset = Random::CSPRNG<32>();
 
-    //    BlindingFactor outputBF = Random().CSPRNG<32>();
+    //    BlindingFactor outputBF = Random::CSPRNG<32>();
     //    test::TxOutput output = test::TxOutput::Create(EOutputFeatures::DEFAULT_OUTPUT, outputBF, amount-fee);
 
     //    BlindingFactor kernelBF = Crypto::AddBlindingFactors({ outputBF }, { inputBF, txOffset });

@@ -29,8 +29,8 @@ public:
         RangeProof::CPtr pRangeProof = Bulletproofs::Generate(
             amount,
             SecretKey(blinding_factor.vec()),
-            Random().CSPRNG<32>(),
-            Random().CSPRNG<32>(),
+            Random::CSPRNG<32>(),
+            Random::CSPRNG<32>(),
             ProofMessage{},
             owner_data.Serialized()
         );

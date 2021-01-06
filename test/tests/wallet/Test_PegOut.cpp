@@ -42,7 +42,7 @@ TEST_CASE("Wallet - Peg-out")
 
     libmw::node::CheckTransaction(pegout_tx.first);
 
-    // Balance should have 5,000,000 unconfirmed litoshis
+    // Balance should have 1'790'000 unconfirmed litoshis (2'000'000 - fee)
     balance = libmw::wallet::GetBalance(pTestWallet);
     REQUIRE(balance.confirmed_balance == 0);
     REQUIRE(balance.unconfirmed_balance == 1'790'000);
