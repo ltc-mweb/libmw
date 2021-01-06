@@ -4,12 +4,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
+#include <mw/models/crypto/PublicKey.h>
+#include <mw/models/crypto/Signature.h>
 #include <mw/models/tx/Features.h>
 #include <mw/crypto/Hasher.h>
 #include <mw/traits/Committed.h>
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
-#include <mw/traits/Jsonable.h>
 
 ////////////////////////////////////////
 // INPUT
@@ -17,20 +18,19 @@
 class Input :
     public Traits::ICommitted,
     public Traits::IHashable,
-    public Traits::ISerializable,
-    public Traits::IJsonable
+    public Traits::ISerializable
 {
 public:
     //
     // Constructors
     //
-    Input(const EOutputFeatures features, Commitment&& commitment)
-        : m_features(features), m_commitment(std::move(commitment))
+    Input(Commitment&& commitment, PublicKey&& pubkey, Signature&& signature)
+        : m_commitment(std::move(commitment)), m_pubkey(std::move(pubkey)), m_signature(std::move(signature))
     {
-        Serializer serializer;
-        Serialize(serializer);
-        m_hash = Hashed(serializer.vec());
+        m_hash = Hashed(Serialized());
     }
+    Input(const Commitment& commitment, const PublicKey& pubkey, const Signature& signature)
+        : Input(Commitment(commitment), PublicKey(pubkey), Signature(signature)) { }
     Input(const Input& input) = default;
     Input(Input&& input) noexcept = default;
     Input() = default;
@@ -51,10 +51,9 @@ public:
     //
     // Getters
     //
-    EOutputFeatures GetFeatures() const noexcept { return m_features; }
     const Commitment& GetCommitment() const noexcept final { return m_commitment; }
-
-    bool IsPeggedIn() const noexcept { return (m_features & EOutputFeatures::PEGGED_IN) == EOutputFeatures::PEGGED_IN; }
+    const PublicKey& GetPubKey() const noexcept { return m_pubkey; }
+    const Signature& GetSignature() const noexcept { return m_signature; }
 
     //
     // Serialization/Deserialization
@@ -62,31 +61,17 @@ public:
     Serializer& Serialize(Serializer& serializer) const noexcept final
     {
         return serializer
-            .Append<uint8_t>((uint8_t)m_features)
-            .Append(m_commitment);
+            .Append(m_commitment)
+            .Append(m_pubkey)
+            .Append(m_signature);
     }
 
     static Input Deserialize(Deserializer& deserializer)
     {
-        const EOutputFeatures features = (EOutputFeatures)deserializer.Read<uint8_t>();
         Commitment commitment = Commitment::Deserialize(deserializer);
-        return Input(features, std::move(commitment));
-    }
-
-    json ToJSON() const noexcept final
-    {
-        return json({
-            {"features", OutputFeatures::ToString(m_features)},
-            {"commit", m_commitment}
-        });
-    }
-
-    static Input FromJSON(const Json& json)
-    {
-        return Input(
-            OutputFeatures::FromString(json.GetRequired<std::string>("features")),
-            json.GetRequired<Commitment>("commit")
-        );
+        PublicKey pubkey = PublicKey::Deserialize(deserializer);
+        Signature signature = Signature::Deserialize(deserializer);
+        return Input(std::move(commitment), std::move(pubkey), std::move(signature));
     }
 
     //
@@ -95,12 +80,13 @@ public:
     mw::Hash GetHash() const noexcept final { return m_hash; }
 
 private:
-    // The features of the output being spent. 
-    // We will check maturity for coinbase output.
-    EOutputFeatures m_features;
-
     // The commit referencing the output being spent.
     Commitment m_commitment;
+
+    // The sender's public key
+    PublicKey m_pubkey;
+
+    Signature m_signature;
 
     mutable mw::Hash m_hash;
 };

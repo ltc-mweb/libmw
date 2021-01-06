@@ -8,16 +8,19 @@
 enum class EConsensusError
 {
     HASH_MISMATCH,
-    CUT_THROUGH,
+    DUPLICATE_COMMITS,
     BLOCK_WEIGHT,
     BLOCK_SUMS,
-    KERNEL_SIG,
+    OWNER_SUMS,
+    INVALID_SIG,
     BULLETPROOF,
     PEGIN_MISMATCH,
     PEGOUT_MISMATCH,
     MMR_MISMATCH,
     UTXO_MISSING,
-    PEGIN_MATURITY
+    PEGIN_MATURITY,
+    KERNEL_MISSING,
+    NOT_SORTED
 };
 
 class ValidationException : public LTCException
@@ -39,14 +42,18 @@ private:
     {
         switch (type)
         {
-            case EConsensusError::CUT_THROUGH:
-                return "CUT_THROUGH";
+            case EConsensusError::HASH_MISMATCH:
+                return "HASH_MISMATCH";
+            case EConsensusError::DUPLICATE_COMMITS:
+                return "DUPLICATE_COMMITS";
             case EConsensusError::BLOCK_WEIGHT:
                 return "BLOCK_WEIGHT";
             case EConsensusError::BLOCK_SUMS:
                 return "BLOCK_SUMS";
-            case EConsensusError::KERNEL_SIG:
-                return "KERNEL_SIG";
+            case EConsensusError::OWNER_SUMS:
+                return "OWNER_SUMS";
+            case EConsensusError::INVALID_SIG:
+                return "INVALID_SIG";
             case EConsensusError::BULLETPROOF:
                 return "BULLETPROOF";
             case EConsensusError::PEGIN_MISMATCH:
@@ -59,6 +66,10 @@ private:
                 return "UTXO_MISSING";
             case EConsensusError::PEGIN_MATURITY:
                 return "PEGIN_MATURITY";
+            case EConsensusError::KERNEL_MISSING:
+                return "KERNEL_MISSING";
+            case EConsensusError::NOT_SORTED:
+                return "NOT_SORTED";
         }
 
         return "UNKNOWN";

@@ -16,3 +16,11 @@ namespace Traits
         virtual const Commitment& GetCommitment() const noexcept = 0;
     };
 }
+
+static struct
+{
+    bool operator()(const Traits::ICommitted& a, const Traits::ICommitted& b) const
+    {
+        return a.GetCommitment() < b.GetCommitment();
+    }
+} SortByCommitment;

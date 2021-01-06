@@ -13,8 +13,6 @@
 
 // Secp256k1
 #include "Context.h"
-#include "Bulletproofs.h"
-#include "MuSig.h"
 #include "Pedersen.h"
 #include "PublicKeys.h"
 #include <mw/crypto/Schnorr.h>
@@ -124,38 +122,8 @@ SecretKey Crypto::AddPrivateKeys(const SecretKey& secretKey1, const SecretKey& s
     ThrowCrypto("secp256k1_ec_privkey_tweak_add failed");
 }
 
-RangeProof::CPtr Crypto::GenerateRangeProof(
-    const uint64_t amount,
-    const SecretKey& key,
-    const SecretKey& privateNonce,
-    const SecretKey& rewindNonce,
-    const ProofMessage& proofMessage)
-{
-    return Bulletproofs(SECP256K1_CONTEXT).GenerateRangeProof(
-        amount,
-        key,
-        privateNonce,
-        rewindNonce,
-        proofMessage
-    );
-}
-
-std::unique_ptr<RewoundProof> Crypto::RewindRangeProof(
-    const Commitment& commitment,
-    const RangeProof& rangeProof,
-    const SecretKey& nonce)
-{
-    return Bulletproofs(SECP256K1_CONTEXT).RewindProof(commitment, rangeProof, nonce);
-}
-
-bool Crypto::VerifyRangeProofs(
-    const std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>>& rangeProofs)
-{
-    return Bulletproofs(SECP256K1_CONTEXT).VerifyBulletproofs(rangeProofs);
-}
-
 std::vector<uint8_t> Crypto::AES256_Encrypt(
-    const SecureVector& input,
+    const std::vector<uint8_t>& input,
     const SecretKey& key,
     const BigInt<16>& iv)
 {
@@ -178,7 +146,7 @@ std::vector<uint8_t> Crypto::AES256_Encrypt(
     return ciphertext;
 }
 
-SecureVector Crypto::AES256_Decrypt(
+std::vector<uint8_t> Crypto::AES256_Decrypt(
     const std::vector<uint8_t>& ciphertext,
     const SecretKey& key,
     const BigInt<16>& iv)
@@ -186,7 +154,7 @@ SecureVector Crypto::AES256_Decrypt(
     assert(ciphertext.size() <= INT_MAX);
 
     // plaintext will always be equal to or lesser than length of ciphertext
-    SecureVector plaintext(ciphertext.size());
+    std::vector<uint8_t> plaintext(ciphertext.size());
 
     AES256CBCDecrypt dec(key.data(), iv.data(), true);
     size_t nLen = dec.Decrypt(ciphertext.data(), (int)ciphertext.size(), plaintext.data());
@@ -200,7 +168,7 @@ SecureVector Crypto::AES256_Decrypt(
     return plaintext;
 }
 
-PublicKey Crypto::CalculatePublicKey(const SecretKey& privateKey)
+PublicKey Crypto::CalculatePublicKey(const BigInt<32>& privateKey)
 {
     return PublicKeys(SECP256K1_CONTEXT).CalculatePublicKey(privateKey);
 }
@@ -215,68 +183,17 @@ PublicKey Crypto::ToPublicKey(const Commitment& commitment)
     return ConversionUtil(SECP256K1_CONTEXT).ToPublicKey(commitment);
 }
 
-Signature Crypto::BuildSignature(
-    const SecretKey& secretKey,
-    const mw::Hash& messageHash)
+PublicKey Crypto::MultiplyKey(const PublicKey& public_key, const SecretKey& mul)
 {
-    return Schnorr::Sign(
-        secretKey,
-        messageHash
-    );    
-}
-
-CompactSignature Crypto::CalculatePartialSignature(
-    const SecretKey& secretKey,
-    const SecretKey& secretNonce,
-    const PublicKey& sumPubKeys,
-    const PublicKey& sumPubNonces,
-    const mw::Hash& message)
-{
-    return MuSig(SECP256K1_CONTEXT).CalculatePartialSignature(
-        secretKey,
-        secretNonce,
-        sumPubKeys,
-        sumPubNonces,
-        message
+    secp256k1_pubkey pubkey = ConversionUtil(SECP256K1_CONTEXT).ToSecp256k1(public_key);
+    const int tweakResult = secp256k1_ec_pubkey_tweak_mul(
+        SECP256K1_CONTEXT.Read()->Get(),
+        &pubkey,
+        mul.data()
     );
-}
+    if (tweakResult == 1) {
+        return ConversionUtil(SECP256K1_CONTEXT).ToPublicKey(pubkey);
+    }
 
-Signature Crypto::AggregateSignatures(
-    const std::vector<CompactSignature>& signatures,
-    const PublicKey& sumPubNonces)
-{
-    return MuSig(SECP256K1_CONTEXT).AggregateSignatures(signatures, sumPubNonces);
-}
-
-bool Crypto::VerifyPartialSignature(
-    const CompactSignature& partialSignature,
-    const PublicKey& publicKey,
-    const PublicKey& sumPubKeys,
-    const PublicKey& sumPubNonces,
-    const mw::Hash& message)
-{
-    return MuSig(SECP256K1_CONTEXT).VerifyPartialSignature(
-        partialSignature,
-        publicKey,
-        sumPubKeys,
-        sumPubNonces,
-        message
-    );
-}
-
-bool Crypto::VerifyAggregateSignature(
-    const Signature& aggregateSignature,
-    const PublicKey sumPubKeys,
-    const mw::Hash& message)
-{
-    return Schnorr::Verify(
-        aggregateSignature,
-        sumPubKeys,
-        message
-    );
-}
-
-SecretKey Crypto::GenerateSecureNonce()
-{
-    return MuSig(SECP256K1_CONTEXT).GenerateSecureNonce();
+    ThrowCrypto("secp256k1_ec_pubkey_tweak_mul failed");
 }

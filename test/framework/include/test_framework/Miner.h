@@ -32,10 +32,12 @@ public:
             pTransaction = Aggregation::Aggregate(transactions);
         }
 
-        auto offset = pTransaction->GetOffset();
+        auto kernel_offset = pTransaction->GetKernelOffset();
         if (!m_blocks.empty()) {
-            offset = Crypto::AddBlindingFactors({ offset, m_blocks.back().GetHeader()->GetOffset() });
+            kernel_offset = Crypto::AddBlindingFactors({ kernel_offset, m_blocks.back().GetKernelOffset() });
         }
+
+        auto owner_offset = pTransaction->GetOwnerOffset();
 
         auto kernelMMR = GetKernelMMR(pTransaction->GetKernels());
         auto outputMMR = GetOutputMMR(pTransaction->GetOutputs());
@@ -48,7 +50,8 @@ public:
             rangeProofMMR.Root(),
             kernelMMR.Root(),
             pLeafSet->Root(),
-            std::move(offset),
+            std::move(kernel_offset),
+            std::move(owner_offset),
             outputMMR.GetNumLeaves(),
             kernelMMR.GetNumLeaves()
         );

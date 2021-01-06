@@ -55,37 +55,10 @@ public:
     );
 
     //
-    //
-    //
-    static RangeProof::CPtr GenerateRangeProof(
-        const uint64_t amount,
-        const SecretKey& key,
-        const SecretKey& privateNonce,
-        const SecretKey& rewindNonce,
-        const ProofMessage& proofMessage
-    );
-
-    //
-    //
-    //
-    static std::unique_ptr<RewoundProof> RewindRangeProof(
-        const Commitment& commitment,
-        const RangeProof& rangeProof,
-        const SecretKey& nonce
-    );
-
-    //
-    //
-    //
-    static bool VerifyRangeProofs(
-        const std::vector<std::tuple<Commitment, RangeProof::CPtr, std::vector<uint8_t>>>& rangeProofs
-    );
-
-    //
     // Encrypts the input with AES256 using the given key.
     //
     static std::vector<uint8_t> AES256_Encrypt(
-        const SecureVector& input,
+        const std::vector<uint8_t>& input,
         const SecretKey& key,
         const BigInt<16>& iv
     );
@@ -93,7 +66,7 @@ public:
     //
     // Decrypts the input with AES256 using the given key.
     //
-    static SecureVector AES256_Decrypt(
+    static std::vector<uint8_t> AES256_Decrypt(
         const std::vector<uint8_t>& ciphertext,
         const SecretKey& key,
         const BigInt<16>& iv
@@ -102,7 +75,7 @@ public:
     //
     // Calculates the 33 byte public key from the 32 byte private key using curve secp256k1.
     //
-    static PublicKey CalculatePublicKey(const SecretKey& privateKey);
+    static PublicKey CalculatePublicKey(const BigInt<32>& privateKey);
 
     //
     // Adds a number of public keys together.
@@ -114,57 +87,6 @@ public:
     // Converts a commitment to a PublicKey.
     //
     static PublicKey ToPublicKey(const Commitment& commitment);
-
-    //
-    // Signs the message using the secret key.
-    // If successful, returns a schnorr signature.
-    //
-    static Signature BuildSignature(
-        const SecretKey& secretKey,
-        const mw::Hash& messageHash
-    );
-
-    //
-    // Builds one party's share of a Schnorr signature.
-    // Returns a CompactSignature if successful.
-    //
-    static CompactSignature CalculatePartialSignature(
-        const SecretKey& secretKey,
-        const SecretKey& secretNonce,
-        const PublicKey& sumPubKeys,
-        const PublicKey& sumPubNonces,
-        const mw::Hash& message
-    );
-
-    //
-    // Verifies one party's share of a Schnorr signature.
-    // Returns true if valid.
-    //
-    static bool VerifyPartialSignature(
-        const CompactSignature& partialSignature,
-        const PublicKey& publicKey,
-        const PublicKey& sumPubKeys,
-        const PublicKey& sumPubNonces,
-        const mw::Hash& message
-    );
-
-    //
-    // Combines multiple partial signatures to build the final aggregate signature.
-    // Returns the raw aggregate signature.
-    //
-    static Signature AggregateSignatures(
-        const std::vector<CompactSignature>& signatures,
-        const PublicKey& sumPubNonces
-    );
-
-    //
-    // Verifies that the signature is a valid signature for the message.
-    //
-    static bool VerifyAggregateSignature(
-        const Signature& aggregateSignature,
-        const PublicKey sumPubKeys,
-        const mw::Hash& message
-    );
 
     //
     // Calculates the blinding factor x' = x + SHA256(xG+vH | xJ), used in the switch commitment x'G+vH.
@@ -182,5 +104,5 @@ public:
         const SecretKey& secretKey2
     );
 
-    static SecretKey GenerateSecureNonce();
+    static PublicKey MultiplyKey(const PublicKey& public_key, const SecretKey& mul);
 };

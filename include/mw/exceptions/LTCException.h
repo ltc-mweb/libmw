@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <string>
 
-class LTCException : public std::exception
+class LTCException : public std::runtime_error
 {
 public:
     ~LTCException() = default;
@@ -17,6 +17,7 @@ public:
 
 protected:
     LTCException(const std::string& type, const std::string& message, const std::string& function)
+        : std::runtime_error(function + ": " + message)
     {
         m_type = type;
         m_message = message;

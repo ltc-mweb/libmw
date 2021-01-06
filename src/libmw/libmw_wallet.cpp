@@ -8,9 +8,10 @@
 LIBMW_NAMESPACE
 WALLET_NAMESPACE
 
+// TODO: Support passing in receiver_addr
 MWEXPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(const libmw::IWallet::Ptr& pWallet, const uint64_t amount)
 {
-    mw::Transaction::CPtr pTx = Wallet::Open(pWallet).CreatePegInTx(amount);
+    mw::Transaction::CPtr pTx = Wallet::Open(pWallet).CreatePegInTx(amount, boost::none);
 
     assert(!pTx->GetKernels().empty());
     libmw::Commitment commit = pTx->GetKernels().front().GetCommitment().array();
@@ -31,24 +32,13 @@ MWEXPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
     return std::make_pair(libmw::TxRef{ pTx }, libmw::PegOut{ amount, address });
 }
 
-MWEXPORT libmw::PartialTransaction Send(
+MWEXPORT libmw::TxRef Send(
     const libmw::IWallet::Ptr& pWallet,
     const uint64_t amount,
     const uint64_t fee_base,
-    const libmw::MWEBAddress&)
+    const libmw::MWEBAddress& address)
 {
-    PartialTx partial_tx = Wallet::Open(pWallet).Send(amount, fee_base);
-    return HexUtil::ToHex(partial_tx.Serialized());
-}
-
-MWEXPORT libmw::TxRef Receive(
-    const libmw::IWallet::Ptr& pWallet,
-    const libmw::PartialTransaction& partialTx)
-{
-    std::vector<uint8_t> serialized = HexUtil::FromHex(partialTx);
-    Deserializer deserializer(serialized);
-    PartialTx partial_tx = PartialTx::Deserialize(deserializer);
-    mw::Transaction::CPtr pTx = Wallet::Open(pWallet).Receive(partial_tx);
+    auto pTx = Wallet::Open(pWallet).Send(amount, fee_base, StealthAddress::Decode(address));
     return libmw::TxRef{ pTx };
 }
 
@@ -74,7 +64,7 @@ MWEXPORT void ScanForOutputs(const libmw::IWallet::Ptr& pWallet, const libmw::IC
 
 MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet)
 {
-    return Wallet::Open(pWallet).GetAddress();
+    return Wallet::Open(pWallet).GetStealthAddress().Encode();
 }
 
 MWEXPORT libmw::WalletBalance GetBalance(const libmw::IWallet::Ptr& pWallet)

@@ -1,6 +1,7 @@
 #include <mw/node/CoinsView.h>
 #include <mw/exceptions/ValidationException.h>
 #include <mw/consensus/Aggregation.h>
+#include <mw/consensus/KernelSumValidator.h>
 #include <mw/common/Logger.h>
 
 MW_NAMESPACE
@@ -28,6 +29,9 @@ mw::BlockUndo::CPtr CoinsViewCache::ApplyBlock(const mw::Block::Ptr& pBlock)
 
     auto pPreviousHeader = GetBestHeader();
     SetBestHeader(pBlock->GetHeader());
+
+    BlindingFactor prev_offset = pPreviousHeader != nullptr ? pPreviousHeader->GetKernelOffset() : BlindingFactor();
+    KernelSumValidator::ValidateForBlock(pBlock->GetTxBody(), pBlock->GetKernelOffset(), prev_offset);
 
     std::for_each(
         pBlock->GetKernels().cbegin(), pBlock->GetKernels().cend(),
@@ -123,13 +127,15 @@ mw::Block::Ptr CoinsViewCache::BuildNextBlock(const uint64_t height, const std::
     mw::Hash kernel_root = m_pKernelMMR->Root();
     mw::Hash leafset_root = m_pLeafSet->Root();
 
-    BlindingFactor total_offset = pTransaction->GetOffset();
+    BlindingFactor kernel_offset = pTransaction->GetKernelOffset();
     if (GetBestHeader() != nullptr) {
-        total_offset = Crypto::AddBlindingFactors({
-            GetBestHeader()->GetOffset(),
-            pTransaction->GetOffset()
+        kernel_offset = Crypto::AddBlindingFactors({
+            GetBestHeader()->GetKernelOffset(),
+            pTransaction->GetKernelOffset()
         });
     }
+
+    BlindingFactor owner_offset = pTransaction->GetOwnerOffset();
 
     auto pHeader = std::make_shared<mw::Header>(
         height,
@@ -137,7 +143,8 @@ mw::Block::Ptr CoinsViewCache::BuildNextBlock(const uint64_t height, const std::
         std::move(rangeproof_root),
         std::move(kernel_root),
         std::move(leafset_root),
-        std::move(total_offset),
+        std::move(kernel_offset),
+        std::move(owner_offset),
         output_mmr_size,
         kernel_mmr_size
     );

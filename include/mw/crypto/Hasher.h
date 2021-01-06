@@ -15,3 +15,9 @@ static mw::Hash Hashed(const Traits::ISerializable& serializable)
     serializable.Serialize(serializer);
     return mw::Hash(SerializeHash(serializer.vec()).begin());
 }
+
+static const mw::Hash& InputMessage()
+{
+    static const mw::Hash mweb_hash = Hashed({ 'M', 'W', 'E', 'B' }); // TODO: Determine actual message
+    return mweb_hash;
+}

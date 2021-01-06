@@ -1,18 +1,19 @@
 #include <mw/crypto/Schnorr.h>
 #include "Context.h"
 #include "ConversionUtil.h"
+#include "PublicKeys.h"
 
 #include <mw/common/Logger.h>
 #include <mw/exceptions/CryptoException.h>
 #include <mw/util/VectorUtil.h>
 
-Locked<Context> SCHNORR_CONTEXT(std::make_shared<Context>());
+static Locked<Context> SCHNORR_CONTEXT(std::make_shared<Context>());
 
-const uint64_t MAX_WIDTH = 1 << 20;
-const size_t SCRATCH_SPACE_SIZE = 256 * MAX_WIDTH;
+static constexpr uint64_t MAX_WIDTH = 1 << 20;
+static constexpr size_t SCRATCH_SPACE_SIZE = 256 * MAX_WIDTH;
 
 Signature Schnorr::Sign(
-    const SecretKey& secretKey,
+    const uint8_t* secretKey,
     const mw::Hash& message)
 {
     secp256k1_schnorrsig signature;
@@ -21,7 +22,7 @@ Signature Schnorr::Sign(
         &signature,
         nullptr,
         message.data(),
-        secretKey.data(),
+        secretKey,
         nullptr,
         nullptr
     );
@@ -30,6 +31,16 @@ Signature Schnorr::Sign(
     }
 
     return ConversionUtil(SCHNORR_CONTEXT).ToSignature(signature);
+}
+
+SignedMessage Schnorr::SignMessage(
+    const BigInt<32>& secretKey,
+    const mw::Hash& message)
+{
+    PublicKey pubkey = PublicKeys(SCHNORR_CONTEXT).CalculatePublicKey(secretKey);
+    Signature sig = Sign(secretKey.data(), message);
+
+    return SignedMessage(message, pubkey, sig);
 }
 
 bool Schnorr::Verify(
@@ -53,50 +64,37 @@ bool Schnorr::Verify(
     return verifyResult == 1;
 }
 
-bool Schnorr::BatchVerify(const std::vector<std::tuple<Signature, Commitment, mw::Hash>>& signatures)
+// TODO: Cache validated SignedMessages
+bool Schnorr::BatchVerify(const std::vector<SignedMessage>& signatures)
 {
-    std::vector<const Signature*> signature_ptrs;
-    std::vector<const Commitment*> commitment_ptrs;
-    std::vector<const mw::Hash*> message_ptrs;
-
-    for (const auto& signature : signatures)
-    {
-        signature_ptrs.push_back(&std::get<0>(signature));
-        commitment_ptrs.push_back(&std::get<1>(signature));
-        message_ptrs.push_back(&std::get<2>(signature));
-    }
-
-    return BatchVerify(signature_ptrs, commitment_ptrs, message_ptrs);
-}
-
-bool Schnorr::BatchVerify(
-    const std::vector<const Signature*>& signatures,
-    const std::vector<const Commitment*>& commitments,
-    const std::vector<const mw::Hash*>& messages)
-{
-    assert(signatures.size() == commitments.size());
-    assert(commitments.size() == messages.size());
-
+    // Parse pubkeys
     std::vector<secp256k1_pubkey> parsedPubKeys;
     std::transform(
-        commitments.cbegin(), commitments.cend(),
+        signatures.cbegin(), signatures.cend(),
         std::back_inserter(parsedPubKeys),
-        [](const Commitment* commitment) -> secp256k1_pubkey {
-            PublicKey publicKey = ConversionUtil(SCHNORR_CONTEXT).ToPublicKey(*commitment);
-            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(publicKey);
+        [](const SignedMessage& signed_message) -> secp256k1_pubkey {
+            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signed_message.GetPublicKey());
         }
     );
-
     std::vector<secp256k1_pubkey*> pubKeyPtrs = VectorUtil::ToPointerVec(parsedPubKeys);
 
-    std::vector<secp256k1_schnorrsig> parsedSignatures = ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signatures);
+    // Parse signatures
+    std::vector<secp256k1_schnorrsig> parsedSignatures;
+    std::transform(
+        signatures.cbegin(), signatures.cend(),
+        std::back_inserter(parsedSignatures),
+        [](const SignedMessage& signed_message) -> secp256k1_schnorrsig {
+            return ConversionUtil(SCHNORR_CONTEXT).ToSecp256k1(signed_message.GetSignature());
+        }
+    );
     std::vector<secp256k1_schnorrsig*> signaturePtrs = VectorUtil::ToPointerVec(parsedSignatures);
 
-    std::vector<const unsigned char*> messageData;
+    // Transform messages
+    std::vector<const uint8_t*> messageData;
     std::transform(
-        messages.cbegin(), messages.cend(),
+        signatures.cbegin(), signatures.cend(),
         std::back_inserter(messageData),
-        [](const mw::Hash* pMessage) { return pMessage->data(); }
+        [](const SignedMessage& signed_message) { return signed_message.GetMsgHash().data(); }
     );
 
     secp256k1_scratch_space* pScratchSpace = secp256k1_scratch_space_create(

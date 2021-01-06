@@ -33,13 +33,14 @@ add_subdirectory(tests/util)
 add_subdirectory(tests/wallet)
 
 add_executable(Tests ${test_sources})
-add_dependencies(Tests fmt::fmt MW_TEST::Framework MW::Node)
+add_dependencies(Tests fmt::fmt MW_TEST::Framework MW::Node MW::Wallet)
 target_link_libraries(Tests MW_TEST::Framework MW::Node Catch2::Catch2 libmw)
 
 include(CTest)
 include(Catch)
 catch_discover_tests(Tests)
 
-add_custom_command(TARGET Tests
-                POST_BUILD
-                COMMAND ctest -C $<CONFIGURATION> --output-on-failure)
+add_custom_command(
+    TARGET Tests POST_BUILD
+    COMMAND ctest -C $<CONFIGURATION> --output-on-failure
+)

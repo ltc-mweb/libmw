@@ -40,6 +40,6 @@ install(
     DESTINATION include/libmw
 )
 
-if(MW_TESTS)
+if (MW_TESTS)
 	add_subdirectory(test)
 endif()

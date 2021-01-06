@@ -9,7 +9,6 @@
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Printable.h>
-#include <mw/traits/Jsonable.h>
 #include <algorithm>
 
 MW_NAMESPACE
@@ -17,8 +16,7 @@ MW_NAMESPACE
 class Block final :
     public Traits::IPrintable,
     public Traits::ISerializable,
-    public Traits::IHashable,
-    public Traits::IJsonable
+    public Traits::IHashable
 {
 public:
     using Ptr = std::shared_ptr<Block>;
@@ -52,7 +50,8 @@ public:
     const std::vector<Kernel>& GetKernels() const noexcept { return m_body.GetKernels(); }
 
     uint64_t GetHeight() const noexcept { return m_pHeader->GetHeight(); }
-    const BlindingFactor& GetOffset() const noexcept { return m_pHeader->GetOffset(); }
+    const BlindingFactor& GetKernelOffset() const noexcept { return m_pHeader->GetKernelOffset(); }
+    const BlindingFactor& GetOwnerOffset() const noexcept { return m_pHeader->GetOwnerOffset(); }
 
     uint64_t GetTotalFee() const noexcept { return m_body.GetTotalFee(); }
     std::vector<Kernel> GetPegInKernels() const noexcept { return m_body.GetPegInKernels(); }
@@ -75,23 +74,6 @@ public:
         return Block{ pHeader, std::move(body) };
     }
 
-    json ToJSON() const noexcept final
-    {
-        assert(m_pHeader != nullptr);
-        return json({
-            { "header", m_pHeader->ToJSON() },
-            { "body", m_body }
-        });
-    }
-
-    static Block FromJSON(const Json& json)
-    {
-        return Block{
-            std::make_shared<mw::Header>(json.GetRequired<mw::Header>("header")),
-            json.GetRequired<TxBody>("body")
-        };
-    }
-
     //
     // Traits
     //
@@ -101,10 +83,7 @@ public:
     //
     // Context-free validation of the block.
     //
-    void Validate() const
-    {
-        m_body.Validate();
-    }
+    void Validate() const;
 
     bool WasValidated() const noexcept { return m_validated; }
     void MarkAsValidated() noexcept { m_validated = true; }

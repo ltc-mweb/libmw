@@ -19,7 +19,8 @@ public:
     secret_key_t(BigInt<NUM_BYTES>&& value) : m_value(std::move(value)) { }
     secret_key_t(const SecureVector& bytes) : m_value(BigInt<NUM_BYTES>(bytes.data())) { }
     secret_key_t(std::vector<uint8_t>&& bytes) : m_value(BigInt<NUM_BYTES>(std::move(bytes))) { }
-    secret_key_t(std::array<uint8_t, NUM_BYTES>& bytes) : m_value(BigInt<NUM_BYTES>(std::move(bytes))) { }
+    secret_key_t(const std::array<uint8_t, NUM_BYTES>& bytes) : m_value(BigInt<NUM_BYTES>(bytes)) {}
+    secret_key_t(std::array<uint8_t, NUM_BYTES>&& bytes) : m_value(BigInt<NUM_BYTES>(std::move(bytes))) { }
 
     //
     // Destructor
@@ -27,10 +28,16 @@ public:
     virtual ~secret_key_t() = default;
 
     //
+    // Operators
+    //
+    inline bool operator==(const secret_key_t<NUM_BYTES>& rhs) const noexcept { return m_value == rhs.m_value; }
+
+    //
     // Getters
     //
     const BigInt<NUM_BYTES>& GetBigInt() const { return m_value; }
     const std::vector<uint8_t>& vec() const { return m_value.vec(); }
+    std::array<uint8_t, 32> array() const noexcept { return m_value.ToArray(); }
     uint8_t* data() { return m_value.data(); }
     const uint8_t* data() const { return m_value.data(); }
     size_t size() const { return m_value.size(); }

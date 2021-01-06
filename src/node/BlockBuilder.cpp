@@ -1,5 +1,5 @@
 #include <mw/node/BlockBuilder.h>
-#include <mw/consensus/BlockSumValidator.h>
+#include <mw/consensus/KernelSumValidator.h>
 #include <unordered_set>
 
 MW_NAMESPACE
@@ -42,8 +42,7 @@ bool BlockBuilder::AddTransaction(const Transaction::CPtr& pTransaction, const s
     }
 
     // Validate transaction
-    pTransaction->GetBody().Validate();
-    BlockSumValidator::ValidateForTx(*pTransaction);
+    pTransaction->Validate();
 
     // Add transaction
     mw::CoinsViewCache cache(m_pCoinsView);
