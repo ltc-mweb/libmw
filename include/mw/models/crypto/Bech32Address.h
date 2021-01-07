@@ -21,20 +21,20 @@ public:
     static Bech32Address FromString(const std::string& address)
     {
         auto decoded = bech32::Decode(address);
-        if (decoded.first.empty()) {
+        if (decoded.first.empty() || decoded.second.empty()) {
             ThrowDeserialization("Failed to decode Bech32Address.");
         }
 
-        std::vector<uint8_t> addr;
-        ConvertBits<5, 8, false>([&](uint8_t c) { addr.push_back(c); }, decoded.second.begin(), decoded.second.end());
+        std::vector<uint8_t> addr = { decoded.second[0] };
+        ConvertBits<5, 8, false>([&](uint8_t c) { addr.push_back(c); }, decoded.second.begin() + 1, decoded.second.end());
 
         return Bech32Address(decoded.first, addr);
     }
 
     std::string ToString() const
     {
-        std::vector<uint8_t> data;
-        ConvertBits<8, 5, true>([&](uint8_t c) { data.push_back(c); }, m_address.begin(), m_address.end());
+        std::vector<uint8_t> data = { m_address[0] };
+        ConvertBits<8, 5, true>([&](uint8_t c) { data.push_back(c); }, m_address.begin() + 1, m_address.end());
         return bech32::Encode(m_hrp, data);
     }
 
