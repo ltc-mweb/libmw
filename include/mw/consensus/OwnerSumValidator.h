@@ -30,10 +30,17 @@ public:
             [](const SignedMessage& owner_sig) { return owner_sig.GetPublicKey(); }
         );
 
-        input_pubkeys.push_back(Crypto::CalculatePublicKey(owner_offset.GetBigInt()));
+        if (!owner_offset.IsZero()) {
+            input_pubkeys.push_back(Crypto::CalculatePublicKey(owner_offset.GetBigInt()));
+        }
 
-        PublicKey total_input_pubkey = Crypto::AddPublicKeys(input_pubkeys);
-        PublicKey total_output_pubkey = Crypto::AddPublicKeys(output_pubkeys);
+        PublicKey total_input_pubkey, total_output_pubkey;
+        if (!input_pubkeys.empty()) {
+            total_input_pubkey = Crypto::AddPublicKeys(input_pubkeys);
+        }
+        if (!output_pubkeys.empty()) {
+            total_output_pubkey = Crypto::AddPublicKeys(output_pubkeys);
+        }
 
         // inputs.pubkeys + owner_sigs.pubkeys + (owner_offset*G) = outputs.pubkeys
         if (total_input_pubkey != total_output_pubkey) {

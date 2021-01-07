@@ -130,7 +130,10 @@ private:
             output_commitments.push_back(Crypto::CommitTransparent(std::abs(coins_added)));
         }
 
-        Commitment sum_utxo_commitment = Crypto::AddCommitments(output_commitments, input_commitments);
+        Commitment sum_utxo_commitment;
+        if (!input_commitments.empty() || !output_commitments.empty()) {
+            sum_utxo_commitment = Crypto::AddCommitments(output_commitments, input_commitments);
+        }
 
         std::vector<Commitment> kernel_excess_commitments;
         std::transform(
@@ -143,7 +146,11 @@ private:
             kernel_excess_commitments.push_back(Crypto::CommitBlinded((uint64_t)0, offset));
         }
 
-        Commitment sum_excess_commitment = Crypto::AddCommitments(kernel_excess_commitments);
+        Commitment sum_excess_commitment;
+        if (!kernel_excess_commitments.empty()) {
+            sum_excess_commitment = Crypto::AddCommitments(kernel_excess_commitments);
+        }
+
         if (sum_utxo_commitment != sum_excess_commitment) {
             LOG_ERROR_F(
                 "UTXO sum {} does not match kernel excess sum {}.",
