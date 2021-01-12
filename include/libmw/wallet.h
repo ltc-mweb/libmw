@@ -78,13 +78,21 @@ MWIMPORT void ScanForOutputs(
 );
 
 /// <summary>
-/// Calculates the MWEB wallet address.
+/// Computes the MWEB wallet address.
 /// Currently, this always generates an address using a pre-defined bip32 keychain path.
 /// TODO: Add multi-address support.
 /// </summary>
 /// <param name="pWallet">The wallet to calculate the MWEB wallet address for. Must not be null.</param>
 /// <returns>The MWEB wallet's bech32 address.</returns>
 MWIMPORT MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet);
+
+/// <summary>
+/// Determines if the MWEB wallet address belongs to the given wallet.
+/// </summary>
+/// <param name="pWallet">The wallet to check. Must not be null.</param>
+/// <param name="address">The bech32 address to check ownership of.</param>
+/// <returns>True if the address belongs to the wallet.</returns>
+MWIMPORT bool IsOwnAddress(const libmw::IWallet::Ptr& pWallet, const MWEBAddress& address);
 
 /// <summary>
 /// Calculates the balances of the wallet.

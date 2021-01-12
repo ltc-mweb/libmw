@@ -67,6 +67,11 @@ MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet)
     return Wallet::Open(pWallet).GetStealthAddress().Encode();
 }
 
+MWEXPORT bool IsOwnAddress(const libmw::IWallet::Ptr& pWallet, const libmw::MWEBAddress& address)
+{
+    return GetAddress(pWallet) == address;
+}
+
 MWEXPORT libmw::WalletBalance GetBalance(const libmw::IWallet::Ptr& pWallet)
 {
     return Wallet::Open(pWallet).GetBalance();
