@@ -51,7 +51,4 @@ private:
     libmw::IWallet::Ptr m_pWalletInterface;
     SecretKey m_masterKey;
     PublicKey m_masterPub;
-
-    SecretKey RewindNonce(const Commitment& commitment) const;
-    SecretKey SecretNonce(const Commitment& commitment) const;
 };

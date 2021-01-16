@@ -22,7 +22,13 @@ public:
             blinding_factor
         );
 
-        OwnerData owner_data = CreateOwnerData(features, sender_privkey, receiver_addr, blinding_factor, amount);
+        OwnerData owner_data = CreateOwnerData(
+            features,
+            sender_privkey,
+            receiver_addr,
+            blinding_factor,
+            amount
+        );
 
         // TODO: Determine how to use bulletproof rewind messages.
         // Probably best to store sender_key so sender can identify all outputs they've sent?

@@ -1,6 +1,7 @@
 #include <catch.hpp>
 
 #include <test_framework/TestWallet.h>
+#include <mw/consensus/Weight.h>
 #include <mw/models/block/Block.h>
 #include <mw/models/tx/Transaction.h>
 #include <mw/config/ChainParams.h>
@@ -36,16 +37,17 @@ TEST_CASE("Wallet - Peg-out")
     REQUIRE(pegouts[0].address == "tltc1qh50sy0823vxn4l9zk2820w4fuj0q4fgjza5vv");
     REQUIRE(pegouts[0].amount == 3'000'000);
 
+    uint64_t expected_fee = 10'000 * Weight::Calculate({ .num_kernels = 1, .num_owner_sigs = 1, .num_outputs = 2 });
+    uint64_t change_amount = (2'000'000 - expected_fee);
     REQUIRE(pegout_tx.first.pTransaction->GetPegOutKernels().size() == 1);
-    REQUIRE(pegout_tx.first.pTransaction->GetPegOutKernels()[0].GetFee() == 210'000);
-
+    REQUIRE(pegout_tx.first.pTransaction->GetPegOutKernels()[0].GetFee() == expected_fee);
 
     libmw::node::CheckTransaction(pegout_tx.first);
 
-    // Balance should have 1'790'000 unconfirmed litoshis (2'000'000 - fee)
+    // Balance should have (2'000'000 - fee) unconfirmed litoshis
     balance = libmw::wallet::GetBalance(pTestWallet);
     REQUIRE(balance.confirmed_balance == 0);
-    REQUIRE(balance.unconfirmed_balance == 1'790'000);
+    REQUIRE(balance.unconfirmed_balance == change_amount);
     REQUIRE(balance.immature_balance == 0);
     REQUIRE(balance.locked_balance == 5'000'000);
 
@@ -60,7 +62,7 @@ TEST_CASE("Wallet - Peg-out")
 
     // Balance should have 2,000,000 confirmed litoshis
     balance = libmw::wallet::GetBalance(pTestWallet);
-    REQUIRE(balance.confirmed_balance == 1'790'000);
+    REQUIRE(balance.confirmed_balance == change_amount);
     REQUIRE(balance.unconfirmed_balance == 0);
     REQUIRE(balance.immature_balance == 0);
     REQUIRE(balance.locked_balance == 0);
