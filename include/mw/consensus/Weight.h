@@ -35,16 +35,11 @@ public:
 
     static bool ExceedsMaximum(const TxBody& tx_body)
     {
-        if (tx_body.GetInputs().size() > MAX_BLOCK_INPUTS) {
-            return true;
-        }
-
         return Calculate(tx_body) > MAX_BLOCK_WEIGHT;
     }
 
 private:
     static constexpr size_t MAX_BLOCK_WEIGHT = 21'000;
-    static constexpr size_t MAX_BLOCK_INPUTS = 10'000;
     static constexpr size_t KERNEL_WEIGHT = 2;
     static constexpr size_t OWNER_SIG_WEIGHT = 1;
     static constexpr size_t OUTPUT_WEIGHT = 18;

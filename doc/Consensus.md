@@ -80,4 +80,4 @@ TBD
 * Kernels shall be counted as having a weight of 2.
 * Signed owner messages shall be counted as having a weight of 1.
 * Extension blocks shall be capped at a maximum total weight of 21,000.
-* Inputs shall not not contribute toward the block weight, but shall be capped at a maximum of 10,000 per block.
+* Inputs shall not not contribute toward the block weight.
