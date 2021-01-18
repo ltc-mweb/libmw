@@ -15,15 +15,17 @@ mw::Transaction::CPtr PegOut::CreatePegOutTx(
     const uint64_t fee_base,
     const Bech32Address& address) const
 {
-    // Select coins
-    std::vector<libmw::Coin> input_coins = CoinSelection::SelectCoins(m_wallet.GetInterface(), amount, fee_base);
-    std::vector<Input> inputs = WalletUtil::SignInputs(input_coins);
-
     // Calculate fee
     const uint64_t fee = fee_base * Weight::Calculate({ .num_kernels = 1, .num_owner_sigs = 1, .num_outputs = 2 });
+
+    // Select coins
+    std::vector<libmw::Coin> input_coins = CoinSelection::SelectCoins(m_wallet.GetInterface(), amount + fee, fee_base);
     if (WalletUtil::TotalAmount(input_coins) < (amount + fee)) {
         ThrowInsufficientFunds("Not enough funds");
     }
+
+    // Sign inputs
+    std::vector<Input> inputs = WalletUtil::SignInputs(input_coins);
 
     // Create change output.
     // We randomly generate the sender_key and output_blind.

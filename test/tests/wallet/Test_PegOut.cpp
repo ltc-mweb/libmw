@@ -31,14 +31,15 @@ TEST_CASE("Wallet - Peg-out")
     REQUIRE(balance.locked_balance == 0);
 
     // Peg-out 3,000,000 litoshis
-    auto pegout_tx = libmw::wallet::CreatePegOutTx(pTestWallet, 3'000'000, 10'000, "tltc1qh50sy0823vxn4l9zk2820w4fuj0q4fgjza5vv");
+    const uint64_t fee_rate = 10'000;
+    auto pegout_tx = libmw::wallet::CreatePegOutTx(pTestWallet, 3'000'000, fee_rate, "tltc1qh50sy0823vxn4l9zk2820w4fuj0q4fgjza5vv");
     auto pegouts = pegout_tx.first.GetPegouts();
     REQUIRE(pegouts.size() == 1);
     REQUIRE(pegouts[0].address == "tltc1qh50sy0823vxn4l9zk2820w4fuj0q4fgjza5vv");
     REQUIRE(pegouts[0].amount == 3'000'000);
 
-    uint64_t expected_fee = 10'000 * Weight::Calculate({ .num_kernels = 1, .num_owner_sigs = 1, .num_outputs = 2 });
-    uint64_t change_amount = (2'000'000 - expected_fee);
+    uint64_t expected_fee = fee_rate * Weight::Calculate({ .num_kernels = 1, .num_owner_sigs = 1, .num_outputs = 2 });
+    uint64_t change_amount = 2'000'000 - expected_fee;
     REQUIRE(pegout_tx.first.pTransaction->GetPegOutKernels().size() == 1);
     REQUIRE(pegout_tx.first.pTransaction->GetPegOutKernels()[0].GetFee() == expected_fee);
 

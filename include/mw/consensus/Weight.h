@@ -12,7 +12,7 @@ public:
         size_t num_outputs;
     };
 
-    static size_t Calculate(Arguments args)
+    static size_t Calculate(const Arguments& args)
     {
         return Calculate(args.num_kernels, args.num_owner_sigs, args.num_outputs);
     }
@@ -43,8 +43,4 @@ private:
     static constexpr size_t KERNEL_WEIGHT = 2;
     static constexpr size_t OWNER_SIG_WEIGHT = 1;
     static constexpr size_t OUTPUT_WEIGHT = 18;
-
-    size_t m_kernels;
-    size_t m_ownerSigs;
-    size_t m_outputs;
 };

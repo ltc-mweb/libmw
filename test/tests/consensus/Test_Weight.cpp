@@ -14,12 +14,12 @@ TEST_CASE("Weight::ExceedsMaximum")
         builder.AddPlainKernel(1'000, true);
     }
 
-    // 1,000 inputs - 1,000 outputs - 1,000 kernels - 1,000 owner_sigs = 21,000 Weight
+    // 1,000 outputs - 1,000 kernels - 1,000 owner_sigs = 21,000 Weight
     auto pTx1 = builder.Build();
     REQUIRE(Weight::Calculate(pTx1->GetBody()) == 21'000);
     REQUIRE_FALSE(Weight::ExceedsMaximum(pTx1->GetBody()));
 
-    // 1,000 inputs - 1,000 outputs - 1,001 kernels - 1,000 owner_sigs = 21,002 Weight
+    // 1,000 outputs - 1,001 kernels - 1,000 owner_sigs = 21,002 Weight
     auto pTx2 = builder.AddInput(1'000).AddPlainKernel(1'000).Build();
     REQUIRE(Weight::Calculate(pTx2->GetBody()) == 21'002);
     REQUIRE(Weight::ExceedsMaximum(pTx2->GetBody()));
