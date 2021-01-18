@@ -1,5 +1,6 @@
 #include <mw/models/tx/TxBody.h>
 #include <mw/exceptions/ValidationException.h>
+#include <mw/consensus/Weight.h>
 
 #include <unordered_set>
 
@@ -123,7 +124,10 @@ TxBody TxBody::Deserialize(Deserializer& deserializer)
 
 void TxBody::Validate() const
 {
-    // TODO: Validate Weight
+    // Verify weight
+    if (Weight::ExceedsMaximum(*this)) {
+        ThrowValidation(EConsensusError::BLOCK_WEIGHT);
+    }
 
     // Verify inputs, outputs, kernels, and owner signatures are sorted
     if (!std::is_sorted(m_inputs.cbegin(), m_inputs.cend(), SortByCommitment)

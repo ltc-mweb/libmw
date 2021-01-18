@@ -2,6 +2,7 @@
 #include "CoinSelection.h"
 #include "WalletUtil.h"
 
+#include <mw/consensus/Weight.h>
 #include <mw/crypto/Blinds.h>
 #include <mw/exceptions/InsufficientFundsException.h>
 #include <mw/wallet/Wallet.h>
@@ -19,7 +20,8 @@ mw::Transaction::CPtr Transact::CreateTx(
     std::vector<Input> inputs = WalletUtil::SignInputs(input_coins);
 
     // Calculate fee
-    const uint64_t fee = WalletUtil::CalculateFee(fee_base, input_coins.size(), 1, 2);
+    const uint64_t weight = Weight::Calculate({ .num_kernels = 1, .num_owner_sigs = 1, .num_outputs = 2 });
+    const uint64_t fee = fee_base * weight;
     if (WalletUtil::TotalAmount(input_coins) < (amount + fee)) {
         ThrowInsufficientFunds("Not enough funds");
     }

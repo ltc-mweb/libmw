@@ -46,8 +46,6 @@ public:
     mw::Transaction::CPtr Build();
 
 private:
-    bool m_built;
-
     int64_t m_amount;
     Blinds m_kernelOffset;
     Blinds m_ownerOffset;

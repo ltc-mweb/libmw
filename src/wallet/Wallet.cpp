@@ -269,13 +269,3 @@ libmw::Coin Wallet::RewindOutput(const Output& output) const
 
     throw std::runtime_error("Unable to rewind output");
 }
-
-SecretKey Wallet::RewindNonce(const Commitment& commitment) const
-{
-    return Hashed(Serializer().Append(commitment).Append(m_masterPub).vec());
-}
-
-SecretKey Wallet::SecretNonce(const Commitment& commitment) const
-{
-    return Hashed(Serializer().Append(commitment).Append(m_masterKey).vec());
-}
