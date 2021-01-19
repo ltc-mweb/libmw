@@ -29,22 +29,22 @@ public:
             [](const UTXO::CPtr& pUTXO) { return pUTXO->GetCommitment(); }
         );
 
-        uint64_t total_mw_supply = 0;
+        uint64_t total_pegins = 0;
+        uint64_t total_pegouts = 0;
         for (const Kernel& kernel : kernels)
         {
             if (kernel.IsPegIn()) {
-                total_mw_supply += kernel.GetAmount();
+                total_pegins += kernel.GetAmount();
             } else if (kernel.IsPegOut()) {
-                if (kernel.GetAmount() > total_mw_supply) {
-                    ThrowValidation(EConsensusError::BLOCK_SUMS);
-                }
-
-                total_mw_supply -= kernel.GetAmount();
+                total_pegouts += kernel.GetAmount();
             }
-
-            total_mw_supply -= kernel.GetFee();
+            total_pegouts += kernel.GetFee();
+        }
+        if (total_pegouts > total_pegins) {
+            ThrowValidation(EConsensusError::BLOCK_SUMS);
         }
 
+        uint64_t total_mw_supply = total_pegins - total_pegouts;
         Commitment total_utxo_commitment = Crypto::AddCommitments(
             utxo_commitments,
             { Crypto::CommitTransparent(total_mw_supply) }
