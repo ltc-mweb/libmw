@@ -19,7 +19,7 @@ mw::Transaction::CPtr PegOut::CreatePegOutTx(
     const uint64_t fee = fee_base * Weight::Calculate({ .num_kernels = 1, .num_owner_sigs = 1, .num_outputs = 2 });
 
     // Select coins
-    std::vector<libmw::Coin> input_coins = CoinSelection::SelectCoins(m_wallet.GetInterface(), amount + fee, fee_base);
+    std::vector<libmw::Coin> input_coins = CoinSelection::SelectCoins(m_wallet.GetInterface(), amount + fee);
     if (WalletUtil::TotalAmount(input_coins) < (amount + fee)) {
         ThrowInsufficientFunds("Not enough funds");
     }

@@ -73,12 +73,10 @@ public:
 
     std::vector<libmw::Coin> SelectCoins(
         const std::vector<libmw::Coin>& coins,
-        const uint64_t amount,
-        const uint64_t fee_base) const final
+        const uint64_t amount) const final
     {
         std::vector<libmw::Coin> selected_coins;
 
-        uint64_t fee = 10 * fee_base;
         uint64_t inputs_amount = 0;
         for (const libmw::Coin& coin : coins) {
             if (coin.spent) {
@@ -87,12 +85,12 @@ public:
 
             inputs_amount += coin.amount;
             selected_coins.push_back(coin);
-            if (inputs_amount >= amount + fee) {
+            if (inputs_amount >= amount) {
                 break;
             }
         }
 
-        if (inputs_amount <= amount + fee) {
+        if (inputs_amount < amount) {
             ThrowInsufficientFunds("Not enough funds");
         }
 
