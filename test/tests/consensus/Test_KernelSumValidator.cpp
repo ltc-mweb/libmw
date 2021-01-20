@@ -3,42 +3,84 @@
 #include <mw/consensus/KernelSumValidator.h>
 #include <mw/consensus/Aggregation.h>
 #include <mw/crypto/Random.h>
+#include <mw/file/ScopedFileRemover.h>
+#include <mw/node/CoinsView.h>
+#include <mw/node/INode.h>
 
 #include <test_framework/models/Tx.h>
+#include <test_framework/DBWrapper.h>
+#include <test_framework/Miner.h>
+#include <test_framework/TestUtil.h>
 #include <test_framework/TxBuilder.h>
 
 // FUTURE: Create official test vectors for the consensus rules being tested
 
 TEST_CASE("KernelSumValidator::ValidateState")
 {
-    mw::Transaction::CPtr tx = test::TxBuilder()
-        .AddPeginKernel(50)
-        .AddOutput(20)
-        .AddPlainKernel(10)
-        .AddPegoutKernel(15, 5)
-        .AddPeginKernel(30)
-        .AddOutput(30, EOutputFeatures::PEGGED_IN)
-        .Build();
+    FilePath datadir = test::TestUtil::GetTempDir();
+    ScopedFileRemover remover(datadir); // Removes the directory when this goes out of scope.
 
-    const std::vector<Output>& outputs = tx->GetOutputs();
-    std::vector<UTXO::CPtr> utxos;
+    {
+        auto pDatabase = std::make_shared<TestDBWrapper>();
+        auto pNode = mw::InitializeNode(datadir, "test", nullptr, pDatabase);
+        REQUIRE(pNode != nullptr);
 
-    std::transform(
-        outputs.cbegin(), outputs.cend(),
-        std::back_inserter(utxos),
-        [](const Output& output) {
-            return std::make_shared<const UTXO>(
-                Random::FastRandom(),
-                mmr::LeafIndex::At(Random::FastRandom()),
-                output
-            );
-        }
-    );
+        auto pDBView = pNode->GetDBView();
+        auto pCachedView = std::make_shared<mw::CoinsViewCache>(pDBView);
 
-    REQUIRE(utxos.size() == 2);
-    REQUIRE(tx->GetKernels().size() == 4);
+        test::Miner miner;
 
-    KernelSumValidator::ValidateState(utxos, tx->GetKernels(), tx->GetKernelOffset());
+        BlindingFactor blind = Random::CSPRNG<32>();
+
+        // Block containing peg-ins only
+        mw::Transaction::CPtr tx1 = test::TxBuilder()
+            .AddPeginKernel(50)
+            .AddOutput(50, EOutputFeatures::PEGGED_IN, blind)
+            .AddPeginKernel(30)
+            .AddOutput(30, EOutputFeatures::PEGGED_IN)
+            .Build();
+
+        auto pegInKernels = tx1->GetPegInKernels();
+        std::vector<PegInCoin> pegInCoins;
+        std::transform(
+            pegInKernels.cbegin(), pegInKernels.cend(),
+            std::back_inserter(pegInCoins),
+            [](const Kernel& kernel) {
+                return PegInCoin(kernel.GetAmount(), kernel.GetCommitment());
+            }
+        );
+
+        auto block1 = miner.MineBlock(150, { tx1 });
+        pNode->ValidateBlock(block1.GetBlock(), block1.GetHash(), pegInCoins, {});
+        pNode->ConnectBlock(block1.GetBlock(), pCachedView);
+        pCachedView->ValidateState();
+
+        // Block containing peg-outs and regular sends only
+        mw::Transaction::CPtr tx2 = test::TxBuilder()
+            .AddInput(50, EOutputFeatures::PEGGED_IN, blind)
+            .AddPegoutKernel(15, 5)
+            .AddPlainKernel(10)
+            .AddOutput(20)
+            .Build();
+
+        auto pegOutKernels = tx2->GetPegOutKernels();
+        std::vector<PegOutCoin> pegOutCoins;
+        std::transform(
+            pegOutKernels.cbegin(), pegOutKernels.cend(),
+            std::back_inserter(pegOutCoins),
+            [](const Kernel& kernel) {
+                return PegOutCoin(kernel.GetAmount(), *kernel.GetAddress());
+            }
+        );
+
+        auto block2 = miner.MineBlock(151, { tx2 });
+        pNode->ValidateBlock(block2.GetBlock(), block2.GetHash(), {}, pegOutCoins);
+        pNode->ConnectBlock(block2.GetBlock(), pCachedView);
+        pCachedView->ValidateState();
+
+        pNode.reset();
+        LoggerAPI::Shutdown();
+    }
 }
 
 TEST_CASE("KernelSumValidator::ValidateForBlock")
