@@ -60,7 +60,7 @@ public:
     virtual LeafIndex GetNextLeafIdx() const noexcept = 0;
 
     /// <summary>
-    /// Gets the number of leaves in the MMR, including those that have been prruned.
+    /// Gets the number of leaves in the MMR, including those that have been pruned.
     /// eg. If the MMR contains leaves 0, 1, and 2, this will return 3.
     /// </summary>
     /// <returns>The number of (pruned and unpruned) leaves in the MMR.</returns>
