@@ -38,10 +38,12 @@ public:
                 if (kernel.GetAmount() > total_mw_supply) {
                     ThrowValidation(EConsensusError::BLOCK_SUMS);
                 }
-
                 total_mw_supply -= kernel.GetAmount();
             }
 
+            if (kernel.GetFee() > total_mw_supply) {
+                ThrowValidation(EConsensusError::BLOCK_SUMS);
+            }
             total_mw_supply -= kernel.GetFee();
         }
 
