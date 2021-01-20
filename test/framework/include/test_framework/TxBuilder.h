@@ -43,7 +43,7 @@ public:
     TxBuilder& AddPeginKernel(const uint64_t amount, const bool add_owner_sig = false);
     TxBuilder& AddPegoutKernel(const uint64_t amount, const uint64_t fee, const bool add_owner_sig = false);
 
-    mw::Transaction::CPtr Build(bool sort = true);
+    mw::Transaction::CPtr Build();
 
 private:
     int64_t m_amount;

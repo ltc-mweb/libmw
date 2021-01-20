@@ -154,16 +154,14 @@ TxBuilder& TxBuilder::AddPegoutKernel(const uint64_t amount, const uint64_t fee,
     return *this;
 }
 
-mw::Transaction::CPtr TxBuilder::Build(bool sort)
+mw::Transaction::CPtr TxBuilder::Build()
 {
     assert(m_amount == 0);
 
-    if (sort) {
-        std::sort(m_inputs.begin(), m_inputs.end(), SortByCommitment);
-        std::sort(m_outputs.begin(), m_outputs.end(), SortByCommitment);
-        std::sort(m_kernels.begin(), m_kernels.end(), SortByHash);
-        std::sort(m_ownerSigs.begin(), m_ownerSigs.end(), SortByHash);
-    }
+    std::sort(m_inputs.begin(), m_inputs.end(), SortByCommitment);
+    std::sort(m_outputs.begin(), m_outputs.end(), SortByCommitment);
+    std::sort(m_kernels.begin(), m_kernels.end(), SortByHash);
+    std::sort(m_ownerSigs.begin(), m_ownerSigs.end(), SortByHash);
 
     return std::make_shared<mw::Transaction>(
         m_kernelOffset.Total(),

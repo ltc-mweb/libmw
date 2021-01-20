@@ -18,7 +18,7 @@ TEST_CASE("KernelSumValidator::ValidateState")
         .AddPegoutKernel(15, 5)
         .AddPeginKernel(30)
         .AddOutput(30, EOutputFeatures::PEGGED_IN)
-        .Build(false);
+        .Build();
 
     const std::vector<Output>& outputs = tx->GetOutputs();
     std::vector<UTXO::CPtr> utxos;
