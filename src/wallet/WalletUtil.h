@@ -48,16 +48,6 @@ public:
         );
     }
 
-    // TODO: Determine fee algo
-    static uint64_t CalculateFee(
-        const uint64_t fee_base,
-        const uint64_t num_inputs,
-        const uint64_t num_kernels,
-        const uint64_t num_outputs)
-    {
-        return fee_base * (num_inputs + (num_kernels * 4) + (num_outputs * 8));
-    }
-
     static std::vector<Input> SignInputs(const std::vector<libmw::Coin>& input_coins)
     {
         std::vector<Input> inputs;

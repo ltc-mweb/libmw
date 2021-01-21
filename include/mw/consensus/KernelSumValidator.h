@@ -17,18 +17,11 @@ public:
     //
     // Throws a ValidationException if the utxo sum != kernel sum.
     static void ValidateState(
-        const std::vector<UTXO::CPtr>& utxos,
+        const std::vector<Commitment>& utxo_commitments,
         const std::vector<Kernel>& kernels,
         const BlindingFactor& total_offset)
     {
         // Sum all utxo commitments - expected supply.
-        std::vector<Commitment> utxo_commitments;
-        std::transform(
-            utxos.cbegin(), utxos.cend(),
-            std::back_inserter(utxo_commitments),
-            [](const UTXO::CPtr& pUTXO) { return pUTXO->GetCommitment(); }
-        );
-
         uint64_t total_mw_supply = 0;
         for (const Kernel& kernel : kernels)
         {
@@ -38,10 +31,12 @@ public:
                 if (kernel.GetAmount() > total_mw_supply) {
                     ThrowValidation(EConsensusError::BLOCK_SUMS);
                 }
-
                 total_mw_supply -= kernel.GetAmount();
             }
 
+            if (kernel.GetFee() > total_mw_supply) {
+                ThrowValidation(EConsensusError::BLOCK_SUMS);
+            }
             total_mw_supply -= kernel.GetFee();
         }
 

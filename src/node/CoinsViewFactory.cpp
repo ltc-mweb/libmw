@@ -55,9 +55,16 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 		utxos
 	);
 
+    std::vector<Commitment> utxo_commitments;
+    std::transform(
+        utxos.cbegin(), utxos.cend(),
+        std::back_inserter(utxo_commitments),
+        [](const UTXO::CPtr& pUTXO) { return pUTXO->GetCommitment(); }
+    );
+
 	// Block sum validation
 	KernelSumValidator::ValidateState(
-		utxos,
+		utxo_commitments,
 		kernels,
 		pStateHeader->GetKernelOffset()
 	);

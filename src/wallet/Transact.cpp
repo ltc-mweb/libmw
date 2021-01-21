@@ -15,16 +15,17 @@ mw::Transaction::CPtr Transact::CreateTx(
     const uint64_t fee_base,
     const StealthAddress& receiver_addr) const
 {
-    // Select coins
-    std::vector<libmw::Coin> input_coins = CoinSelection::SelectCoins(m_wallet.GetInterface(), amount, fee_base);
-    std::vector<Input> inputs = WalletUtil::SignInputs(input_coins);
-
     // Calculate fee
-    const uint64_t weight = Weight::Calculate({ .num_kernels = 1, .num_owner_sigs = 1, .num_outputs = 2 });
-    const uint64_t fee = fee_base * weight;
+    const uint64_t fee = fee_base * Weight::Calculate({ .num_kernels = 1, .num_owner_sigs = 1, .num_outputs = 2 });
+
+    // Select coins
+    std::vector<libmw::Coin> input_coins = CoinSelection::SelectCoins(m_wallet.GetInterface(), amount + fee);
     if (WalletUtil::TotalAmount(input_coins) < (amount + fee)) {
         ThrowInsufficientFunds("Not enough funds");
     }
+
+    // Sign inputs
+    std::vector<Input> inputs = WalletUtil::SignInputs(input_coins);
 
     // Create receiver's output
     BlindingFactor receiver_blind = Random::CSPRNG<32>();

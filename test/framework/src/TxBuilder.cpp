@@ -10,52 +10,55 @@ TxBuilder::TxBuilder()
 
 }
 
-TxBuilder& TxBuilder::AddInput(const uint64_t amount, const EOutputFeatures features)
+TxBuilder& TxBuilder::AddInput(const uint64_t amount, const EOutputFeatures features, const BlindingFactor& blind)
 {
-    return AddInput(amount, Random::CSPRNG<32>(), features);
+    return AddInput(amount, Random::CSPRNG<32>(), features, blind);
 }
 
-TxBuilder& TxBuilder::AddInput(const uint64_t amount, const SecretKey& privkey, const EOutputFeatures features)
+TxBuilder& TxBuilder::AddInput(
+    const uint64_t amount,
+    const SecretKey& privkey,
+    const EOutputFeatures features,
+    const BlindingFactor& blind)
 {
-    BlindingFactor input_bf = Random::CSPRNG<32>();
-    m_kernelOffset.Sub(input_bf);
+    m_kernelOffset.Sub(blind);
 
     // TODO: Do we still need to multiply by hash of pubkey?
     m_ownerOffset.Sub(privkey);
 
     PublicKey pubkey = Crypto::CalculatePublicKey(privkey.GetBigInt());
     Signature sig = Schnorr::Sign(privkey.data(), InputMessage());
-    m_inputs.push_back(Input{ Crypto::CommitBlinded(amount, input_bf), std::move(pubkey), std::move(sig) });
+    m_inputs.push_back(Input{ Crypto::CommitBlinded(amount, blind), std::move(pubkey), std::move(sig) });
     m_amount += (int64_t)amount;
     return *this;
 }
 
-TxBuilder& TxBuilder::AddOutput(const uint64_t amount, const EOutputFeatures features)
+TxBuilder& TxBuilder::AddOutput(const uint64_t amount, const EOutputFeatures features, const BlindingFactor& blind)
 {
-    return AddOutput(amount, Random::CSPRNG<32>(), StealthAddress::Random(), features);
+    return AddOutput(amount, Random::CSPRNG<32>(), StealthAddress::Random(), features, blind);
 }
 
 TxBuilder& TxBuilder::AddOutput(
     const uint64_t amount,
     const SecretKey& sender_privkey,
     const StealthAddress& receiver_addr,
-    const EOutputFeatures features)
+    const EOutputFeatures features,
+    const BlindingFactor& blind)
 {
-    BlindingFactor output_bf = Random::CSPRNG<32>();
-    m_kernelOffset.Add(output_bf);
+    m_kernelOffset.Add(blind);
     m_ownerOffset.Add(sender_privkey);
 
     OwnerData owner_data = TxOutput::CreateOwnerData(features, sender_privkey, receiver_addr);
     RangeProof::CPtr pRangeProof = Bulletproofs::Generate(
         amount,
-        SecretKey(output_bf.vec()),
+        SecretKey(blind.vec()),
         SecretKey(),
         SecretKey(),
         ProofMessage(BigInt<20>()),
         owner_data.Serialized()
     );
 
-    Output output{ Crypto::CommitBlinded(amount, output_bf), std::move(owner_data), pRangeProof };
+    Output output{ Crypto::CommitBlinded(amount, blind), std::move(owner_data), pRangeProof };
     m_outputs.push_back(std::move(output));
     m_amount -= (int64_t)amount;
     return *this;

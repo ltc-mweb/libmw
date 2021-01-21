@@ -59,8 +59,7 @@ public:
     /// <returns>The selected coins.</returns>
     virtual std::vector<libmw::Coin> SelectCoins(
         const std::vector<libmw::Coin>& coins,
-        const uint64_t amount,
-        const uint64_t fee_base) const = 0;
+        const uint64_t amount) const = 0;
 
     /// <summary>
     /// Returns the depth of the block in the active chain.

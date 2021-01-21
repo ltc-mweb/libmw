@@ -9,13 +9,11 @@ class CoinSelection
 public:
     static std::vector<libmw::Coin> SelectCoins(
         const libmw::IWallet::Ptr& pWallet,
-        const uint64_t amount,
-        const uint64_t fee_base)
+        const uint64_t amount)
     {
         std::vector<libmw::Coin> selected_coins = pWallet->SelectCoins(
             AvailableCoins(pWallet),
-            amount,
-            fee_base
+            amount
         );
 
         for (libmw::Coin& coin : selected_coins) {

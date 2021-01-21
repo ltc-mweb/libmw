@@ -4,6 +4,7 @@
 
 #include <mw/crypto/Blinds.h>
 #include <mw/crypto/Bulletproofs.h>
+#include <mw/crypto/Random.h>
 #include <mw/models/wallet/StealthAddress.h>
 
 TEST_NAMESPACE
@@ -20,23 +21,27 @@ public:
 
     TxBuilder& AddInput(
         const uint64_t amount,
-        const EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT
+        const EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT,
+        const BlindingFactor& blind = Random::CSPRNG<32>()
     );
     TxBuilder& AddInput(
         const uint64_t amount,
         const SecretKey& privkey,
-        const EOutputFeatures features
+        const EOutputFeatures features,
+        const BlindingFactor& blind
     );
 
     TxBuilder& AddOutput(
         const uint64_t amount,
-        const EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT
+        const EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT,
+        const BlindingFactor& blind = Random::CSPRNG<32>()
     );
     TxBuilder& AddOutput(
         const uint64_t amount,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
-        const EOutputFeatures features
+        const EOutputFeatures features,
+        const BlindingFactor& blind
     );
 
     TxBuilder& AddPlainKernel(const uint64_t fee, const bool add_owner_sig = false);
