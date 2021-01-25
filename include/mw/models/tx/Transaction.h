@@ -46,6 +46,34 @@ public:
     Transaction() = default;
 
     //
+    // Factory
+    //
+    static mw::Transaction::CPtr Create(
+        BlindingFactor kernel_offset,
+        BlindingFactor owner_offset,
+        std::vector<Input> inputs,
+        std::vector<Output> outputs,
+        std::vector<Kernel> kernels,
+        std::vector<SignedMessage> owner_sigs)
+    {
+        std::sort(inputs.begin(), inputs.end(), SortByCommitment);
+        std::sort(outputs.begin(), outputs.end(), SortByCommitment);
+        std::sort(kernels.begin(), kernels.end(), KernelSort);
+        std::sort(owner_sigs.begin(), owner_sigs.end(), SortByHash);
+
+        return std::make_shared<mw::Transaction>(
+            std::move(kernel_offset),
+            std::move(owner_offset),
+            TxBody{
+                std::move(inputs),
+                std::move(outputs),
+                std::move(kernels),
+                std::move(owner_sigs)
+            }
+        );
+    }
+
+    //
     // Destructor
     //
     virtual ~Transaction() = default;
@@ -71,10 +99,14 @@ public:
     const std::vector<SignedMessage>& GetOwnerSigs() const noexcept { return m_body.GetOwnerSigs(); }
     uint64_t GetTotalFee() const noexcept { return m_body.GetTotalFee(); }
 
+    std::vector<Commitment> GetKernelCommits() const noexcept { return m_body.GetKernelCommits(); }
+    std::vector<Commitment> GetInputCommits() const noexcept { return m_body.GetInputCommits(); }
+    std::vector<Commitment> GetOutputCommits() const noexcept { return m_body.GetOutputCommits(); }
     std::vector<Kernel> GetPegInKernels() const noexcept { return m_body.GetPegInKernels(); }
     std::vector<Output> GetPegInOutputs() const noexcept { return m_body.GetPegInOutputs(); }
     uint64_t GetPegInAmount() const noexcept { return m_body.GetPegInAmount(); }
     std::vector<Kernel> GetPegOutKernels() const noexcept { return m_body.GetPegOutKernels(); }
+    int64_t GetSupplyChange() const noexcept { return m_body.GetSupplyChange(); }
 
     //
     // Serialization/Deserialization

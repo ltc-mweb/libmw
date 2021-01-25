@@ -10,6 +10,11 @@ TxBuilder::TxBuilder()
 
 }
 
+TxBuilder& TxBuilder::AddInput(const TxOutput& input)
+{
+    return AddInput(input.GetAmount(), input.GetFeatures(), input.GetBlindingFactor());
+}
+
 TxBuilder& TxBuilder::AddInput(const uint64_t amount, const EOutputFeatures features, const BlindingFactor& blind)
 {
     return AddInput(amount, Random::CSPRNG<32>(), features, blind);
@@ -59,7 +64,7 @@ TxBuilder& TxBuilder::AddOutput(
     );
 
     Output output{ Crypto::CommitBlinded(amount, blind), std::move(owner_data), pRangeProof };
-    m_outputs.push_back(std::move(output));
+    m_outputs.push_back(test::TxOutput(blind, amount, output));
     m_amount -= (int64_t)amount;
     return *this;
 }
@@ -157,20 +162,26 @@ TxBuilder& TxBuilder::AddPegoutKernel(const uint64_t amount, const uint64_t fee,
     return *this;
 }
 
-mw::Transaction::CPtr TxBuilder::Build()
+Tx TxBuilder::Build()
 {
     assert(m_amount == 0);
 
-    std::sort(m_inputs.begin(), m_inputs.end(), SortByCommitment);
-    std::sort(m_outputs.begin(), m_outputs.end(), SortByCommitment);
-    std::sort(m_kernels.begin(), m_kernels.end(), SortByHash);
-    std::sort(m_ownerSigs.begin(), m_ownerSigs.end(), SortByHash);
+    std::vector<Output> outputs;
+    std::transform(
+        m_outputs.cbegin(), m_outputs.cend(),
+        std::back_inserter(outputs),
+        [](const TxOutput& output) { return output.GetOutput(); }
+    );
 
-    return std::make_shared<mw::Transaction>(
+    auto pTransaction = mw::Transaction::Create(
         m_kernelOffset.Total(),
         m_ownerOffset.Total(),
-        TxBody{ m_inputs, m_outputs, m_kernels, m_ownerSigs }
+        m_inputs,
+        outputs,
+        m_kernels,
+        m_ownerSigs
     );
+    return Tx{ pTransaction, m_outputs };
 }
 
 END_NAMESPACE

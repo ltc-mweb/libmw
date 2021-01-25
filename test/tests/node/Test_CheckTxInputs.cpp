@@ -10,49 +10,47 @@
 #include <test_framework/DBWrapper.h>
 #include <test_framework/Miner.h>
 #include <test_framework/TestUtil.h>
+#include <test_framework/TxBuilder.h>
 
 TEST_CASE("CheckTxInputs")
 {
-    //FilePath datadir = test::TestUtil::GetTempDir();
-    //ScopedFileRemover remover(datadir);
+    FilePath datadir = test::TestUtil::GetTempDir();
+    ScopedFileRemover remover(datadir);
 
-    //auto pDatabase = std::make_shared<TestDBWrapper>();
-    //auto pNode = mw::InitializeNode(datadir, "test", nullptr, pDatabase);
-    //REQUIRE(pNode != nullptr);
+    auto pDatabase = std::make_shared<TestDBWrapper>();
+    auto pNode = mw::InitializeNode(datadir, "test", nullptr, pDatabase);
+    REQUIRE(pNode != nullptr);
 
-    //auto pDBView = pNode->GetDBView();
-    //auto pCachedView = libmw::CoinsViewRef{ std::make_shared<mw::CoinsViewCache>(pDBView) };
+    auto pDBView = pNode->GetDBView();
+    auto pCachedView = libmw::CoinsViewRef{ std::make_shared<mw::CoinsViewCache>(pDBView) };
 
-    //test::Miner miner;
-    //uint64_t height = 100;
+    test::Miner miner;
+    uint64_t height = 100;
 
-    //// Mine pegin tx
-    //BlindingFactor outputBF;
-    //test::Tx tx1 = test::Tx::CreatePegIn2(1000, outputBF);
-    //auto block = miner.MineBlock(height, { tx1 });
-    //pNode->ValidateBlock(block.GetBlock(), block.GetHash(), { tx1.GetPegInCoin() }, {});
-    //pNode->ConnectBlock(block.GetBlock(), pCachedView.pCoinsView);
-    //height += mw::ChainParams::GetPegInMaturity();
+    // Mine pegin tx
+    test::Tx tx1 = test::Tx::CreatePegIn(1000);
+    auto block = miner.MineBlock(height, { tx1 });
+    pNode->ValidateBlock(block.GetBlock(), block.GetHash(), { tx1.GetPegInCoin() }, {});
+    pNode->ConnectBlock(block.GetBlock(), pCachedView.pCoinsView);
+    height += mw::ChainParams::GetPegInMaturity();
 
-    //// Try to spend the pegin output
-    //const Output& output1 = tx1.GetOutputs().front();
-    //Input input1(output1.GetFeatures(), Commitment(output1.GetCommitment()));
-    //test::Tx tx2 = test::Tx::CreateSpend(input1, outputBF, 1000, 10);
-    //auto transaction = libmw::TxRef{ tx2.GetTransaction() };
-    //REQUIRE_NOTHROW(libmw::node::CheckTransaction(transaction));
-    //REQUIRE_THROWS(libmw::node::CheckTxInputs(pCachedView, transaction, height - 1));
-    //REQUIRE_NOTHROW(libmw::node::CheckTxInputs(pCachedView, transaction, height));
+    // Try to spend the pegin output
+    const auto& output1 = tx1.GetOutputs().front();
+    test::Tx tx2 = test::TxBuilder().AddInput(output1).AddPlainKernel(0).AddOutput(1000).Build();
+    auto transaction = libmw::TxRef{ tx2.GetTransaction() };
+    REQUIRE_NOTHROW(libmw::node::CheckTransaction(transaction));
+    REQUIRE_THROWS(libmw::node::CheckTxInputs(pCachedView, transaction, height - 1));
+    REQUIRE_NOTHROW(libmw::node::CheckTxInputs(pCachedView, transaction, height));
 
-    //// Try to spend an unknown pegin output
-    //test::Tx tx3 = test::Tx::CreatePegIn2(1000, outputBF);
-    //const Output& output2 = tx3.GetOutputs().front();
-    //Input input2(output2.GetFeatures(), Commitment(output2.GetCommitment()));
-    //test::Tx tx4 = test::Tx::CreateSpend(input2, outputBF, 1000, 10);
-    //transaction = libmw::TxRef{ tx4.GetTransaction() };
-    //REQUIRE_NOTHROW(libmw::node::CheckTransaction(transaction));
-    //REQUIRE_THROWS(libmw::node::CheckTxInputs(pCachedView, transaction, height - 1));
-    //REQUIRE_THROWS(libmw::node::CheckTxInputs(pCachedView, transaction, height));
+    // Try to spend an unknown pegin output
+    test::Tx tx3 = test::Tx::CreatePegIn(1000);
+    const auto& output2 = tx3.GetOutputs().front();
+    test::Tx tx4 = test::TxBuilder().AddInput(output2).AddPlainKernel(0).AddOutput(1000).Build();
+    transaction = libmw::TxRef{ tx4.GetTransaction() };
+    REQUIRE_NOTHROW(libmw::node::CheckTransaction(transaction));
+    REQUIRE_THROWS(libmw::node::CheckTxInputs(pCachedView, transaction, height - 1));
+    REQUIRE_THROWS(libmw::node::CheckTxInputs(pCachedView, transaction, height));
 
-    //pNode.reset();
-    //LoggerAPI::Shutdown();
+    pNode.reset();
+    LoggerAPI::Shutdown();
 }

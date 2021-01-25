@@ -60,6 +60,10 @@ Commitment Crypto::AddCommitments(
         }
     );
 
+    if (sanitizedPositive.empty() && sanitizedNegative.empty()) {
+        return Commitment{};
+    }
+
     return Pedersen(SECP256K1_CONTEXT).PedersenCommitSum(
         sanitizedPositive,
         sanitizedNegative

@@ -3,12 +3,11 @@
 #include <mw/models/crypto/Bech32Address.h>
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Printable.h>
-#include <mw/traits/Jsonable.h>
 
 //
 // Represents coins being pegged in, i.e. moved from canonical chain to the extension block.
 //
-class PegOutCoin : public Traits::ISerializable, public Traits::IJsonable, public Traits::IPrintable
+class PegOutCoin : public Traits::ISerializable, public Traits::IPrintable
 {
 public:
     PegOutCoin(const uint64_t amount, const Bech32Address& address)
@@ -40,22 +39,6 @@ public:
         Bech32Address address = Bech32Address::Deserialize(deserializer);
 
         return PegOutCoin(amount, std::move(address));
-    }
-
-    json ToJSON() const noexcept final
-    {
-        return json({
-            { "amount", m_amount },
-            { "address", m_address }
-        });
-    }
-
-    static PegOutCoin FromJSON(const Json& json)
-    {
-        uint64_t amount = json.GetOr<uint64_t>("amount", 0);
-        Bech32Address commitment = json.GetRequired<Bech32Address>("address");
-
-        return PegOutCoin(amount, std::move(commitment));
     }
 
     std::string Format() const noexcept final

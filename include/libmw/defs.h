@@ -162,6 +162,9 @@ struct Coin
     // This is used to determine the required number of confirmations before spending.
     uint8_t features;
 
+    // True if this was a change output from a transaction created by this wallet.
+    bool change_output;
+
     // The private key needed in order to spend the coin.
     // May be empty for watch-only wallets.
     boost::optional<libmw::BlindingFactor> key;

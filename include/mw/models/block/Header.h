@@ -10,7 +10,6 @@
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Printable.h>
-#include <mw/traits/Jsonable.h>
 #include <mw/serialization/Serializer.h>
 #include <mw/crypto/Hasher.h>
 
@@ -23,8 +22,7 @@ MW_NAMESPACE
 class Header final :
     public Traits::IPrintable,
     public Traits::ISerializable,
-    public Traits::IHashable,
-    public Traits::IJsonable
+    public Traits::IHashable
 {
 public:
     using CPtr = std::shared_ptr<const Header>;
@@ -126,36 +124,6 @@ public:
             std::move(ownerOffset),
             outputMMRSize,
             kernelMMRSize
-        };
-    }
-
-    json ToJSON() const noexcept final
-    {
-        return json({
-            { "height", m_height },
-            { "output_root", m_outputRoot.ToHex() },
-            { "proof_root", m_rangeProofRoot.ToHex() },
-            { "kernel_root", m_kernelRoot.ToHex() },
-            { "leafset_root", m_leafsetRoot.ToHex() },
-            { "kernel_offset", m_kernelOffset.ToHex() },
-            { "owner_offset", m_ownerOffset.ToHex() },
-            { "num_outputs", m_outputMMRSize },
-            { "num_kernels", m_kernelMMRSize }
-        });
-    }
-
-    static Header FromJSON(const Json& json)
-    {
-        return Header{
-            json.GetRequired<uint64_t>("height"),
-            mw::Hash::FromHex(json.GetRequired<std::string>("output_root")),
-            mw::Hash::FromHex(json.GetRequired<std::string>("proof_root")),
-            mw::Hash::FromHex(json.GetRequired<std::string>("kernel_root")),
-            mw::Hash::FromHex(json.GetRequired<std::string>("leafset_root")),
-            BlindingFactor::FromHex(json.GetRequired<std::string>("kernel_offset")),
-            BlindingFactor::FromHex(json.GetRequired<std::string>("owner_offset")),
-            json.GetRequired<uint64_t>("num_outputs"),
-            json.GetRequired<uint64_t>("num_kernels")
         };
     }
 

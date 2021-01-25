@@ -17,70 +17,55 @@
 
 TEST_CASE("KernelSumValidator::ValidateState")
 {
-    FilePath datadir = test::TestUtil::GetTempDir();
-    ScopedFileRemover remover(datadir); // Removes the directory when this goes out of scope.
+    // Pegin transaction
+    test::Tx pegin_tx = test::TxBuilder()
+        .AddOutput(4'000'000, EOutputFeatures::PEGGED_IN)
+        .AddOutput(5'000'000, EOutputFeatures::PEGGED_IN)
+        .AddPeginKernel(9'000'000)
+        .Build();
 
-    {
-        auto pDatabase = std::make_shared<TestDBWrapper>();
-        auto pNode = mw::InitializeNode(datadir, "test", nullptr, pDatabase);
-        REQUIRE(pNode != nullptr);
+    // Standard transaction
+    test::Tx standard_tx = test::TxBuilder()
+        .AddInput(pegin_tx.GetOutputs()[0])
+        .AddOutput(2'950'000).AddOutput(1'000'000)
+        .AddPlainKernel(50'000)
+        .Build();
 
-        auto pDBView = pNode->GetDBView();
-        auto pCachedView = std::make_shared<mw::CoinsViewCache>(pDBView);
+    // Pegout Transaction
+    test::Tx pegout_tx = test::TxBuilder()
+        .AddInput(standard_tx.GetOutputs()[1])
+        .AddOutput(200'000)
+        .AddPegoutKernel(750'000, 50'000)
+        .Build();
 
-        test::Miner miner;
+    std::vector<Commitment> utxo_commitments{
+        pegin_tx.GetOutputs()[1].GetCommitment(),
+        standard_tx.GetOutputs()[0].GetCommitment(),
+        pegout_tx.GetOutputs()[0].GetCommitment()
+    };
+    std::vector<Kernel> kernels{
+        pegin_tx.GetKernels().front(),
+        standard_tx.GetKernels().front(),
+        pegout_tx.GetKernels().front()
+    };
+    BlindingFactor total_offset = Blinds()
+        .Add(pegin_tx.GetKernelOffset())
+        .Add(standard_tx.GetKernelOffset())
+        .Add(pegout_tx.GetKernelOffset())
+        .Total();
 
-        BlindingFactor blind = Random::CSPRNG<32>();
+    // State is valid
+    KernelSumValidator::ValidateState(utxo_commitments, kernels, total_offset);
 
-        // Block containing peg-ins only
-        mw::Transaction::CPtr tx1 = test::TxBuilder()
-            .AddPeginKernel(50)
-            .AddOutput(50, EOutputFeatures::PEGGED_IN, blind)
-            .AddPeginKernel(30)
-            .AddOutput(30, EOutputFeatures::PEGGED_IN)
-            .Build();
+    // Move pegout kernel before pegin kernel in list to make supply negative in the past
+    kernels = std::vector<Kernel>{
+        pegout_tx.GetKernels().front(),
+        pegin_tx.GetKernels().front(),
+        standard_tx.GetKernels().front()
+    };
 
-        auto pegInKernels = tx1->GetPegInKernels();
-        std::vector<PegInCoin> pegInCoins;
-        std::transform(
-            pegInKernels.cbegin(), pegInKernels.cend(),
-            std::back_inserter(pegInCoins),
-            [](const Kernel& kernel) {
-                return PegInCoin(kernel.GetAmount(), kernel.GetCommitment());
-            }
-        );
-
-        auto block1 = miner.MineBlock(150, { tx1 });
-        pNode->ValidateBlock(block1.GetBlock(), block1.GetHash(), pegInCoins, {});
-        pNode->ConnectBlock(block1.GetBlock(), pCachedView);
-        pCachedView->ValidateState();
-
-        // Block containing peg-outs and regular sends only
-        mw::Transaction::CPtr tx2 = test::TxBuilder()
-            .AddInput(50, EOutputFeatures::PEGGED_IN, blind)
-            .AddPegoutKernel(15, 5)
-            .AddPlainKernel(10)
-            .AddOutput(20)
-            .Build();
-
-        auto pegOutKernels = tx2->GetPegOutKernels();
-        std::vector<PegOutCoin> pegOutCoins;
-        std::transform(
-            pegOutKernels.cbegin(), pegOutKernels.cend(),
-            std::back_inserter(pegOutCoins),
-            [](const Kernel& kernel) {
-                return PegOutCoin(kernel.GetAmount(), *kernel.GetAddress());
-            }
-        );
-
-        auto block2 = miner.MineBlock(151, { tx2 });
-        pNode->ValidateBlock(block2.GetBlock(), block2.GetHash(), {}, pegOutCoins);
-        pNode->ConnectBlock(block2.GetBlock(), pCachedView);
-        pCachedView->ValidateState();
-
-        pNode.reset();
-        LoggerAPI::Shutdown();
-    }
+    // Consensus error should be thrown
+    REQUIRE_THROWS(KernelSumValidator::ValidateState(utxo_commitments, kernels, total_offset));
 }
 
 TEST_CASE("KernelSumValidator::ValidateForBlock")
@@ -90,21 +75,21 @@ TEST_CASE("KernelSumValidator::ValidateForBlock")
         .AddInput(5'000'000).AddInput(6'000'000)
         .AddOutput(4'000'000).AddOutput(6'500'000)
         .AddPlainKernel(500'000)
-        .Build();
+        .Build().GetTransaction();
     KernelSumValidator::ValidateForTx(*tx1); // Sanity check
 
     // Pegin transaction - 1 output, 1 kernel
     mw::Transaction::CPtr tx2 = test::TxBuilder()
         .AddOutput(8'000'000, EOutputFeatures::PEGGED_IN)
         .AddPeginKernel(8'000'000)
-        .Build();
+        .Build().GetTransaction();
     KernelSumValidator::ValidateForTx(*tx2); // Sanity check
 
     mw::Transaction::CPtr tx3 = test::TxBuilder()
         .AddInput(1'234'567).AddInput(4'000'000)
         .AddOutput(234'567)
         .AddPegoutKernel(4'500'000, 500'000)
-        .Build();
+        .Build().GetTransaction();
     KernelSumValidator::ValidateForTx(*tx3); // Sanity check
 
     BlindingFactor prev_total_offset = Random::CSPRNG<32>();
@@ -122,51 +107,76 @@ TEST_CASE("KernelSumValidator::ValidateForBlock")
 //
 TEST_CASE("KernelSumValidator::ValidateForBlock - Without Builder")
 {
-    mw::Hash prev_total_offset = mw::Hash::FromHex("0123456789abcdef0123456789abcdef00000000000000000000000000000000");
-
-    test::Tx::Builder tx_builder;
+    std::vector<Input> inputs;
+    std::vector<Output> outputs;
+    std::vector<Kernel> kernels;
 
     // Add inputs
     BlindingFactor input1_bf = Random::CSPRNG<32>();
     SecretKey input1_sender_key = Random::CSPRNG<32>();
-    tx_builder.AddInput(test::TxInput::Create(input1_bf, input1_sender_key, 5'000'000));
+    inputs.push_back(test::TxInput::Create(input1_bf, input1_sender_key, 5'000'000).GetInput());
 
     BlindingFactor input2_bf = Random::CSPRNG<32>();
     SecretKey input2_sender_key = Random::CSPRNG<32>();
-    tx_builder.AddInput(test::TxInput::Create(input2_bf, input2_sender_key, 6'000'000));
+    inputs.push_back(test::TxInput::Create(input2_bf, input2_sender_key, 6'000'000).GetInput());
 
     // Add outputs
     BlindingFactor output1_bf = Random::CSPRNG<32>();
     SecretKey output1_sender_key = Random::CSPRNG<32>();
-    tx_builder.AddOutput(test::TxOutput::Create(
+    outputs.push_back(test::TxOutput::Create(
         EOutputFeatures::DEFAULT_OUTPUT,
         output1_bf,
         output1_sender_key,
         StealthAddress::Random(),
         4'000'000
-    ));
+    ).GetOutput());
 
     BlindingFactor output2_bf = Random::CSPRNG<32>();
     SecretKey output2_sender_key = Random::CSPRNG<32>();
-    tx_builder.AddOutput(test::TxOutput::Create(
+    outputs.push_back(test::TxOutput::Create(
         EOutputFeatures::DEFAULT_OUTPUT,
         output2_bf,
         output2_sender_key,
         StealthAddress::Random(),
         6'500'000
-    ));
+    ).GetOutput());
 
-    // Set Offset
+    // Kernel offset
+    mw::Hash prev_total_offset = mw::Hash::FromHex("0123456789abcdef0123456789abcdef00000000000000000000000000000000");
     BlindingFactor tx_offset = Random::CSPRNG<32>();
-    tx_builder.SetKernelOffset(tx_offset);
+    BlindingFactor total_offset = Blinds().Add(prev_total_offset).Add(tx_offset).Total();
+
+    // Calculate kernel excess
+    BlindingFactor excess = Blinds()
+        .Add(output1_bf)
+        .Add(output2_bf)
+        .Sub(input1_bf)
+        .Sub(input2_bf)
+        .Sub(tx_offset)
+        .Total();
 
     // Add kernel
-    BlindingFactor excess = Blinds().Add(output1_bf).Add(output2_bf).Sub(input1_bf).Sub(input2_bf).Total();
-    tx_builder.AddPlainKernel(500'000, Blinds().Add(excess).Sub(tx_offset).Total());
+    const uint64_t fee = 500'000;
+    std::vector<uint8_t> kernel_message = Serializer()
+        .Append<uint8_t>(KernelType::PLAIN_KERNEL)
+        .Append<uint64_t>(fee)
+        .vec();
+    kernels.push_back(Kernel::CreatePlain(
+        fee,
+        Crypto::CommitBlinded(0, excess),
+        Schnorr::Sign(excess.data(), Hashed(kernel_message))
+    ));
 
-    mw::Transaction::CPtr pTransaction = tx_builder.Build().GetTransaction();
+    // Create Transaction
+    auto pTransaction = mw::Transaction::Create(
+        tx_offset,
+        Random::CSPRNG<32>(),
+        inputs,
+        outputs,
+        kernels,
+        {}
+    );
 
-    BlindingFactor total_offset = Blinds().Add(prev_total_offset).Add(tx_offset).Total();
     KernelSumValidator::ValidateForBlock(pTransaction->GetBody(), total_offset, prev_total_offset);
 }
 
@@ -177,14 +187,14 @@ TEST_CASE("KernelSumValidator::ValidateForTx")
         .AddInput(5'000'000).AddInput(6'000'000)
         .AddOutput(4'000'000).AddOutput(6'500'000)
         .AddPlainKernel(500'000)
-        .Build();
+        .Build().GetTransaction();
     KernelSumValidator::ValidateForTx(*tx1);
 
     // Pegin transaction - 1 output, 1 kernel
     mw::Transaction::CPtr tx2 = test::TxBuilder()
         .AddOutput(8'000'000, EOutputFeatures::PEGGED_IN)
         .AddPeginKernel(8'000'000)
-        .Build();
+        .Build().GetTransaction();
     KernelSumValidator::ValidateForTx(*tx2);
 
     // Pegout transaction - 2 inputs, 1 output, 1 kernel
@@ -192,7 +202,7 @@ TEST_CASE("KernelSumValidator::ValidateForTx")
         .AddInput(1'234'567).AddInput(4'000'000)
         .AddOutput(234'567)
         .AddPegoutKernel(4'500'000, 500'000)
-        .Build();
+        .Build().GetTransaction();
     KernelSumValidator::ValidateForTx(*tx3);
 
     // Aggregate all 3

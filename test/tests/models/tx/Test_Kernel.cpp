@@ -28,20 +28,6 @@ TEST_CASE("Plain Kernel")
     }
 
     //
-    // JSON
-    //
-    {
-        Json json(kernel.ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "excess", "fee", "signature", "type" }));
-        REQUIRE(json.GetRequired<Commitment>("excess") == excess);
-        REQUIRE(json.GetRequired<uint64_t>("fee") == fee);
-        REQUIRE(json.GetRequired<Signature>("signature") == signature);
-        REQUIRE(json.GetRequired<std::string>("type") == "PLAIN");
-
-        REQUIRE(kernel == Kernel::FromJSON(json));
-    }
-
-    //
     // Signature Message
     //
     {
@@ -89,20 +75,6 @@ TEST_CASE("Peg-In Kernel")
 
         Deserializer deserializer2(serialized);
         REQUIRE(kernel == Kernel::Deserialize(deserializer2));
-    }
-
-    //
-    // JSON
-    //
-    {
-        Json json(kernel.ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "amount", "excess", "signature", "type" }));
-        REQUIRE(json.GetRequired<uint64_t>("amount") == amount);
-        REQUIRE(json.GetRequired<Commitment>("excess") == excess);
-        REQUIRE(json.GetRequired<Signature>("signature") == signature);
-        REQUIRE(json.GetRequired<std::string>("type") == "PEGIN");
-
-        REQUIRE(kernel == Kernel::FromJSON(json));
     }
 
     //
@@ -160,22 +132,6 @@ TEST_CASE("Peg-Out Kernel")
     }
 
     //
-    // JSON
-    //
-    {
-        Json json(kernel.ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "address", "amount", "excess", "fee", "signature", "type" }));
-        REQUIRE(json.GetRequired<uint64_t>("amount") == amount);
-        REQUIRE(json.GetRequired<uint64_t>("fee") == fee);
-        REQUIRE(json.GetRequired<Bech32Address>("address") == address);
-        REQUIRE(json.GetRequired<Commitment>("excess") == excess);
-        REQUIRE(json.GetRequired<Signature>("signature") == signature);
-        REQUIRE(json.GetRequired<std::string>("type") == "PEGOUT");
-
-        REQUIRE(kernel == Kernel::FromJSON(json));
-    }
-
-    //
     // Signature Message
     //
     {
@@ -227,21 +183,6 @@ TEST_CASE("Height-Locked")
 
         Deserializer deserializer2(serialized);
         REQUIRE(kernel == Kernel::Deserialize(deserializer2));
-    }
-
-    //
-    // JSON
-    //
-    {
-        Json json(kernel.ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "excess", "fee", "lock_height", "signature", "type" }));
-        REQUIRE(json.GetRequired<uint64_t>("fee") == fee);
-        REQUIRE(json.GetRequired<uint64_t>("lock_height") == lockHeight);
-        REQUIRE(json.GetRequired<Commitment>("excess") == excess);
-        REQUIRE(json.GetRequired<Signature>("signature") == signature);
-        REQUIRE(json.GetRequired<std::string>("type") == "HEIGHT_LOCKED");
-
-        REQUIRE(kernel == Kernel::FromJSON(json));
     }
 
     //
@@ -307,21 +248,6 @@ TEST_CASE("Unknown Kernel")
 
         Deserializer deserializer2(serialized);
         REQUIRE(kernel == Kernel::Deserialize(deserializer2));
-    }
-
-    //
-    // JSON
-    //
-    {
-        Json json(kernel.ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "excess", "fee", "signature", "type" }));
-        REQUIRE(json.GetRequired<Commitment>("excess") == excess);
-        REQUIRE(json.GetRequired<uint64_t>("fee") == fee);
-        REQUIRE(json.GetRequired<Signature>("signature") == signature);
-        REQUIRE(json.GetRequired<std::string>("type") == "UNKNOWN");
-
-        // Omitted due to unknown type
-        //REQUIRE(kernel == Kernel::FromJSON(json));
     }
 
     //

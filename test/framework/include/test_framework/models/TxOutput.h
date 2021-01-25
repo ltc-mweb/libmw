@@ -79,6 +79,8 @@ public:
     const BlindingFactor& GetBlindingFactor() const noexcept { return m_blindingFactor; }
     uint64_t GetAmount() const noexcept { return m_amount; }
     const Output& GetOutput() const noexcept { return m_output; }
+    EOutputFeatures GetFeatures() const noexcept { return m_output.GetFeatures(); }
+    const Commitment& GetCommitment() const noexcept { return m_output.GetCommitment(); }
 
 private:
     BlindingFactor m_blindingFactor;

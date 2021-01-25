@@ -1,4 +1,5 @@
 #include <mw/node/CoinsView.h>
+#include <mw/node/validation/StateValidator.h>
 #include <mw/exceptions/ValidationException.h>
 #include <mw/consensus/Aggregation.h>
 #include <mw/consensus/KernelSumValidator.h>
@@ -154,28 +155,7 @@ mw::Block::Ptr CoinsViewCache::BuildNextBlock(const uint64_t height, const std::
 
 void CoinsViewCache::ValidateState() const
 {
-    std::vector<Commitment> utxos;
-
-    const uint64_t output_mmr_size = m_pOutputPMMR->GetNumLeaves();
-    for (size_t i = 0; i < output_mmr_size; i++) {
-        mmr::LeafIndex index = mmr::LeafIndex::At(i);
-        if (m_pLeafSet->Contains(index)) {
-            mmr::Leaf leaf = m_pOutputPMMR->GetLeaf(index);
-            Deserializer deserializer(leaf.vec());
-            OutputId output_id = OutputId::Deserialize(deserializer);
-            utxos.push_back(output_id.GetCommitment());
-        }
-    }
-
-    std::vector<Kernel> kernels;
-    const uint64_t kernel_mmr_size = m_pKernelMMR->GetNumLeaves();
-    for (size_t i = 0; i < kernel_mmr_size; i++) {
-        mmr::Leaf leaf = m_pKernelMMR->GetLeaf(mmr::LeafIndex::At(i));
-        Deserializer deserializer(leaf.vec());
-        kernels.push_back(Kernel::Deserialize(deserializer));
-    }
-
-    KernelSumValidator::ValidateState(utxos, kernels, GetBestHeader()->GetKernelOffset());
+    StateValidator().Validate(*this);
 }
 
 bool CoinsViewCache::HasCoinInCache(const Commitment& commitment) const noexcept

@@ -8,7 +8,6 @@
 #include <mw/wallet/Wallet.h>
 #include <mw/wallet/KernelFactory.h>
 #include <mw/wallet/OutputFactory.h>
-#include <mw/wallet/TxFactory.h>
 
 mw::Transaction::CPtr PegOut::CreatePegOutTx(
     const uint64_t amount,
@@ -76,7 +75,7 @@ mw::Transaction::CPtr PegOut::CreatePegOutTx(
     m_wallet.GetInterface()->AddCoins(coins);
 
     // Build the Transaction
-    return TxFactory::CreateTx(
+    return mw::Transaction::Create(
         kernel_offset,
         owner_offset,
         inputs,

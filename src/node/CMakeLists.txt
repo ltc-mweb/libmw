@@ -8,6 +8,7 @@ file(GLOB SOURCE_CODE
 	"CoinsViewFactory.cpp"
 	"ICoinsView.cpp"
 	"validation/BlockValidator.cpp"
+	"validation/StateValidator.cpp"
 )
 
 add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})

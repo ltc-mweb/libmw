@@ -8,7 +8,6 @@
 #include <mw/wallet/Wallet.h>
 #include <mw/wallet/KernelFactory.h>
 #include <mw/wallet/OutputFactory.h>
-#include <mw/wallet/TxFactory.h>
 
 mw::Transaction::CPtr Transact::CreateTx(
     const uint64_t amount,
@@ -88,7 +87,7 @@ mw::Transaction::CPtr Transact::CreateTx(
     m_wallet.GetInterface()->AddCoins(coins_to_update);
 
     // Build the transaction
-    return TxFactory::CreateTx(
+    return mw::Transaction::Create(
         kernel_offset,
         owner_offset,
         inputs,

@@ -3,12 +3,11 @@
 #include <mw/models/crypto/Commitment.h>
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Printable.h>
-#include <mw/traits/Jsonable.h>
 
 //
 // Represents coins being pegged in, i.e. moved from canonical chain to the extension block.
 //
-class PegInCoin : public Traits::ISerializable, public Traits::IJsonable, public Traits::IPrintable
+class PegInCoin : public Traits::ISerializable, public Traits::IPrintable
 {
 public:
     PegInCoin(const uint64_t amount, const Commitment& commitment)
@@ -38,22 +37,6 @@ public:
     {
         uint64_t amount = deserializer.Read<uint64_t>();
         Commitment commitment = Commitment::Deserialize(deserializer);
-
-        return PegInCoin(amount, std::move(commitment));
-    }
-
-    json ToJSON() const noexcept final
-    {
-        return json({
-            { "amount", m_amount },
-            { "commitment", m_commitment }
-        });
-    }
-
-    static PegInCoin FromJSON(const Json& json)
-    {
-        uint64_t amount = json.GetOr<uint64_t>("amount", 0);
-        Commitment commitment = json.GetRequired<Commitment>("commitment");
 
         return PegInCoin(amount, std::move(commitment));
     }

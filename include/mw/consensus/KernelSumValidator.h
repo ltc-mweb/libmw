@@ -22,51 +22,30 @@ public:
         const BlindingFactor& total_offset)
     {
         // Sum all utxo commitments - expected supply.
-        uint64_t total_mw_supply = 0;
+        int64_t total_mw_supply = 0;
         for (const Kernel& kernel : kernels)
         {
             if (kernel.IsPegIn()) {
-                total_mw_supply += kernel.GetAmount();
+                total_mw_supply += (int64_t)kernel.GetAmount();
             } else if (kernel.IsPegOut()) {
-                if (kernel.GetAmount() > total_mw_supply) {
-                    ThrowValidation(EConsensusError::BLOCK_SUMS);
-                }
-                total_mw_supply -= kernel.GetAmount();
+                total_mw_supply -= (int64_t)kernel.GetAmount();
             }
 
-            if (kernel.GetFee() > total_mw_supply) {
+            total_mw_supply -= (int64_t)kernel.GetFee();
+
+            // Total supply can never go below 0
+            if (total_mw_supply < 0) {
                 ThrowValidation(EConsensusError::BLOCK_SUMS);
             }
-            total_mw_supply -= kernel.GetFee();
         }
 
-        Commitment total_utxo_commitment = Crypto::AddCommitments(
+        ValidateSums(
+            {},
             utxo_commitments,
-            { Crypto::CommitTransparent(total_mw_supply) }
+            Commitments::From(kernels),
+            total_offset,
+            total_mw_supply
         );
-
-        // Sum the kernel excesses accounting for the kernel offset.
-        std::vector<Commitment> kernel_excess_commitments;
-        std::transform(
-            kernels.cbegin(), kernels.cend(),
-            std::back_inserter(kernel_excess_commitments),
-            [](const Kernel& kernel) { return kernel.GetCommitment(); }
-        );
-
-        if (!total_offset.IsZero()) {
-            kernel_excess_commitments.push_back(Crypto::CommitBlinded((uint64_t)0, total_offset));
-        }
-
-        Commitment total_excess_commitment =  Crypto::AddCommitments(kernel_excess_commitments);
-
-        if (total_utxo_commitment != total_excess_commitment) {
-            LOG_ERROR_F(
-                "UTXO sum {} does not match kernel excess sum {}.",
-                total_utxo_commitment,
-                total_excess_commitment
-            );
-            ThrowValidation(EConsensusError::BLOCK_SUMS);
-        }
     }
 
     static void ValidateForBlock(
@@ -79,71 +58,52 @@ public:
             block_offset = Crypto::AddBlindingFactors({ block_offset }, { prev_total_offset });
         }
 
-        ValidateIncremental(body, block_offset);
+        ValidateSums(
+            body.GetInputCommits(),
+            body.GetOutputCommits(),
+            body.GetKernelCommits(),
+            block_offset,
+            body.GetSupplyChange()
+        );
     }
 
     static void ValidateForTx(const mw::Transaction& tx)
     {
-        ValidateIncremental(tx.GetBody(), tx.GetKernelOffset());
+        ValidateSums(
+            tx.GetInputCommits(),
+            tx.GetOutputCommits(),
+            tx.GetKernelCommits(),
+            tx.GetKernelOffset(),
+            tx.GetSupplyChange()
+        );
     }
 
 private:
-    static void ValidateIncremental(
-        const TxBody& body,
-        const BlindingFactor& offset)
+    static void ValidateSums(
+        const std::vector<Commitment>& input_commits,
+        const std::vector<Commitment>& output_commits,
+        const std::vector<Commitment>& kernel_commits,
+        const BlindingFactor& offset,
+        const int64_t coins_added)
     {
-        std::vector<Commitment> input_commitments;
-        std::transform(
-            body.GetInputs().cbegin(), body.GetInputs().cend(),
-            std::back_inserter(input_commitments),
-            [](const Input& input) { return input.GetCommitment(); }
-        );
-
-        std::vector<Commitment> output_commitments;
-        std::transform(
-            body.GetOutputs().cbegin(), body.GetOutputs().cend(),
-            std::back_inserter(output_commitments),
-            [](const Output& output) { return output.GetCommitment(); }
-        );
-
-        int64_t coins_added = 0;
-        for (const Kernel& kernel : body.GetKernels())
-        {
-            if (kernel.IsPegIn()) {
-                coins_added += (int64_t)kernel.GetAmount();
-            }
-            else if (kernel.IsPegOut()) {
-                coins_added -= (int64_t)kernel.GetAmount();
-            }
-
-            coins_added -= (int64_t)kernel.GetFee();
-        }
-
+        // Calculate UTXO nonce sum
+        Commitment sum_utxo_commitment = Crypto::AddCommitments(output_commits, input_commits);
         if (coins_added > 0) {
-            input_commitments.push_back(Crypto::CommitTransparent(coins_added));
+            sum_utxo_commitment = Crypto::AddCommitments(
+                { sum_utxo_commitment }, { Crypto::CommitTransparent(coins_added) }
+            );
         } else if (coins_added < 0) {
-            output_commitments.push_back(Crypto::CommitTransparent(std::abs(coins_added)));
+            sum_utxo_commitment = Crypto::AddCommitments(
+                { sum_utxo_commitment, Crypto::CommitTransparent(std::abs(coins_added)) }
+            );
         }
 
-        Commitment sum_utxo_commitment;
-        if (!input_commitments.empty() || !output_commitments.empty()) {
-            sum_utxo_commitment = Crypto::AddCommitments(output_commitments, input_commitments);
-        }
-
-        std::vector<Commitment> kernel_excess_commitments;
-        std::transform(
-            body.GetKernels().cbegin(), body.GetKernels().cend(),
-            std::back_inserter(kernel_excess_commitments),
-            [](const Kernel& kernel) { return kernel.GetExcess(); }
-        );
-
+        // Calculate total kernel excess
+        Commitment sum_excess_commitment = Crypto::AddCommitments(kernel_commits);
         if (!offset.IsZero()) {
-            kernel_excess_commitments.push_back(Crypto::CommitBlinded((uint64_t)0, offset));
-        }
-
-        Commitment sum_excess_commitment;
-        if (!kernel_excess_commitments.empty()) {
-            sum_excess_commitment = Crypto::AddCommitments(kernel_excess_commitments);
+            sum_excess_commitment = Crypto::AddCommitments(
+                { sum_excess_commitment, Crypto::CommitBlinded((uint64_t)0, offset) }
+            );
         }
 
         if (sum_utxo_commitment != sum_excess_commitment) {

@@ -4,7 +4,6 @@
 #include <mw/wallet/Wallet.h>
 #include <mw/wallet/KernelFactory.h>
 #include <mw/wallet/OutputFactory.h>
-#include <mw/wallet/TxFactory.h>
 
 mw::Transaction::CPtr PegIn::CreatePegInTx(const uint64_t amount, const StealthAddress& receiver_addr) const
 {
@@ -48,7 +47,7 @@ mw::Transaction::CPtr PegIn::CreatePegInTx(const uint64_t amount, const StealthA
     }
 
     // Build the Transaction
-    return TxFactory::CreateTx(
+    return mw::Transaction::Create(
         kernel_offset,
         owner_offset,
         std::vector<Input>{},

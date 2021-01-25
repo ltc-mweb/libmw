@@ -56,29 +56,21 @@ public:
             owner_offsets.push_back(pTransaction->GetOwnerOffset());
         }
 
-        // Perform cut-through
-        // CutThrough::PerformCutThrough(inputs, outputs);
-        // TODO: Prevent spending output that's created in the same transaction?
-
-        // Sort the components
-        std::sort(inputs.begin(), inputs.end(), SortByCommitment);
-        std::sort(outputs.begin(), outputs.end(), SortByCommitment);
-        std::sort(kernels.begin(), kernels.end(), SortByHash);
-        std::sort(owner_sigs.begin(), owner_sigs.end(), SortByHash);
+        // TODO: Prevent spending output that's created in the same transaction
+        // TODO: Prevent duplicate inputs or outputs.
 
         // Sum the offsets up to give us an aggregate offsets for the transaction.
         BlindingFactor kernel_offset = Crypto::AddBlindingFactors(kernel_offsets);
         BlindingFactor owner_offset = Crypto::AddBlindingFactors(owner_offsets);
 
-        // Build a new aggregate tx from the following:
-        //   * cut-through inputs
-        //   * cut-through outputs
-        //   * full set of tx kernels
-        //   * sum of all offsets
-        return std::make_shared<mw::Transaction>(
+        // Build a new aggregate tx
+        return mw::Transaction::Create(
             std::move(kernel_offset),
             std::move(owner_offset),
-            TxBody{ std::move(inputs), std::move(outputs), std::move(kernels), std::move(owner_sigs) }
+            std::move(inputs),
+            std::move(outputs),
+            std::move(kernels),
+            std::move(owner_sigs)
         );
     }
 };

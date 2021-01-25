@@ -4,6 +4,7 @@ set(Node_Tests
     "Test_MineChain.cpp"
     "Test_Reorg.cpp"
     "validation/Test_BlockValidator.cpp"
+    "validation/Test_StateValidator.cpp"
 )
 
 list_prepend(Node_Tests ${CMAKE_CURRENT_LIST_DIR}/)

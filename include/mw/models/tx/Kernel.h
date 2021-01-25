@@ -378,3 +378,13 @@ private:
     boost::optional<Bech32Address> m_address;
     std::vector<uint8_t> m_extraData;
 };
+
+// Sorts so that all pegin kernels are first, then are ordered by hash.
+static struct
+{
+    bool operator()(const Kernel& a, const Kernel& b) const
+    {
+        return (a.IsPegIn() && !b.IsPegIn())
+            || (a.IsPegIn() == b.IsPegIn() && a.GetHash() < b.GetHash());
+    }
+} KernelSort;
