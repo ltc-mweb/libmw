@@ -1,8 +1,4 @@
 #include <mw/wallet/Wallet.h>
-#include <mw/wallet/KernelFactory.h>
-#include <mw/wallet/OutputFactory.h>
-#include <mw/crypto/Blinds.h>
-#include <mw/crypto/Bulletproofs.h>
 #include <mw/crypto/Keys.h>
 #include <mw/crypto/Random.h>
 #include <mw/config/ChainParams.h>
@@ -68,7 +64,7 @@ libmw::WalletBalance Wallet::GetBalance() const
             num_confirmations = m_pWalletInterface->GetDepthInActiveChain(coin.included_block.value());
         }
 
-        // TODO: Also calculate watch-only balances
+        // FUTURE: Also calculate watch-only balances
 
         if (num_confirmations == 0) {
             balance.unconfirmed_balance += coin.amount;

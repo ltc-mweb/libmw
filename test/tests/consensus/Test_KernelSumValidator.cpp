@@ -157,15 +157,7 @@ TEST_CASE("KernelSumValidator::ValidateForBlock - Without Builder")
 
     // Add kernel
     const uint64_t fee = 500'000;
-    std::vector<uint8_t> kernel_message = Serializer()
-        .Append<uint8_t>(KernelType::PLAIN_KERNEL)
-        .Append<uint64_t>(fee)
-        .vec();
-    kernels.push_back(Kernel::CreatePlain(
-        fee,
-        Crypto::CommitBlinded(0, excess),
-        Schnorr::Sign(excess.data(), Hashed(kernel_message))
-    ));
+    kernels.push_back(Kernel::CreatePlain(excess, fee));
 
     // Create Transaction
     auto pTransaction = mw::Transaction::Create(

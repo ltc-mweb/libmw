@@ -151,8 +151,6 @@ struct BlockBuilderRef
     std::shared_ptr<mw::BlockBuilder> pBuilder;
 };
 
-// TODO: WalletTx
-
 /// <summary>
 /// Represents an output owned by the wallet.
 /// </summary>

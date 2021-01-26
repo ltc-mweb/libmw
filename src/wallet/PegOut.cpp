@@ -6,8 +6,6 @@
 #include <mw/crypto/Blinds.h>
 #include <mw/exceptions/InsufficientFundsException.h>
 #include <mw/wallet/Wallet.h>
-#include <mw/wallet/KernelFactory.h>
-#include <mw/wallet/OutputFactory.h>
 
 mw::Transaction::CPtr PegOut::CreatePegOutTx(
     const uint64_t amount,
@@ -28,11 +26,11 @@ mw::Transaction::CPtr PegOut::CreatePegOutTx(
 
     // Create change output.
     // We randomly generate the sender_key and output_blind.
-    // Receiver key is generate by OutputFactory using the wallet's stealth address.
+    // Receiver key is generate by Output::Create using the wallet's stealth address.
     const uint64_t change_amount = WalletUtil::TotalAmount(input_coins) - (amount + fee);
     SecretKey change_key = m_wallet.NewKey();
     BlindingFactor change_blind = Random::CSPRNG<32>();
-    Output change_output = OutputFactory::Create(
+    Output change_output = Output::Create(
         EOutputFeatures::DEFAULT_OUTPUT,
         change_blind,
         change_key,
@@ -49,9 +47,9 @@ mw::Transaction::CPtr PegOut::CreatePegOutTx(
         .Sub(input_blinds)
         .Sub(kernel_offset)
         .Total();
-    Kernel kernel = KernelFactory::CreatePegOutKernel(kernel_blind, amount, fee, address);
+    Kernel kernel = Kernel::CreatePegOut(kernel_blind, amount, fee, address);
 
-    // TODO: Only necessary when no change?
+    // FUTURE: Only necessary when no change?
     BlindingFactor owner_sig_key = Random::CSPRNG<32>();
     SignedMessage owner_sig = Schnorr::SignMessage(owner_sig_key.GetBigInt(), kernel.GetHash());
 

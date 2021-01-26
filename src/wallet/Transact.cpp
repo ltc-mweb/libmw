@@ -6,8 +6,6 @@
 #include <mw/crypto/Blinds.h>
 #include <mw/exceptions/InsufficientFundsException.h>
 #include <mw/wallet/Wallet.h>
-#include <mw/wallet/KernelFactory.h>
-#include <mw/wallet/OutputFactory.h>
 
 mw::Transaction::CPtr Transact::CreateTx(
     const uint64_t amount,
@@ -29,7 +27,7 @@ mw::Transaction::CPtr Transact::CreateTx(
     // Create receiver's output
     BlindingFactor receiver_blind = Random::CSPRNG<32>();
     SecretKey ephemeral_key = m_wallet.NewKey();
-    Output receiver_output = OutputFactory::Create(
+    Output receiver_output = Output::Create(
         EOutputFeatures::DEFAULT_OUTPUT,
         receiver_blind,
         ephemeral_key,
@@ -41,7 +39,7 @@ mw::Transaction::CPtr Transact::CreateTx(
     const uint64_t change_amount = WalletUtil::TotalAmount(input_coins) - (amount + fee);
     BlindingFactor change_blind = Random::CSPRNG<32>();
     SecretKey change_key = m_wallet.NewKey();
-    Output change_output = OutputFactory::Create(
+    Output change_output = Output::Create(
         EOutputFeatures::DEFAULT_OUTPUT,
         change_blind,
         change_key,
@@ -59,9 +57,9 @@ mw::Transaction::CPtr Transact::CreateTx(
         .Sub(input_blinds)
         .Sub(kernel_offset)
         .Total();
-    Kernel kernel = KernelFactory::CreatePlainKernel(kernel_blind, fee);
+    Kernel kernel = Kernel::CreatePlain(kernel_blind, fee);
 
-    // TODO: Only necessary when no change?
+    // FUTURE: Only necessary when no change?
     BlindingFactor owner_sig_key = Random::CSPRNG<32>();
     SignedMessage owner_sig = Schnorr::SignMessage(owner_sig_key.GetBigInt(), kernel.GetHash());
 

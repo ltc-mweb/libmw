@@ -15,17 +15,7 @@ test::Tx test::Tx::CreatePegIn(const uint64_t amount)
     );
 
     BlindingFactor kernelBF = Crypto::AddBlindingFactors({ outputBF }, { txOffset });
-    Commitment kernelCommit = Crypto::CommitBlinded(0, kernelBF);
-
-    Signature signature = Schnorr::Sign(
-        kernelBF.data(),
-        Hasher()
-            .Append<uint8_t>((uint8_t)KernelType::PEGIN_KERNEL)
-            .Append<uint64_t>(amount)
-            .hash()
-    );
-
-    Kernel kernel = Kernel::CreatePegIn(amount, std::move(kernelCommit), std::move(signature));
+    Kernel kernel = Kernel::CreatePegIn(kernelBF, amount);
 
     auto pTx = mw::Transaction::Create(txOffset, sender_privkey, {}, { output.GetOutput() }, { kernel }, {});
     return Tx{ pTx, { output } };

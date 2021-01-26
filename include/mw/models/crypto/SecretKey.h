@@ -56,7 +56,7 @@ public:
     }
 
 private:
-    BigInt<NUM_BYTES> m_value; // TODO: Use SecureAllocator
+    BigInt<NUM_BYTES> m_value;
 };
 
 using SecretKey = secret_key_t<32>;
