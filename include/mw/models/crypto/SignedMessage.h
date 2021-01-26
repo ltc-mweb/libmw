@@ -13,6 +13,7 @@
 class SignedMessage : public Traits::ISerializable, public Traits::IHashable
 {
 public:
+    SignedMessage() = default;
     SignedMessage(const SignedMessage&) = default;
     SignedMessage(SignedMessage&&) = default;
     SignedMessage(const mw::Hash& msgHash, const PublicKey& publicKey, const Signature& signature)

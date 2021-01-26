@@ -21,7 +21,7 @@ jobs:
             os: windows-latest
             vcpkg_triplet: x64-windows-static
     steps:
-      - name: Checkout libmw-ltc
+      - name: Checkout libmw
         uses: actions/checkout@v2
         with:
           submodules: 'recursive'
