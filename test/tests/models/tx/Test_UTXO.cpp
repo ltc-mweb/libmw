@@ -3,19 +3,19 @@
 #include <mw/crypto/Crypto.h>
 #include <mw/crypto/Random.h>
 #include <mw/models/tx/UTXO.h>
+#include <mw/models/wallet/StealthAddress.h>
 
 TEST_CASE("Tx UTXO")
 {
-    Commitment commit = Random::CSPRNG<33>().GetBigInt();
-    OwnerData ownerData{}; // TODO: Populate this
-    RangeProof::CPtr rangeProof = std::make_shared<const RangeProof>(
-        std::vector<uint8_t>(Random::CSPRNG<600>().vec())
-    );
-
-    Output output(
-        Commitment(commit),
-        OwnerData(ownerData),
-        rangeProof
+    uint64_t amount = 12345;
+    BlindingFactor blind = Random::CSPRNG<32>();
+    Commitment commit = Crypto::CommitBlinded(amount, blind);
+    Output output = Output::Create(
+        EOutputFeatures::DEFAULT_OUTPUT,
+        blind,
+        Random::CSPRNG<32>(),
+        StealthAddress::Random(),
+        amount
     );
 
     uint64_t blockHeight = 20;
@@ -46,7 +46,7 @@ TEST_CASE("Tx UTXO")
         REQUIRE(utxo.GetLeafIndex() == leafIndex);
         REQUIRE(utxo.GetOutput() == output);
         REQUIRE(utxo.GetCommitment() == commit);
-        REQUIRE(utxo.GetOwnerData() == ownerData);
-        REQUIRE(utxo.GetRangeProof() == rangeProof);
+        REQUIRE(utxo.GetOwnerData() == output.GetOwnerData());
+        REQUIRE(utxo.GetRangeProof() == output.GetRangeProof());
     }
 }
