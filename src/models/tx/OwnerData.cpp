@@ -45,16 +45,16 @@ OwnerData OwnerData::Create(
     );
 }
 
-SignedMessage OwnerData::GetSignedMsg() const noexcept
+SignedMessage OwnerData::BuildSignedMsg() const noexcept
 {
-    auto serialized_msg = Serializer()
+    mw::Hash hashed_msg = Hasher()
         .Append<uint8_t>(m_features)
         .Append(m_receiverPubKey)
         .Append(m_pubNonce)
         .Append<uint8_t>((uint8_t)m_encrypted.size())
         .Append(m_encrypted)
-        .vec();
-    return SignedMessage{ Hashed(serialized_msg), m_senderPubKey, m_signature };
+        .hash();
+    return SignedMessage{ hashed_msg, m_senderPubKey, m_signature };
 }
 
 bool OwnerData::TryDecrypt(const SecretKey& secretKey, std::vector<uint8_t>& decrypted) const noexcept

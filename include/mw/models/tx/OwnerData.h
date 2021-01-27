@@ -74,7 +74,7 @@ public:
     const std::vector<uint8_t>& GetEncrypted() const noexcept { return m_encrypted; }
     const Signature& GetSignature() const noexcept { return m_signature; }
 
-    SignedMessage GetSignedMsg() const noexcept;
+    SignedMessage BuildSignedMsg() const noexcept;
     bool TryDecrypt(const SecretKey& secretKey, std::vector<uint8_t>& decrypted) const noexcept;
 
     //
