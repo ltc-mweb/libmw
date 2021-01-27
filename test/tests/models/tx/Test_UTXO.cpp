@@ -46,7 +46,7 @@ TEST_CASE("Tx UTXO")
         REQUIRE(utxo.GetLeafIndex() == leafIndex);
         REQUIRE(utxo.GetOutput() == output);
         REQUIRE(utxo.GetCommitment() == commit);
-        REQUIRE(utxo.GetOwnerData() == output.GetOwnerData());
         REQUIRE(utxo.GetRangeProof() == output.GetRangeProof());
+        REQUIRE(utxo.BuildProofData() == output.BuildProofData());
     }
 }

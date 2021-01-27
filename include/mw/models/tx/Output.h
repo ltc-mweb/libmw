@@ -7,6 +7,7 @@
 #include <mw/models/tx/Features.h>
 #include <mw/models/tx/OutputId.h>
 #include <mw/models/tx/OwnerData.h>
+#include <mw/models/crypto/ProofData.h>
 #include <mw/models/crypto/RangeProof.h>
 #include <mw/models/crypto/SecretKey.h>
 #include <mw/crypto/Crypto.h>
@@ -74,6 +75,9 @@ public:
     const PublicKey& GetPubNonce() const noexcept { return m_ownerData.GetPubNonce(); }
     const std::vector<uint8_t>& GetEncrypted() const noexcept { return m_ownerData.GetEncrypted(); }
     const Signature& GetSignature() const noexcept { return m_ownerData.GetSignature(); }
+
+    SignedMessage BuildSignedMsg() const noexcept { return m_ownerData.BuildSignedMsg(); }
+    ProofData BuildProofData() const noexcept { return ProofData{ m_commitment, m_pProof, m_ownerData.Serialized() }; }
 
     bool IsPeggedIn() const noexcept { return (GetFeatures() & EOutputFeatures::PEGGED_IN) == EOutputFeatures::PEGGED_IN; }
 
