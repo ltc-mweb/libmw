@@ -38,15 +38,19 @@ mw::Transaction::CPtr Wallet::Send(
     return Transact(*this).CreateTx(amount, fee_base, receiver_address);
 }
 
-StealthAddress Wallet::GetStealthAddress() const
+StealthAddress Wallet::GetStealthAddress(const uint32_t index) const
 {
-    SecretKey scan_secret(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
-    SecretKey spend_secret(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
+    SecretKey a(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
+    SecretKey b(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
+    SecretKey mi = Hasher(EHashTag::ADDRESS)
+        .Append<uint32_t>(index)
+        .Append(a)
+        .hash();
 
-    return StealthAddress(
-        Keys::From(scan_secret).PubKey(),
-        Keys::From(spend_secret).PubKey()
-    );
+    PublicKey Bi = Crypto::CalculatePublicKey(Crypto::AddPrivateKeys(b, mi).GetBigInt());
+    PublicKey Ai = Crypto::MultiplyKey(Bi, a);
+
+    return StealthAddress(Ai, Bi);
 }
 
 libmw::WalletBalance Wallet::GetBalance() const

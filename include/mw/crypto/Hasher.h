@@ -4,6 +4,11 @@
 #include <mw/models/crypto/Hash.h>
 #include <mw/traits/Serializable.h>
 
+enum class EHashTag : char
+{
+    ADDRESS = 'A'
+};
+
 static mw::Hash Hashed(const std::vector<uint8_t>& serialized)
 {
     return mw::Hash(SerializeHash(serialized).begin());
@@ -22,10 +27,15 @@ static const mw::Hash& InputMessage()
     return mweb_hash;
 }
 
+// FUTURE: Incrementally update hash on each Append using CSHA256.write()
 class Hasher
 {
 public:
     Hasher() = default;
+    Hasher(const EHashTag tag)
+    {
+        m_serializer.Append<char>(static_cast<char>(tag));
+    }
 
     mw::Hash hash() const { return Hashed(m_serializer.vec()); }
 

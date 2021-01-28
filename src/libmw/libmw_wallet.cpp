@@ -62,9 +62,9 @@ MWEXPORT void ScanForOutputs(const libmw::IWallet::Ptr& pWallet, const libmw::IC
     Wallet::Open(pWallet).ScanForOutputs(pChain);
 }
 
-MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet)
+MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet, const uint32_t index)
 {
-    return Wallet::Open(pWallet).GetStealthAddress().Encode();
+    return Wallet::Open(pWallet).GetStealthAddress(index).Encode();
 }
 
 MWEXPORT bool IsOwnAddress(const libmw::IWallet::Ptr& pWallet, const libmw::MWEBAddress& address)
