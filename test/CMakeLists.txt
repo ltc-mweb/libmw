@@ -33,7 +33,7 @@ add_subdirectory(tests/wallet)
 
 add_executable(Tests ${test_sources})
 add_dependencies(Tests fmt::fmt MW_TEST::Framework MW::Node MW::Wallet)
-target_link_libraries(Tests MW_TEST::Framework MW::Node Catch2::Catch2 libmw)
+target_link_libraries(Tests MW_TEST::Framework MW::Node MW::Wallet Catch2::Catch2 libmw)
 
 include(CTest)
 include(Catch)
