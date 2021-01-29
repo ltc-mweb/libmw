@@ -211,41 +211,41 @@ void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
 
 libmw::Coin Wallet::RewindOutput(const Output& output) const
 {
-    // Mark outputs as confirmed
-    SecretKey scan_secret(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
-    SecretKey spend_secret(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
+    //// Mark outputs as confirmed
+    //SecretKey scan_secret(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
+    //SecretKey spend_secret(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
 
-    PublicKey pubnonce = Keys::From(output.GetOwnerData().GetPubNonce()).Mul(scan_secret).PubKey();
-    PublicKey receiver_pubkey = Keys::From(Hashed(pubnonce)).Add(spend_secret).PubKey();
-    if (receiver_pubkey == output.GetOwnerData().GetReceiverPubKey()) {
-        // Output is owned by wallet
-        PublicKey ecdh_pubkey = Keys::From(output.GetOwnerData().GetSenderPubKey()).Mul(spend_secret).PubKey();
-        SecretKey shared_secret = Hashed(ecdh_pubkey);
+    //PublicKey pubnonce = Keys::From(output.GetOwnerData().GetPubNonce()).Mul(scan_secret).PubKey();
+    //PublicKey receiver_pubkey = Keys::From(Hashed(pubnonce)).Add(spend_secret).PubKey();
+    //if (receiver_pubkey == output.GetOwnerData().GetReceiverPubKey()) {
+    //    // Output is owned by wallet
+    //    PublicKey ecdh_pubkey = Keys::From(output.GetOwnerData().GetSenderPubKey()).Mul(spend_secret).PubKey();
+    //    SecretKey shared_secret = Hashed(ecdh_pubkey);
 
-        std::vector<uint8_t> decrypted;
-        if (output.GetOwnerData().TryDecrypt(shared_secret, decrypted)) {
-            Deserializer deserializer(decrypted);
-            BlindingFactor blind = BlindingFactor::Deserialize(deserializer);
-            uint64_t amount = deserializer.Read<uint64_t>();
-            SecretKey private_key = Crypto::AddPrivateKeys(Hashed(pubnonce), spend_secret);
-            bool change_output = false; // TODO: Make this a bitmask of private features instead?
-            if (deserializer.GetRemainingSize() > 0) {
-                change_output = deserializer.Read<bool>();
-            }
+    //    std::vector<uint8_t> decrypted;
+    //    if (output.GetOwnerData().TryDecrypt(shared_secret, decrypted)) {
+    //        Deserializer deserializer(decrypted);
+    //        BlindingFactor blind = BlindingFactor::Deserialize(deserializer);
+    //        uint64_t amount = deserializer.Read<uint64_t>();
+    //        SecretKey private_key = Crypto::AddPrivateKeys(Hashed(pubnonce), spend_secret);
+    //        bool change_output = false; // TODO: Make this a bitmask of private features instead?
+    //        if (deserializer.GetRemainingSize() > 0) {
+    //            change_output = deserializer.Read<bool>();
+    //        }
 
-            return libmw::Coin{
-                output.GetFeatures(),
-                change_output,
-                private_key.array(),
-                blind.array(),
-                amount,
-                output.GetCommitment().array(),
-                boost::none,
-                false,
-                boost::none
-            };
-        }
-    }
+    //        return libmw::Coin{
+    //            output.GetFeatures(),
+    //            change_output,
+    //            private_key.array(),
+    //            blind.array(),
+    //            amount,
+    //            output.GetCommitment().array(),
+    //            boost::none,
+    //            false,
+    //            boost::none
+    //        };
+    //    }
+    //}
 
     throw std::runtime_error("Unable to rewind output");
 }

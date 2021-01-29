@@ -6,41 +6,66 @@
 #include <mw/crypto/Schnorr.h>
 
 OwnerData OwnerData::Create(
+    BlindingFactor& blind_out,
     const EOutputFeatures features,
     const SecretKey& sender_privkey,
     const StealthAddress& receiver_addr,
-    const BlindingFactor& blinding_factor,
-    const uint64_t amount)
+    const uint64_t value)
 {
-    PublicKey sender_pubkey = Keys::From(sender_privkey).PubKey();
-    SecretKey r = Random::CSPRNG<32>();
-    PublicKey R = Keys::From(r).PubKey();
-    PublicKey rA = Keys::From(receiver_addr.A()).Mul(r).PubKey();
-    PublicKey receiver_pubkey = Keys::From(Hashed(rA)).Add(receiver_addr.B()).PubKey();
+    // Generate 128-bit secret nonce 'n' = Hash128(T_nonce, sender_privkey)
+    secret_key_t<16> n = Hashed(EHashTag::NONCE, sender_privkey).data();
 
-    // TODO: Include version in plaintext
-    std::vector<uint8_t> plaintext = Serializer()
-        .Append(blinding_factor)
-        .Append<uint64_t>(amount)
-        .vec();
-    SecretKey shared_secret = Hashed(Keys::From(receiver_addr.B()).Mul(sender_privkey).PubKey());
-    std::vector<uint8_t> encrypted_data = Crypto::AES256_Encrypt(plaintext, shared_secret, BigInt<16>());
+    // Calculate unique sending key 's' = H(T_send, A, B, v, n)
+    SecretKey s = Hasher(EHashTag::SEND_KEY)
+        .Append(receiver_addr.A())
+        .Append(receiver_addr.B())
+        .Append(value)
+        .Append(n)
+        .hash();
 
+    // Derive shared secret 't' = H(T_derive, s*A)
+    SecretKey t = Hasher(EHashTag::DERIVE)
+        .Append(receiver_addr.A().Mul(s))
+        .hash();
+
+    // Construct one-time public key for receiver 'Ko' = H(T_outkey, t)*G + B
+    PublicKey Ko = PublicKey::From(Hashed(EHashTag::OUT_KEY, t))
+        .Add(receiver_addr.B());
+
+    // Key exchange public key 'Ke' = s*B
+    PublicKey Ke = receiver_addr.B().Mul(s);
+
+    // Feed the shared secret 't' into a stream cipher (in our case, just a hash function)
+    // to derive a blinding factor r and two encryption masks mv (masked value) and mn (masked nonce)
+    Deserializer hash64(Hash512(t).vec());
+    BlindingFactor r = Crypto::BlindSwitch(hash64.Read<SecretKey>(), value);
+    uint64_t mv = hash64.Read<uint64_t>() ^ value;
+    BigInt<16> mn = n.GetBigInt() ^ hash64.ReadVector(16);
+
+    // Commitment 'C' = r*G + v*H
+    Commitment output_commit = Crypto::CommitBlinded(value, r);
+
+    // Sign the malleable output data
     mw::Hash sig_message = Hasher()
         .Append<uint8_t>(features)
-        .Append(receiver_pubkey)
-        .Append(R)
-        .Append<uint8_t>((uint8_t)encrypted_data.size())
-        .Append(encrypted_data)
+        .Append(Ko)
+        .Append(Ke)
+        .Append(t[0])
+        .Append(mv)
+        .Append(mn)
         .hash();
+    PublicKey sender_pubkey = Keys::From(sender_privkey).PubKey();
     Signature signature = Schnorr::Sign(sender_privkey.data(), sig_message);
 
+    blind_out = r;
     return OwnerData(
         features,
+        std::move(Ko),
+        std::move(Ke),
+        t[0],
+        mv,
+        std::move(mn),
         std::move(sender_pubkey),
-        std::move(receiver_pubkey),
-        std::move(R),
-        std::move(encrypted_data),
         std::move(signature)
     );
 }
@@ -50,52 +75,46 @@ SignedMessage OwnerData::BuildSignedMsg() const noexcept
     mw::Hash hashed_msg = Hasher()
         .Append<uint8_t>(m_features)
         .Append(m_receiverPubKey)
-        .Append(m_pubNonce)
-        .Append<uint8_t>((uint8_t)m_encrypted.size())
-        .Append(m_encrypted)
+        .Append(m_keyExchangePubKey)
+        .Append(m_viewTag)
+        .Append(m_maskedValue)
+        .Append(m_maskedNonce)
         .hash();
     return SignedMessage{ hashed_msg, m_senderPubKey, m_signature };
-}
-
-bool OwnerData::TryDecrypt(const SecretKey& secretKey, std::vector<uint8_t>& decrypted) const noexcept
-{
-    try {
-        decrypted = Crypto::AES256_Decrypt(m_encrypted, secretKey, BigInt<16>()); // TODO: Use IV?
-        return true;
-    }
-    catch (...) {}
-
-    return false;
 }
 
 Serializer& OwnerData::Serialize(Serializer& serializer) const noexcept
 {
     return serializer
         .Append<uint8_t>(m_features)
-        .Append(m_senderPubKey)
         .Append(m_receiverPubKey)
-        .Append(m_pubNonce)
-        .Append<uint8_t>((uint8_t)m_encrypted.size())
-        .Append(m_encrypted)
+        .Append(m_keyExchangePubKey)
+        .Append(m_viewTag)
+        .Append(m_maskedValue)
+        .Append(m_maskedNonce)
+        .Append(m_senderPubKey)
         .Append(m_signature);
 }
 
 OwnerData OwnerData::Deserialize(Deserializer& deserializer)
 {
     EOutputFeatures features = (EOutputFeatures)deserializer.Read<uint8_t>();
-    PublicKey senderPubKey = PublicKey::Deserialize(deserializer);
     PublicKey receiverPubKey = PublicKey::Deserialize(deserializer);
-    PublicKey pubNonce = PublicKey::Deserialize(deserializer);
-    const uint8_t size = deserializer.Read<uint8_t>();
-    std::vector<uint8_t> encrypted = deserializer.ReadVector(size);
+    PublicKey keyExchangePubKey = PublicKey::Deserialize(deserializer);
+    uint8_t viewTag = deserializer.Read<uint8_t>();
+    uint64_t maskedValue = deserializer.Read<uint64_t>();
+    BigInt<16> maskedNonce = BigInt<16>::Deserialize(deserializer);
+    PublicKey senderPubKey = PublicKey::Deserialize(deserializer);
     Signature signature = Signature::Deserialize(deserializer);
 
     return OwnerData(
         features,
-        std::move(senderPubKey),
         std::move(receiverPubKey),
-        std::move(pubNonce),
-        std::move(encrypted),
+        std::move(keyExchangePubKey),
+        viewTag,
+        maskedValue,
+        std::move(maskedNonce),
+        std::move(senderPubKey),
         std::move(signature)
     );
 }

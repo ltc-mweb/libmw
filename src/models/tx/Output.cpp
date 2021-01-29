@@ -4,37 +4,36 @@
 #include <mw/crypto/Bulletproofs.h>
 
 Output Output::Create(
+    BlindingFactor& blind_out,
     const EOutputFeatures features,
-    const BlindingFactor& blinding_factor,
     const SecretKey& sender_privkey,
     const StealthAddress& receiver_addr,
-    const uint64_t amount)
+    const uint64_t value)
 {
-    Commitment commitment = Crypto::CommitBlinded(
-        amount,
-        blinding_factor
-    );
-
     OwnerData owner_data = OwnerData::Create(
+        blind_out,
         features,
         sender_privkey,
         receiver_addr,
-        blinding_factor,
-        amount
+        value
     );
 
     // TODO: Determine how to use bulletproof rewind messages.
     // Probably best to store sender_key so sender can identify all outputs they've sent?
     RangeProof::CPtr pRangeProof = Bulletproofs::Generate(
-        amount,
-        SecretKey(blinding_factor.vec()),
+        value,
+        SecretKey(blind_out.vec()),
         Random::CSPRNG<32>(),
         Random::CSPRNG<32>(),
         ProofMessage{},
         owner_data.Serialized()
     );
 
-    return Output{ std::move(commitment), std::move(owner_data), pRangeProof };
+    return Output{
+        Crypto::CommitBlinded(value, blind_out),
+        std::move(owner_data),
+        pRangeProof
+    };
 }
 
 Serializer& Output::Serialize(Serializer& serializer) const noexcept

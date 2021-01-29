@@ -29,10 +29,10 @@ mw::Transaction::CPtr PegOut::CreatePegOutTx(
     // Receiver key is generate by Output::Create using the wallet's stealth address.
     const uint64_t change_amount = WalletUtil::TotalAmount(input_coins) - (amount + fee);
     SecretKey change_key = m_wallet.NewKey();
-    BlindingFactor change_blind = Random::CSPRNG<32>();
+    BlindingFactor change_blind;
     Output change_output = Output::Create(
-        EOutputFeatures::DEFAULT_OUTPUT,
         change_blind,
+        EOutputFeatures::DEFAULT_OUTPUT,
         change_key,
         m_wallet.GetStealthAddress(),
         change_amount

@@ -121,25 +121,25 @@ TEST_CASE("KernelSumValidator::ValidateForBlock - Without Builder")
     inputs.push_back(test::TxInput::Create(input2_bf, input2_sender_key, 6'000'000).GetInput());
 
     // Add outputs
-    BlindingFactor output1_bf = Random::CSPRNG<32>();
     SecretKey output1_sender_key = Random::CSPRNG<32>();
-    outputs.push_back(test::TxOutput::Create(
+    test::TxOutput output1 = test::TxOutput::Create(
         EOutputFeatures::DEFAULT_OUTPUT,
-        output1_bf,
         output1_sender_key,
         StealthAddress::Random(),
         4'000'000
-    ).GetOutput());
+    );
+    BlindingFactor output1_bf = output1.GetBlind();
+    outputs.push_back(output1.GetOutput());
 
-    BlindingFactor output2_bf = Random::CSPRNG<32>();
     SecretKey output2_sender_key = Random::CSPRNG<32>();
-    outputs.push_back(test::TxOutput::Create(
+    test::TxOutput output2 = test::TxOutput::Create(
         EOutputFeatures::DEFAULT_OUTPUT,
-        output2_bf,
         output2_sender_key,
         StealthAddress::Random(),
         6'500'000
-    ).GetOutput());
+    );
+    BlindingFactor output2_bf = output2.GetBlind();
+    outputs.push_back(output2.GetOutput());
 
     // Kernel offset
     mw::Hash prev_total_offset = mw::Hash::FromHex("0123456789abcdef0123456789abcdef00000000000000000000000000000000");
