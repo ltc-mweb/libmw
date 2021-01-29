@@ -81,7 +81,7 @@ public:
     // Adds a number of public keys together.
     // Returns the combined public key if successful.
     //
-    static PublicKey AddPublicKeys(const std::vector<PublicKey>& publicKeys);
+    static PublicKey AddPublicKeys(const std::vector<PublicKey>& publicKeys, const std::vector<PublicKey>& subtract = {});
 
     //
     // Converts a commitment to a PublicKey.
@@ -91,8 +91,8 @@ public:
     //
     // Calculates the blinding factor x' = x + SHA256(xG+vH | xJ), used in the switch commitment x'G+vH.
     //
-    static SecretKey BlindSwitch(
-        const SecretKey& secretKey,
+    static BlindingFactor BlindSwitch(
+        const BlindingFactor& secretKey,
         const uint64_t amount
     );
 
