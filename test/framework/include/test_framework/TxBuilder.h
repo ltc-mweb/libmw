@@ -34,15 +34,13 @@ public:
 
     TxBuilder& AddOutput(
         const uint64_t amount,
-        const EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT,
-        const BlindingFactor& blind = Random::CSPRNG<32>()
+        const EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT
     );
     TxBuilder& AddOutput(
         const uint64_t amount,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
-        const EOutputFeatures features,
-        const BlindingFactor& blind
+        const EOutputFeatures features
     );
 
     TxBuilder& AddPlainKernel(const uint64_t fee, const bool add_owner_sig = false);

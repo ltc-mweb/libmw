@@ -16,16 +16,17 @@ public:
 
     static TxOutput Create(
         const EOutputFeatures features,
-        const BlindingFactor& blinding_factor,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
         const uint64_t amount)
     {
-        Output output = Output::Create(features, blinding_factor, sender_privkey, receiver_addr, amount);
+        BlindingFactor blinding_factor;
+        Output output = Output::Create(blinding_factor, features, sender_privkey, receiver_addr, amount);
 
         return TxOutput{ blinding_factor, amount, std::move(output) };
     }
 
+    const BlindingFactor& GetBlind() const noexcept { return m_blindingFactor; }
     const BlindingFactor& GetBlindingFactor() const noexcept { return m_blindingFactor; }
     uint64_t GetAmount() const noexcept { return m_amount; }
     const Output& GetOutput() const noexcept { return m_output; }

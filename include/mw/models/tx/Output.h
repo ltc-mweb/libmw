@@ -43,11 +43,11 @@ public:
     // Factory
     //
     static Output Create(
+        BlindingFactor& blind_out,
         const EOutputFeatures features,
-        const BlindingFactor& blinding_factor,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
-        const uint64_t amount
+        const uint64_t value
     );
 
     //
@@ -66,14 +66,17 @@ public:
     //
     // Getters
     //
-    EOutputFeatures GetFeatures() const noexcept { return m_ownerData.GetFeatures(); }
     const Commitment& GetCommitment() const noexcept final { return m_commitment; }
-    const OwnerData& GetOwnerData() const noexcept { return m_ownerData; }
     const RangeProof::CPtr& GetRangeProof() const noexcept { return m_pProof; }
-    const PublicKey& GetSenderPubKey() const noexcept { return m_ownerData.GetSenderPubKey(); }
+
+    const OwnerData& GetOwnerData() const noexcept { return m_ownerData; }
+    EOutputFeatures GetFeatures() const noexcept { return m_ownerData.GetFeatures(); }
     const PublicKey& GetReceiverPubKey() const noexcept { return m_ownerData.GetReceiverPubKey(); }
-    const PublicKey& GetPubNonce() const noexcept { return m_ownerData.GetPubNonce(); }
-    const std::vector<uint8_t>& GetEncrypted() const noexcept { return m_ownerData.GetEncrypted(); }
+    const PublicKey& GetKeyExchangePubKey() const noexcept { return m_ownerData.GetKeyExchangePubKey(); }
+    uint8_t GetViewTag() const noexcept { return m_ownerData.GetViewTag(); }
+    uint64_t GetMaskedValue() const noexcept { return m_ownerData.GetMaskedValue(); }
+    const BigInt<16>& GetMaskedNonce() const noexcept { return m_ownerData.GetMaskedNonce(); }
+    const PublicKey& GetSenderPubKey() const noexcept { return m_ownerData.GetSenderPubKey(); }
     const Signature& GetSignature() const noexcept { return m_ownerData.GetSignature(); }
 
     SignedMessage BuildSignedMsg() const noexcept { return m_ownerData.BuildSignedMsg(); }

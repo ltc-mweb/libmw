@@ -11,8 +11,8 @@ TEST_CASE("Tx UTXO")
     BlindingFactor blind = Random::CSPRNG<32>();
     Commitment commit = Crypto::CommitBlinded(amount, blind);
     Output output = Output::Create(
-        EOutputFeatures::DEFAULT_OUTPUT,
         blind,
+        EOutputFeatures::DEFAULT_OUTPUT,
         Random::CSPRNG<32>(),
         StealthAddress::Random(),
         amount

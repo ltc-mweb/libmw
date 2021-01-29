@@ -11,6 +11,7 @@
 // Forward Declarations
 class StealthAddress;
 
+// TODO: Inherit SignedMessage?
 class OwnerData : public Traits::ISerializable
 {
 public:
@@ -22,28 +23,32 @@ public:
     OwnerData(OwnerData&&) = default;
     OwnerData(
         EOutputFeatures features,
-        PublicKey&& senderPubKey,
         PublicKey&& receiverPubKey,
-        PublicKey&& pubNonce,
-        std::vector<uint8_t>&& encrypted,
+        PublicKey&& keyExchangePubKey,
+        uint8_t viewTag,
+        uint64_t maskedValue,
+        BigInt<16>&& maskedNonce,
+        PublicKey&& senderPubKey,
         Signature&& signature
     )
         : m_features(features),
-        m_senderPubKey(std::move(senderPubKey)),
         m_receiverPubKey(std::move(receiverPubKey)),
-        m_pubNonce(std::move(pubNonce)),
-        m_encrypted(std::move(encrypted)),
+        m_keyExchangePubKey(std::move(keyExchangePubKey)),
+        m_viewTag(viewTag),
+        m_maskedValue(maskedValue),
+        m_maskedNonce(std::move(maskedNonce)),
+        m_senderPubKey(std::move(senderPubKey)),
         m_signature(std::move(signature)) { }
 
     //
     // Factory
     //
     static OwnerData Create(
+        BlindingFactor& blind_out,
         const EOutputFeatures features,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
-        const BlindingFactor& blinding_factor,
-        const uint64_t amount
+        const uint64_t value
     );
 
     //
@@ -59,8 +64,11 @@ public:
 
         return m_senderPubKey == rhs.m_senderPubKey
             && m_receiverPubKey == rhs.m_receiverPubKey
-            && m_pubNonce == rhs.m_pubNonce
-            && m_encrypted == rhs.m_encrypted
+            && m_keyExchangePubKey == rhs.m_keyExchangePubKey
+            && m_viewTag == rhs.m_viewTag
+            && m_maskedValue == rhs.m_maskedValue
+            && m_maskedNonce == rhs.m_maskedNonce
+            && m_senderPubKey == rhs.m_senderPubKey
             && m_signature == rhs.m_signature;
     }
 
@@ -68,14 +76,15 @@ public:
     // Getters
     //
     EOutputFeatures GetFeatures() const noexcept { return m_features; }
-    const PublicKey& GetSenderPubKey() const noexcept { return m_senderPubKey; }
     const PublicKey& GetReceiverPubKey() const noexcept { return m_receiverPubKey; }
-    const PublicKey& GetPubNonce() const noexcept { return m_pubNonce; }
-    const std::vector<uint8_t>& GetEncrypted() const noexcept { return m_encrypted; }
+    const PublicKey& GetKeyExchangePubKey() const noexcept { return m_keyExchangePubKey; }
+    uint8_t GetViewTag() const noexcept { return m_viewTag; }
+    uint64_t GetMaskedValue() const noexcept { return m_maskedValue; }
+    const BigInt<16>& GetMaskedNonce() const noexcept { return m_maskedNonce; }
+    const PublicKey& GetSenderPubKey() const noexcept { return m_senderPubKey; }
     const Signature& GetSignature() const noexcept { return m_signature; }
 
     SignedMessage BuildSignedMsg() const noexcept;
-    bool TryDecrypt(const SecretKey& secretKey, std::vector<uint8_t>& decrypted) const noexcept;
 
     //
     // Serialization/Deserialization
@@ -84,11 +93,12 @@ public:
     static OwnerData Deserialize(Deserializer& deserializer);
 
 private:
-    // Options for an output's structure or use
     EOutputFeatures m_features;
-    PublicKey m_senderPubKey;
     PublicKey m_receiverPubKey;
-    PublicKey m_pubNonce;
-    std::vector<uint8_t> m_encrypted;
+    PublicKey m_keyExchangePubKey;
+    uint8_t m_viewTag;
+    uint64_t m_maskedValue;
+    BigInt<16> m_maskedNonce;
+    PublicKey m_senderPubKey;
     Signature m_signature;
 };

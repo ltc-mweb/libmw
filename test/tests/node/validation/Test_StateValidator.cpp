@@ -25,12 +25,10 @@ TEST_CASE("ValidateState")
 
         test::Miner miner;
 
-        BlindingFactor blind = Random::CSPRNG<32>();
-
         // Block containing peg-ins only
         test::Tx tx1 = test::TxBuilder()
             .AddPeginKernel(50)
-            .AddOutput(50, EOutputFeatures::PEGGED_IN, blind)
+            .AddOutput(50, EOutputFeatures::PEGGED_IN)
             .AddPeginKernel(30)
             .AddOutput(30, EOutputFeatures::PEGGED_IN)
             .Build();
@@ -52,7 +50,7 @@ TEST_CASE("ValidateState")
 
         // Block containing peg-outs and regular sends only
         test::Tx tx2 = test::TxBuilder()
-            .AddInput(50, EOutputFeatures::PEGGED_IN, blind)
+            .AddInput(50, EOutputFeatures::PEGGED_IN, tx1.GetOutputs().front().GetBlind())
             .AddPegoutKernel(15, 5)
             .AddPlainKernel(10)
             .AddOutput(20)
