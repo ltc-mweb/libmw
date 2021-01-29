@@ -21,3 +21,13 @@ PublicKey PublicKey::Add(const PublicKey& add) const
 {
     return Crypto::AddPublicKeys({ *this, add });
 }
+
+PublicKey PublicKey::Sub(const SecretKey& sub) const
+{
+    return Crypto::AddPublicKeys({ *this }, { PublicKey::From(sub) });
+}
+
+PublicKey PublicKey::Sub(const PublicKey& sub) const
+{
+    return Crypto::AddPublicKeys({ *this }, { sub });
+}

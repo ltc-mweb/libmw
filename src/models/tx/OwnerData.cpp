@@ -38,12 +38,13 @@ OwnerData OwnerData::Create(
     // Feed the shared secret 't' into a stream cipher (in our case, just a hash function)
     // to derive a blinding factor r and two encryption masks mv (masked value) and mn (masked nonce)
     Deserializer hash64(Hash512(t).vec());
-    BlindingFactor r = Crypto::BlindSwitch(hash64.Read<SecretKey>(), value);
+    BlindingFactor r = hash64.Read<SecretKey>();
     uint64_t mv = hash64.Read<uint64_t>() ^ value;
     BigInt<16> mn = n.GetBigInt() ^ hash64.ReadVector(16);
 
-    // Commitment 'C' = r*G + v*H
-    Commitment output_commit = Crypto::CommitBlinded(value, r);
+    // Commitment 'C' = r*G + v*H // TODO: Document switch commit
+    blind_out = Crypto::BlindSwitch(r, value);
+    Commitment output_commit = Crypto::CommitBlinded(value, blind_out);
 
     // Sign the malleable output data
     mw::Hash sig_message = Hasher()
@@ -57,7 +58,6 @@ OwnerData OwnerData::Create(
     PublicKey sender_pubkey = Keys::From(sender_privkey).PubKey();
     Signature signature = Schnorr::Sign(sender_privkey.data(), sig_message);
 
-    blind_out = r;
     return OwnerData(
         features,
         std::move(Ko),

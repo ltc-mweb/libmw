@@ -36,6 +36,8 @@ public:
     );
 
     StealthAddress GetStealthAddress(const uint32_t index = 0) const;
+    SecretKey GetSpendKey(const uint32_t index) const;
+
     libmw::WalletBalance GetBalance() const;
 
     void BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canonical_block_hash);

@@ -53,6 +53,18 @@ StealthAddress Wallet::GetStealthAddress(const uint32_t index) const
     return StealthAddress(Ai, Bi);
 }
 
+SecretKey Wallet::GetSpendKey(const uint32_t index) const
+{
+    SecretKey a(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
+    SecretKey b(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
+    SecretKey mi = Hasher(EHashTag::ADDRESS)
+        .Append<uint32_t>(index)
+        .Append(a)
+        .hash();
+
+    return Crypto::AddPrivateKeys(b, mi);
+}
+
 libmw::WalletBalance Wallet::GetBalance() const
 {
     libmw::WalletBalance balance;
@@ -211,41 +223,39 @@ void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
 
 libmw::Coin Wallet::RewindOutput(const Output& output) const
 {
-    //// Mark outputs as confirmed
-    //SecretKey scan_secret(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
-    //SecretKey spend_secret(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
+    SecretKey a(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
 
-    //PublicKey pubnonce = Keys::From(output.GetOwnerData().GetPubNonce()).Mul(scan_secret).PubKey();
-    //PublicKey receiver_pubkey = Keys::From(Hashed(pubnonce)).Add(spend_secret).PubKey();
-    //if (receiver_pubkey == output.GetOwnerData().GetReceiverPubKey()) {
-    //    // Output is owned by wallet
-    //    PublicKey ecdh_pubkey = Keys::From(output.GetOwnerData().GetSenderPubKey()).Mul(spend_secret).PubKey();
-    //    SecretKey shared_secret = Hashed(ecdh_pubkey);
+    SecretKey t = Hashed(EHashTag::DERIVE, output.Ke().Mul(a));
+    if (t[0] == output.GetViewTag()) {
+        PublicKey B = output.Ko().Sub(Hashed(EHashTag::OUT_KEY, t));
+        // TODO: Check if B belongs to wallet
 
-    //    std::vector<uint8_t> decrypted;
-    //    if (output.GetOwnerData().TryDecrypt(shared_secret, decrypted)) {
-    //        Deserializer deserializer(decrypted);
-    //        BlindingFactor blind = BlindingFactor::Deserialize(deserializer);
-    //        uint64_t amount = deserializer.Read<uint64_t>();
-    //        SecretKey private_key = Crypto::AddPrivateKeys(Hashed(pubnonce), spend_secret);
-    //        bool change_output = false; // TODO: Make this a bitmask of private features instead?
-    //        if (deserializer.GetRemainingSize() > 0) {
-    //            change_output = deserializer.Read<bool>();
-    //        }
+        Deserializer hash64(Hash512(t).vec());
+        SecretKey r = hash64.Read<SecretKey>();
+        uint64_t value = output.GetMaskedValue() ^ hash64.Read<uint64_t>();
+        BigInt<16> n = output.GetMaskedNonce() ^ hash64.ReadVector(16);
 
-    //        return libmw::Coin{
-    //            output.GetFeatures(),
-    //            change_output,
-    //            private_key.array(),
-    //            blind.array(),
-    //            amount,
-    //            output.GetCommitment().array(),
-    //            boost::none,
-    //            false,
-    //            boost::none
-    //        };
-    //    }
-    //}
+        BlindingFactor blind = Crypto::BlindSwitch(r, value);
+        if (Crypto::CommitBlinded(value, blind) == output.GetCommitment()) {
+            // TODO: Calculate Carol's sending key 's' and check that s*B ?= Ke
+
+            SecretKey private_key = Crypto::AddPrivateKeys(
+                Hashed(EHashTag::OUT_KEY, t),
+                GetSpendKey(0) // TODO: Determine index
+            );
+            return libmw::Coin{
+                output.GetFeatures(),
+                false,
+                private_key.array(),
+                blind.array(),
+                value,
+                output.GetCommitment().array(),
+                boost::none,
+                false,
+                boost::none
+            };
+        }
+    }
 
     throw std::runtime_error("Unable to rewind output");
 }

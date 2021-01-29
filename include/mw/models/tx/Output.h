@@ -79,6 +79,9 @@ public:
     const PublicKey& GetSenderPubKey() const noexcept { return m_ownerData.GetSenderPubKey(); }
     const Signature& GetSignature() const noexcept { return m_ownerData.GetSignature(); }
 
+    const PublicKey& Ko() const noexcept { return m_ownerData.GetReceiverPubKey(); }
+    const PublicKey& Ke() const noexcept { return m_ownerData.GetKeyExchangePubKey(); }
+
     SignedMessage BuildSignedMsg() const noexcept { return m_ownerData.BuildSignedMsg(); }
     ProofData BuildProofData() const noexcept { return ProofData{ m_commitment, m_pProof, m_ownerData.Serialized() }; }
 
