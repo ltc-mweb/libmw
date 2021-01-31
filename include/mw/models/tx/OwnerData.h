@@ -41,17 +41,6 @@ public:
         m_signature(std::move(signature)) { }
 
     //
-    // Factory
-    //
-    static OwnerData Create(
-        BlindingFactor& blind_out,
-        const EOutputFeatures features,
-        const SecretKey& sender_privkey,
-        const StealthAddress& receiver_addr,
-        const uint64_t value
-    );
-
-    //
     // Operators
     //
     OwnerData& operator=(const OwnerData& rhs) = default;

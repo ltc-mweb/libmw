@@ -8,7 +8,7 @@ struct ProofData
 {
     Commitment commitment;
     RangeProof::CPtr pRangeProof;
-    std::vector<uint8_t> extraData;
+    std::vector<uint8_t> extraData; // TODO: Use hash?
 
     inline bool operator==(const ProofData& rhs) const noexcept
     {
