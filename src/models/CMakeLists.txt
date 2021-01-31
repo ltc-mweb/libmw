@@ -2,6 +2,7 @@ set(TARGET_NAME Models)
 
 file(GLOB SOURCE_CODE
 	"block/Block.cpp"
+	"crypto/Commitment.cpp"
 	"crypto/PublicKey.cpp"
 	"tx/Kernel.cpp"
 	"tx/Output.cpp"
