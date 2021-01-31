@@ -36,7 +36,7 @@ public:
 
     virtual ~IChain() = default;
 
-    virtual std::unique_ptr<IChainIterator> NewIterator() = 0; // TODO: Should lock when created, unlock when destroyed
+    virtual std::unique_ptr<IChainIterator> NewIterator() = 0;
 };
 
 END_NAMESPACE // libmw

@@ -24,3 +24,20 @@ static struct
         return a.GetCommitment() < b.GetCommitment();
     }
 } SortByCommitment;
+
+class Commitments
+{
+public:
+    template<class T, typename SFINAE = typename std::enable_if_t<std::is_base_of_v<Traits::ICommitted, T>>>
+    static std::vector<Commitment> From(const std::vector<T>& committed) noexcept
+    {
+        std::vector<Commitment> commitments;
+        std::transform(
+            committed.cbegin(), committed.cend(),
+            std::back_inserter(commitments),
+            [](const T& committed) { return committed.GetCommitment(); }
+        );
+
+        return commitments;
+    }
+};

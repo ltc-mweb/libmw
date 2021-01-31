@@ -98,7 +98,7 @@ public:
 
         if (position < m_bufferIndex)
         {
-            // TODO: Read from mapped and then from buffer, if necessary
+            // FUTURE: Read from mapped and then from buffer, if necessary
             return m_mmap.Read(position, numBytes);
         }
         else

@@ -13,7 +13,7 @@ TEST_CASE("Tx Transaction")
         .AddInput(20).AddInput(30, EOutputFeatures::PEGGED_IN)
         .AddOutput(45).AddOutput(pegInAmount, EOutputFeatures::PEGGED_IN)
         .AddPlainKernel(fee).AddPeginKernel(pegInAmount)
-        .Build();
+        .Build().GetTransaction();
 
     KernelSumValidator::ValidateForTx(*tx);
 

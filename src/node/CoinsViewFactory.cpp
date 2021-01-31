@@ -10,6 +10,7 @@
 static const size_t KERNEL_BATCH_SIZE = 512;
 static const size_t PROOF_BATCH_SIZE = 512;
 
+// TODO: Use StateValidator
 mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
 	const mw::IBlockStore& blockStore,

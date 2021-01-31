@@ -9,13 +9,13 @@ TEST_CASE("Aggregation")
     mw::Transaction::CPtr tx1 = test::TxBuilder()
         .AddInput(10).AddInput(20)
         .AddOutput(25).AddPlainKernel(5, true)
-        .Build();
+        .Build().GetTransaction();
     tx1->Validate();
 
     mw::Transaction::CPtr tx2 = test::TxBuilder()
         .AddInput(20)
         .AddOutput(15).AddPlainKernel(5, true)
-        .Build();
+        .Build().GetTransaction();
     tx2->Validate();
 
     mw::Transaction::CPtr pAggregated = Aggregation::Aggregate({ tx1, tx2 });

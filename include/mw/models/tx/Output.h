@@ -8,10 +8,14 @@
 #include <mw/models/tx/OutputId.h>
 #include <mw/models/tx/OwnerData.h>
 #include <mw/models/crypto/RangeProof.h>
+#include <mw/models/crypto/SecretKey.h>
 #include <mw/crypto/Crypto.h>
 #include <mw/traits/Committed.h>
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
+
+// Forward Declarations
+class StealthAddress;
 
 ////////////////////////////////////////
 // OUTPUT
@@ -33,6 +37,17 @@ public:
     Output(const Output& Output) = default;
     Output(Output&& Output) noexcept = default;
     Output() = default;
+
+    //
+    // Factory
+    //
+    static Output Create(
+        const EOutputFeatures features,
+        const BlindingFactor& blinding_factor,
+        const SecretKey& sender_privkey,
+        const StealthAddress& receiver_addr,
+        const uint64_t amount
+    );
 
     //
     // Destructor
@@ -67,21 +82,8 @@ public:
     //
     // Serialization/Deserialization
     //
-    Serializer& Serialize(Serializer& serializer) const noexcept final
-    {
-        return serializer
-            .Append(m_commitment)
-            .Append(m_ownerData)
-            .Append(m_pProof);
-    }
-
-    static Output Deserialize(Deserializer& deserializer)
-    {
-        Commitment commitment = Commitment::Deserialize(deserializer);
-        OwnerData owner_data = OwnerData::Deserialize(deserializer);
-        RangeProof::CPtr pProof = std::make_shared<const RangeProof>(RangeProof::Deserialize(deserializer));
-        return Output(std::move(commitment), std::move(owner_data), pProof);
-    }
+    Serializer& Serialize(Serializer& serializer) const noexcept final;
+    static Output Deserialize(Deserializer& deserializer);
 
     //
     // Traits
@@ -98,5 +100,5 @@ private:
     // A proof that the commitment is in the right range
     RangeProof::CPtr m_pProof;
 
-    mutable mw::Hash m_hash;
+    mw::Hash m_hash;
 };

@@ -64,11 +64,16 @@ public:
     const std::vector<Kernel>& GetKernels() const noexcept { return m_kernels; }
     const std::vector<SignedMessage>& GetOwnerSigs() const noexcept { return m_ownerSigs; }
 
+    std::vector<Commitment> GetKernelCommits() const noexcept { return Commitments::From(m_kernels); }
+    std::vector<Commitment> GetInputCommits() const noexcept { return Commitments::From(m_inputs); }
+    std::vector<Commitment> GetOutputCommits() const noexcept { return Commitments::From(m_outputs); }
+
     std::vector<Kernel> GetPegInKernels() const noexcept;
     std::vector<Output> GetPegInOutputs() const noexcept;
     uint64_t GetPegInAmount() const noexcept;
     std::vector<Kernel> GetPegOutKernels() const noexcept;
     uint64_t GetTotalFee() const noexcept;
+    int64_t GetSupplyChange() const noexcept;
 
     //
     // Serialization/Deserialization

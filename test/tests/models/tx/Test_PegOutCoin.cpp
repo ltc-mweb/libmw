@@ -24,18 +24,6 @@ TEST_CASE("Tx Peg-Out Coin")
     }
 
     //
-    // JSON
-    //
-    {
-        Json json(pegOutCoin.ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "address", "amount" }));
-        REQUIRE(json.GetRequired<uint64_t>("amount") == amount);
-        REQUIRE(json.GetRequired<Bech32Address>("address") == address);
-
-        REQUIRE(pegOutCoin == PegOutCoin::FromJSON(json));
-    }
-
-    //
     // Getters
     //
     {

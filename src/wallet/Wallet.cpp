@@ -1,8 +1,4 @@
 #include <mw/wallet/Wallet.h>
-#include <mw/wallet/KernelFactory.h>
-#include <mw/wallet/OutputFactory.h>
-#include <mw/crypto/Blinds.h>
-#include <mw/crypto/Bulletproofs.h>
 #include <mw/crypto/Keys.h>
 #include <mw/crypto/Random.h>
 #include <mw/config/ChainParams.h>
@@ -68,7 +64,7 @@ libmw::WalletBalance Wallet::GetBalance() const
             num_confirmations = m_pWalletInterface->GetDepthInActiveChain(coin.included_block.value());
         }
 
-        // TODO: Also calculate watch-only balances
+        // FUTURE: Also calculate watch-only balances
 
         if (num_confirmations == 0) {
             balance.unconfirmed_balance += coin.amount;
@@ -166,72 +162,47 @@ void Wallet::BlockDisconnected(const mw::Block::CPtr& pBlock)
 }
 
 // TODO: Implement
-void Wallet::ScanForOutputs(const libmw::IChain::Ptr&)
+void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
 {
-    //std::vector<libmw::Coin> orig_coins = m_pWalletInterface->ListCoins();
-    //std::cout << "Original coins size: " << orig_coins.size() << std::endl;
-    //m_pWalletInterface->DeleteCoins(orig_coins);
+    std::vector<libmw::Coin> orig_coins = m_pWalletInterface->ListCoins();
+    m_pWalletInterface->DeleteCoins(orig_coins);
 
-    //std::vector<libmw::Coin> coins_to_update;
-    //std::unordered_map<Commitment, libmw::Coin&> coinmap;
+    std::vector<libmw::Coin> coins_to_update;
+    std::unordered_map<Commitment, libmw::Coin&> coinmap;
 
-    //auto pChainIter = pChain->NewIterator();
-    //while (pChainIter->Valid()) {
-    //    try {
-    //        libmw::BlockRef block_ref = pChainIter->GetBlock();
-    //        if (block_ref.IsNull()) {
-    //            // TODO: Use output mmr
-    //        } else {
-    //            for (const Output& output : block_ref.pBlock->GetOutputs()) {
-    //                try {
-    //                    SecretKey nonce = RewindNonce(output.GetCommitment());
-    //                    auto pRewound = Bulletproofs::Rewind(
-    //                        output.GetCommitment(),
-    //                        *output.GetRangeProof(),
-    //                        output.GetOwnerData().Serialized(),
-    //                        nonce
-    //                    );
-    //                    if (pRewound == nullptr) {
-    //                        continue;
-    //                    }
+    auto pChainIter = pChain->NewIterator();
+    while (pChainIter->Valid()) {
+        try {
+            libmw::BlockRef block_ref = pChainIter->GetBlock();
+            if (block_ref.IsNull()) {
+                // TODO: Use output mmr
+            } else {
+                for (const Output& output : block_ref.pBlock->GetOutputs()) {
+                    try {
+                        libmw::Coin coin = RewindOutput(output);
+                        coin.included_block = boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash());
+                        if (!coin.change_output) {
 
-    //                    libmw::PrivateKey private_key = m_pWalletInterface->GetHDKey(
-    //                        pRewound->GetKeyChainPath().Format()
-    //                    );
+                        }
+                    }
+                    catch (std::exception&) {}
+                }
 
-    //                    libmw::Coin coin{
-    //                        output.GetFeatures(),
-    //                        boost::make_optional<libmw::PrivateKey>(std::move(private_key)),
-    //                        pRewound->GetAmount(),
-    //                        output.GetCommitment().array(),
-    //                        boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash()),
-    //                        false,
-    //                        boost::none
-    //                    };
+                for (const Input& input : block_ref.pBlock->GetInputs()) {
+                    auto pCoinIter = coinmap.find(input.GetCommitment());
+                    if (pCoinIter != coinmap.end()) {
+                        pCoinIter->second.spent = true;
+                        pCoinIter->second.spent_block = pChainIter->GetCanonicalHash();
+                    }
+                }
+            }
+        } catch (std::exception&) {}
 
-    //                    std::cout << "Found output " << output.GetCommitment().ToHex() << " - Spent: " << coin.spent_block.has_value() << std::endl;
-
-    //                    coins_to_update.push_back(std::move(coin));
-    //                    coinmap.insert({ output.GetCommitment(), coins_to_update.back() });
-    //                }
-    //                catch (std::exception&) {}
-    //            }
-
-    //            for (const Input& input : block_ref.pBlock->GetInputs()) {
-    //                auto pCoinIter = coinmap.find(input.GetCommitment());
-    //                if (pCoinIter != coinmap.end()) {
-    //                    pCoinIter->second.spent = true;
-    //                    pCoinIter->second.spent_block = pChainIter->GetCanonicalHash();
-    //                }
-    //            }
-    //        }
-    //    } catch (std::exception&) {}
-
-    //    pChainIter->Next();
-    //}
+        pChainIter->Next();
+    }
 
     //std::cout << "Adding coins: " << coins_to_update.size() << std::endl;
-    //m_pWalletInterface->AddCoins(coins_to_update);
+    m_pWalletInterface->AddCoins(coins_to_update);
 }
 
 libmw::Coin Wallet::RewindOutput(const Output& output) const
@@ -253,9 +224,14 @@ libmw::Coin Wallet::RewindOutput(const Output& output) const
             BlindingFactor blind = BlindingFactor::Deserialize(deserializer);
             uint64_t amount = deserializer.Read<uint64_t>();
             SecretKey private_key = Crypto::AddPrivateKeys(Hashed(pubnonce), spend_secret);
+            bool change_output = false; // TODO: Make this a bitmask of private features instead?
+            if (deserializer.GetRemainingSize() > 0) {
+                change_output = deserializer.Read<bool>();
+            }
 
             return libmw::Coin{
                 output.GetFeatures(),
+                change_output,
                 private_key.array(),
                 blind.array(),
                 amount,

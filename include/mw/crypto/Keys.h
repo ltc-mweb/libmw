@@ -7,7 +7,7 @@
 #include <mw/models/crypto/PublicKey.h>
 #include <mw/models/crypto/SecretKey.h>
 
-// TODO: Make this more efficient
+// FUTURE: Make this more efficient
 class Keys
 {
 public:

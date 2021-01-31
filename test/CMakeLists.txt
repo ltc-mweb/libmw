@@ -29,7 +29,6 @@ add_subdirectory(tests/mmr)
 add_subdirectory(tests/models)
 add_subdirectory(tests/node)
 add_subdirectory(tests/serialization)
-add_subdirectory(tests/util)
 add_subdirectory(tests/wallet)
 
 add_executable(Tests ${test_sources})

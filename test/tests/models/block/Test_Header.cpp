@@ -52,7 +52,4 @@ TEST_CASE("Header")
 
     Deserializer deserializer = header.Serialized();
     REQUIRE(header == mw::Header::Deserialize(deserializer));
-    REQUIRE(header == mw::Header::FromJSON(header.ToJSON()));
-
-    // TODO: Test JSON fields
 }

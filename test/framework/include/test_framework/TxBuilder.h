@@ -19,6 +19,7 @@ class TxBuilder
 public:
     TxBuilder();
 
+    TxBuilder& AddInput(const TxOutput& input);
     TxBuilder& AddInput(
         const uint64_t amount,
         const EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT,
@@ -48,7 +49,7 @@ public:
     TxBuilder& AddPeginKernel(const uint64_t amount, const bool add_owner_sig = false);
     TxBuilder& AddPegoutKernel(const uint64_t amount, const uint64_t fee, const bool add_owner_sig = false);
 
-    mw::Transaction::CPtr Build();
+    Tx Build();
 
 private:
     int64_t m_amount;
@@ -56,7 +57,7 @@ private:
     Blinds m_ownerOffset;
 
     std::vector<Input> m_inputs;
-    std::vector<Output> m_outputs;
+    std::vector<TxOutput> m_outputs;
     std::vector<Kernel> m_kernels;
     std::vector<SignedMessage> m_ownerSigs;
 };

@@ -7,20 +7,27 @@
 
 TEST_CASE("Weight::ExceedsMaximum")
 {
-    test::TxBuilder builder;
-    for (size_t i = 0; i < 1000; i++) {
-        builder.AddInput(1'001'000);
-        builder.AddOutput(1'000'000);
-        builder.AddPlainKernel(1'000, true);
+    std::vector<Input> inputs;
+    std::vector<Output> outputs;
+    std::vector<Kernel> kernels;
+    std::vector<SignedMessage> sigs;
+
+    for (int i = 0; i < 1000; i++) {
+        inputs.push_back(Input());
+        kernels.push_back(Kernel());
+        outputs.push_back(Output());
+        sigs.push_back(SignedMessage());
     }
+    TxBody tx1(inputs, outputs, kernels, sigs);
 
     // 1,000 outputs - 1,000 kernels - 1,000 owner_sigs = 21,000 Weight
-    auto pTx1 = builder.Build();
-    REQUIRE(Weight::Calculate(pTx1->GetBody()) == 21'000);
-    REQUIRE_FALSE(Weight::ExceedsMaximum(pTx1->GetBody()));
+    REQUIRE(Weight::Calculate(tx1) == 21'000);
+    REQUIRE_FALSE(Weight::ExceedsMaximum(tx1));
 
     // 1,000 outputs - 1,001 kernels - 1,000 owner_sigs = 21,002 Weight
-    auto pTx2 = builder.AddInput(1'000).AddPlainKernel(1'000).Build();
-    REQUIRE(Weight::Calculate(pTx2->GetBody()) == 21'002);
-    REQUIRE(Weight::ExceedsMaximum(pTx2->GetBody()));
+    inputs.push_back(Input());
+    kernels.push_back(Kernel());
+    TxBody tx2(inputs, outputs, kernels, sigs);
+    REQUIRE(Weight::Calculate(tx2) == 21'002);
+    REQUIRE(Weight::ExceedsMaximum(tx2));
 }

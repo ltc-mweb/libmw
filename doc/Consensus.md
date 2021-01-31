@@ -20,7 +20,7 @@
 
 * Inputs in a block shall be in ascending order by their raw commitment value.
 * Outputs in a block shall be in ascending order by their raw commitment value.
-* Kernels in a block shall be in ascending order by their raw hashed value.
+* Kernels in a block shall list pegins first, and then be ordered in ascending order by their raw hashed value.
 * Signed owner messages shall be in ascending order by their raw hashed value.
 ---
 

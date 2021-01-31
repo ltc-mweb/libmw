@@ -26,18 +26,6 @@ TEST_CASE("Tx Peg-In Coin")
     }
 
     //
-    // JSON
-    //
-    {
-        Json json(pegInCoin.ToJSON());
-        REQUIRE(json.GetKeys() == std::vector<std::string>({ "amount", "commitment" }));
-        REQUIRE(json.GetRequired<uint64_t>("amount") == amount);
-        REQUIRE(json.GetRequired<Commitment>("commitment") == commit);
-
-        REQUIRE(pegInCoin == PegInCoin::FromJSON(json));
-    }
-
-    //
     // Getters
     //
     {

@@ -56,6 +56,22 @@ uint64_t TxBody::GetTotalFee() const noexcept
     );
 }
 
+int64_t TxBody::GetSupplyChange() const noexcept
+{
+    int64_t coins_added = 0;
+    for (const Kernel& kernel : m_kernels) {
+        if (kernel.IsPegIn()) {
+            coins_added += (int64_t)kernel.GetAmount();
+        } else if (kernel.IsPegOut()) {
+            coins_added -= (int64_t)kernel.GetAmount();
+        }
+
+        coins_added -= (int64_t)kernel.GetFee();
+    }
+
+    return coins_added;
+}
+
 Serializer& TxBody::Serialize(Serializer& serializer) const noexcept
 {
     serializer
@@ -132,7 +148,7 @@ void TxBody::Validate() const
     // Verify inputs, outputs, kernels, and owner signatures are sorted
     if (!std::is_sorted(m_inputs.cbegin(), m_inputs.cend(), SortByCommitment)
         || !std::is_sorted(m_outputs.cbegin(), m_outputs.cend(), SortByCommitment)
-        || !std::is_sorted(m_kernels.cbegin(), m_kernels.cend(), SortByHash)
+        || !std::is_sorted(m_kernels.cbegin(), m_kernels.cend(), KernelSort)
         || !std::is_sorted(m_ownerSigs.cbegin(), m_ownerSigs.cend(), SortByHash))
     {
         ThrowValidation(EConsensusError::NOT_SORTED);

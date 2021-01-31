@@ -1,16 +1,22 @@
 #pragma once
 
+#include <mw/models/crypto/BlindingFactor.h>
 #include <mw/models/crypto/PublicKey.h>
+#include <mw/models/crypto/SecretKey.h>
 #include <mw/models/crypto/Signature.h>
 #include <mw/models/crypto/SignedMessage.h>
 #include <mw/models/tx/Features.h>
 #include <mw/traits/Serializable.h>
-#include <mw/crypto/Crypto.h>
-#include <mw/crypto/Schnorr.h>
+
+// Forward Declarations
+class StealthAddress;
 
 class OwnerData : public Traits::ISerializable
 {
 public:
+    //
+    // Constructors
+    //
     OwnerData() = default;
     OwnerData(const OwnerData&) = default;
     OwnerData(OwnerData&&) = default;
@@ -28,6 +34,17 @@ public:
         m_pubNonce(std::move(pubNonce)),
         m_encrypted(std::move(encrypted)),
         m_signature(std::move(signature)) { }
+
+    //
+    // Factory
+    //
+    static OwnerData Create(
+        const EOutputFeatures features,
+        const SecretKey& sender_privkey,
+        const StealthAddress& receiver_addr,
+        const BlindingFactor& blinding_factor,
+        const uint64_t amount
+    );
 
     //
     // Operators
@@ -57,62 +74,14 @@ public:
     const std::vector<uint8_t>& GetEncrypted() const noexcept { return m_encrypted; }
     const Signature& GetSignature() const noexcept { return m_signature; }
 
-    SignedMessage GetSignedMsg() const noexcept
-    {
-        auto serialized_msg = Serializer()
-            .Append<uint8_t>(m_features)
-            .Append(m_receiverPubKey)
-            .Append(m_pubNonce)
-            .Append<uint8_t>((uint8_t)m_encrypted.size())
-            .Append(m_encrypted)
-            .vec();
-        return SignedMessage{ Hashed(serialized_msg), m_senderPubKey, m_signature };
-    }
-
-    bool TryDecrypt(const SecretKey& secretKey, std::vector<uint8_t>& decrypted) const noexcept
-    {
-        try {
-            decrypted = Crypto::AES256_Decrypt(m_encrypted, secretKey, BigInt<16>()); // TODO: Use IV?
-            return true;
-        } catch (...) { }
-
-        return false;
-    }
+    SignedMessage GetSignedMsg() const noexcept;
+    bool TryDecrypt(const SecretKey& secretKey, std::vector<uint8_t>& decrypted) const noexcept;
 
     //
     // Serialization/Deserialization
     //
-    Serializer& Serialize(Serializer& serializer) const noexcept final
-    {
-        return serializer
-            .Append<uint8_t>(m_features)
-            .Append(m_senderPubKey)
-            .Append(m_receiverPubKey)
-            .Append(m_pubNonce)
-            .Append<uint8_t>((uint8_t)m_encrypted.size())
-            .Append(m_encrypted)
-            .Append(m_signature);
-    }
-
-    static OwnerData Deserialize(Deserializer& deserializer)
-    {
-        EOutputFeatures features = (EOutputFeatures)deserializer.Read<uint8_t>();
-        PublicKey senderPubKey = PublicKey::Deserialize(deserializer);
-        PublicKey receiverPubKey = PublicKey::Deserialize(deserializer);
-        PublicKey pubNonce = PublicKey::Deserialize(deserializer);
-        const uint8_t size = deserializer.Read<uint8_t>();
-        std::vector<uint8_t> encrypted = deserializer.ReadVector(size);
-        Signature signature = Signature::Deserialize(deserializer);
-
-        return OwnerData(
-            features,
-            std::move(senderPubKey),
-            std::move(receiverPubKey),
-            std::move(pubNonce),
-            std::move(encrypted),
-            std::move(signature)
-        );
-    }
+    Serializer& Serialize(Serializer& serializer) const noexcept final;
+    static OwnerData Deserialize(Deserializer& deserializer);
 
 private:
     // Options for an output's structure or use

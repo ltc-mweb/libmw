@@ -16,69 +16,21 @@ public:
 
     static TxOutput Create(
         const EOutputFeatures features,
-        const BlindingFactor& blindingFactor,
+        const BlindingFactor& blinding_factor,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
         const uint64_t amount)
     {
-        Commitment commitment = Crypto::CommitBlinded(
-            amount,
-            blindingFactor
-        );
+        Output output = Output::Create(features, blinding_factor, sender_privkey, receiver_addr, amount);
 
-        OwnerData owner_data = CreateOwnerData(features, sender_privkey, receiver_addr);
-
-        RangeProof::CPtr pRangeProof = Bulletproofs::Generate(
-            amount,
-            SecretKey(blindingFactor.vec()),
-            SecretKey(),
-            SecretKey(),
-            ProofMessage(BigInt<20>()),
-            owner_data.Serialized()
-        );
-
-        return TxOutput(
-            blindingFactor,
-            amount,
-            Output{ std::move(commitment), std::move(owner_data), pRangeProof }
-        );
-    }
-
-    // TODO: Use OutputFactory instead
-    static OwnerData CreateOwnerData(
-        const EOutputFeatures features,
-        const SecretKey& sender_privkey,
-        const StealthAddress& receiver_addr)
-    {
-        PublicKey sender_pubkey = Keys::From(sender_privkey).PubKey();
-        SecretKey r = Random::CSPRNG<32>();
-        PublicKey R = Keys::From(r).PubKey();
-        PublicKey rA = Keys::From(receiver_addr.A()).Mul(r).PubKey();
-        PublicKey receiver_pubkey = Keys::From(Hashed(rA)).Add(receiver_addr.B()).PubKey();
-        std::vector<uint8_t> encrypted_data{}; // TODO: Encrypt blinding factor & amount
-
-        auto serialized_msg = Serializer()
-            .Append<uint8_t>(features)
-            .Append(receiver_pubkey)
-            .Append(R)
-            .Append<uint8_t>((uint8_t)encrypted_data.size())
-            .Append(encrypted_data)
-            .vec();
-        Signature signature = Schnorr::Sign(sender_privkey.data(), Hashed(serialized_msg));
-
-        return OwnerData(
-            features,
-            std::move(sender_pubkey),
-            std::move(receiver_pubkey),
-            std::move(R),
-            std::move(encrypted_data),
-            std::move(signature)
-        );
+        return TxOutput{ blinding_factor, amount, std::move(output) };
     }
 
     const BlindingFactor& GetBlindingFactor() const noexcept { return m_blindingFactor; }
     uint64_t GetAmount() const noexcept { return m_amount; }
     const Output& GetOutput() const noexcept { return m_output; }
+    EOutputFeatures GetFeatures() const noexcept { return m_output.GetFeatures(); }
+    const Commitment& GetCommitment() const noexcept { return m_output.GetCommitment(); }
 
 private:
     BlindingFactor m_blindingFactor;

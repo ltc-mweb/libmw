@@ -28,6 +28,12 @@ public:
         return value;
     }
 
+    template <class T, typename SFINAE = std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
+    decltype(auto) Read()
+    {
+        return T::Deserialize(*this);
+    }
+
     template <class T, typename SFINAE = std::enable_if_t<std::is_fundamental_v<T>>>
     T ReadLE()
     {

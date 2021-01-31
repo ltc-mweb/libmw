@@ -11,7 +11,7 @@ TEST_CASE("Tx Body")
         .AddInput(20).AddInput(30, EOutputFeatures::PEGGED_IN)
         .AddOutput(45).AddOutput(pegInAmount, EOutputFeatures::PEGGED_IN)
         .AddPlainKernel(fee).AddPeginKernel(pegInAmount)
-        .Build();
+        .Build().GetTransaction();
 
     const TxBody& txBody = tx->GetBody();
     txBody.Validate();
