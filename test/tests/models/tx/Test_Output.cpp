@@ -1,61 +1,84 @@
 #include <catch.hpp>
 
-#include <mw/crypto/Crypto.h>
+#include <mw/crypto/Schnorr.h>
+#include <mw/crypto/Bulletproofs.h>
 #include <mw/crypto/Random.h>
 #include <mw/models/tx/Output.h>
 #include <mw/models/wallet/StealthAddress.h>
 
-TEST_CASE("Plain Tx Output")
+// TODO: Create test vectors
+TEST_CASE("Output::Create")
 {
+    // Generate receiver addr
+    SecretKey a = Random::CSPRNG<32>();
+    SecretKey b = Random::CSPRNG<32>();
+    StealthAddress receiver_addr = StealthAddress(
+        PublicKey::From(a).Mul(b),
+        PublicKey::From(b)
+    );
+
+    // Build output
     EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT;
     uint64_t amount = 1'234'567;
     BlindingFactor blind;
-    OwnerData ownerData = OwnerData::Create(
+    SecretKey sender_key = Random::CSPRNG<32>();
+    Output output = Output::Create(
         blind,
         features,
-        Random::CSPRNG<32>(),
-        StealthAddress::Random(),
+        sender_key,
+        receiver_addr,
         amount
     );
-    RangeProof::CPtr rangeProof = std::make_shared<const RangeProof>(
-        std::vector<uint8_t>(Random::CSPRNG<600>().vec())
-    );
+    Commitment expected_commit = Commitment::Blinded(blind, amount);
 
-    Commitment commit = Crypto::CommitBlinded(amount, blind);
-    Output output(
-        Commitment(commit),
-        OwnerData(ownerData),
-        rangeProof
-    );
+    // Verify bulletproof
+    ProofData proof_data = output.BuildProofData();
+    REQUIRE(proof_data.commitment == expected_commit);
+    REQUIRE(proof_data.pRangeProof == output.GetRangeProof());
+    REQUIRE(Bulletproofs::BatchVerify({ output.BuildProofData() }));
 
-    //
-    // Serialization
-    //
-    {
-        std::vector<uint8_t> serialized = output.Serialized();
+    // Verify sender signature
+    SignedMessage signed_msg = output.BuildSignedMsg();
+    REQUIRE(signed_msg.GetPublicKey() == PublicKey::From(sender_key));
+    REQUIRE(Schnorr::BatchVerify({ signed_msg }));
 
-        Deserializer deserializer(serialized);
-        REQUIRE(Commitment::Deserialize(deserializer) == commit);
-        REQUIRE(OwnerData::Deserialize(deserializer) == ownerData);
-        REQUIRE(RangeProof::Deserialize(deserializer) == *rangeProof);
-
-        Deserializer deserializer2(serialized);
-        REQUIRE(output == Output::Deserialize(deserializer2));
-
-        REQUIRE(output.GetHash() == Hashed(serialized));
-    }
-
-    //
     // Getters
+    REQUIRE_FALSE(output.IsPeggedIn());
+    REQUIRE(output.GetCommitment() == expected_commit);
+    REQUIRE(output.GetFeatures() == features);
+    REQUIRE(output.ToIdentifier() == OutputId(features, expected_commit));
+
+    //
+    // Test Restoring Output
     //
     {
-        REQUIRE_FALSE(output.IsPeggedIn());
-        REQUIRE(output.GetCommitment() == commit);
-        REQUIRE(output.GetOwnerData() == ownerData);
-        REQUIRE(output.GetRangeProof() == rangeProof);
+        // Check view tag
+        SecretKey t = Hashed(EHashTag::DERIVE, output.Ke().Mul(a));
+        REQUIRE(t[0] == output.GetViewTag());
 
-        Serializer serializer;
-        serializer.Append<uint8_t>((uint8_t)ownerData.GetFeatures()).Append(commit);
-        REQUIRE(output.ToIdentifier().GetHash() == Hashed(serializer.vec()));
+        // Make sure B belongs to wallet
+        REQUIRE(receiver_addr.B() == output.Ko().Sub(Hashed(EHashTag::OUT_KEY, t)));
+
+        Deserializer hash64(Hash512(t).vec());
+        SecretKey r = hash64.Read<SecretKey>();
+        uint64_t value = output.GetMaskedValue() ^ hash64.Read<uint64_t>();
+        BigInt<16> n = output.GetMaskedNonce() ^ hash64.ReadVector(16);
+
+        REQUIRE(Commitment::Switch(r, value) == output.GetCommitment());
+
+        // Calculate Carol's sending key 's' and check that s*B ?= Ke
+        SecretKey s = Hasher(EHashTag::SEND_KEY)
+            .Append(receiver_addr.A())
+            .Append(receiver_addr.B())
+            .Append(value)
+            .Append(n)
+            .hash();
+        REQUIRE(output.Ke() == receiver_addr.B().Mul(s));
+
+        // Make sure receiver can generate the spend key
+        SecretKey spend_key = Crypto::AddPrivateKeys(b, Hashed(EHashTag::OUT_KEY, t));
+        REQUIRE(output.GetReceiverPubKey() == PublicKey::From(spend_key));
     }
+
+    // TODO: Test Serialization & Deserialization
 }

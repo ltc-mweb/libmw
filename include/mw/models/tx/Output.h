@@ -6,11 +6,12 @@
 
 #include <mw/models/tx/Features.h>
 #include <mw/models/tx/OutputId.h>
-#include <mw/models/tx/OwnerData.h>
+#include <mw/models/crypto/BlindingFactor.h>
+#include <mw/models/crypto/Commitment.h>
 #include <mw/models/crypto/ProofData.h>
 #include <mw/models/crypto/RangeProof.h>
 #include <mw/models/crypto/SecretKey.h>
-#include <mw/crypto/Crypto.h>
+#include <mw/models/crypto/SignedMessage.h>
 #include <mw/traits/Committed.h>
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
@@ -30,11 +31,18 @@ public:
     //
     // Constructors
     //
-    Output(Commitment&& commitment, OwnerData&& owner_data, const RangeProof::CPtr& pProof)
-        : m_commitment(std::move(commitment)), m_ownerData(std::move(owner_data)), m_pProof(pProof)
-    {
-        m_hash = Hashed(*this);
-    }
+    Output(
+        Commitment&& commitment,
+        EOutputFeatures features,
+        PublicKey&& receiver_pubkey,
+        PublicKey&& key_exchange_pubkey,
+        uint8_t view_tag,
+        uint64_t masked_value,
+        BigInt<16>&& masked_nonce,
+        PublicKey&& sender_pubkey,
+        Signature&& signature,
+        const RangeProof::CPtr& pProof
+    );
     Output(const Output& Output) = default;
     Output(Output&& Output) noexcept = default;
     Output() = default;
@@ -69,21 +77,20 @@ public:
     const Commitment& GetCommitment() const noexcept final { return m_commitment; }
     const RangeProof::CPtr& GetRangeProof() const noexcept { return m_pProof; }
 
-    const OwnerData& GetOwnerData() const noexcept { return m_ownerData; }
-    EOutputFeatures GetFeatures() const noexcept { return m_ownerData.GetFeatures(); }
-    const PublicKey& GetReceiverPubKey() const noexcept { return m_ownerData.GetReceiverPubKey(); }
-    const PublicKey& GetKeyExchangePubKey() const noexcept { return m_ownerData.GetKeyExchangePubKey(); }
-    uint8_t GetViewTag() const noexcept { return m_ownerData.GetViewTag(); }
-    uint64_t GetMaskedValue() const noexcept { return m_ownerData.GetMaskedValue(); }
-    const BigInt<16>& GetMaskedNonce() const noexcept { return m_ownerData.GetMaskedNonce(); }
-    const PublicKey& GetSenderPubKey() const noexcept { return m_ownerData.GetSenderPubKey(); }
-    const Signature& GetSignature() const noexcept { return m_ownerData.GetSignature(); }
+    EOutputFeatures GetFeatures() const noexcept { return m_features; }
+    const PublicKey& GetReceiverPubKey() const noexcept { return m_receiverPubKey; }
+    const PublicKey& GetKeyExchangePubKey() const noexcept { return m_keyExchangePubKey; }
+    uint8_t GetViewTag() const noexcept { return m_viewTag; }
+    uint64_t GetMaskedValue() const noexcept { return m_maskedValue; }
+    const BigInt<16>& GetMaskedNonce() const noexcept { return m_maskedNonce; }
+    const PublicKey& GetSenderPubKey() const noexcept { return m_senderPubKey; }
+    const Signature& GetSignature() const noexcept { return m_signature; }
 
-    const PublicKey& Ko() const noexcept { return m_ownerData.GetReceiverPubKey(); }
-    const PublicKey& Ke() const noexcept { return m_ownerData.GetKeyExchangePubKey(); }
+    const PublicKey& Ko() const noexcept { return m_receiverPubKey; }
+    const PublicKey& Ke() const noexcept { return m_keyExchangePubKey; }
 
-    SignedMessage BuildSignedMsg() const noexcept { return m_ownerData.BuildSignedMsg(); }
-    ProofData BuildProofData() const noexcept { return ProofData{ m_commitment, m_pProof, m_ownerData.Serialized() }; }
+    SignedMessage BuildSignedMsg() const noexcept;
+    ProofData BuildProofData() const noexcept;
 
     bool IsPeggedIn() const noexcept { return (GetFeatures() & EOutputFeatures::PEGGED_IN) == EOutputFeatures::PEGGED_IN; }
 
@@ -104,8 +111,14 @@ private:
     // The homomorphic commitment representing the output amount
     Commitment m_commitment;
 
-    // Ownership data committed to by the rangeproof
-    OwnerData m_ownerData;
+    EOutputFeatures m_features;
+    PublicKey m_receiverPubKey;
+    PublicKey m_keyExchangePubKey;
+    uint8_t m_viewTag;
+    uint64_t m_maskedValue;
+    BigInt<16> m_maskedNonce;
+    PublicKey m_senderPubKey;
+    Signature m_signature;
 
     // A proof that the commitment is in the right range
     RangeProof::CPtr m_pProof;

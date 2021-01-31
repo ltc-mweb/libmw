@@ -31,7 +31,7 @@ public:
     //
     // Operators
     //
-    inline bool operator==(const secret_key_t<NUM_BYTES>& rhs) const noexcept { return m_value == rhs.m_value; }
+    bool operator==(const secret_key_t<NUM_BYTES>& rhs) const noexcept { return m_value == rhs.m_value; }
 
     //
     // Getters

@@ -6,7 +6,6 @@ file(GLOB SOURCE_CODE
 	"crypto/PublicKey.cpp"
 	"tx/Kernel.cpp"
 	"tx/Output.cpp"
-	"tx/OwnerData.cpp"
 	"tx/Transaction.cpp"
 	"tx/TxBody.cpp"
 )
