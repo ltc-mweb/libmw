@@ -39,7 +39,7 @@ mw::Transaction::CPtr PegIn::CreatePegInTx(const uint64_t amount, const StealthA
     // If peg-in to user's own wallet, rewind output to retrieve and save the spendable coin.
     // This uses the same process that occurs on restore,
     // so a successful rewind means we know it can be restored from seed later.
-    if (receiver_addr == m_wallet.GetStealthAddress()) {
+    if (receiver_addr == m_wallet.GetPegInAddress()) {
         libmw::Coin coin = m_wallet.RewindOutput(output);
         m_wallet.GetInterface()->AddCoins({ std::move(coin) });
     }

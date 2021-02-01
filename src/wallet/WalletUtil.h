@@ -17,7 +17,7 @@ public:
             std::back_inserter(blinds),
             [](const libmw::Coin& coin) {
                 assert(coin.blind.has_value());
-                return BlindingFactor(coin.blind.value());
+                return BlindingFactor{ Crypto::BlindSwitch(coin.blind.value(), coin.amount) };
             }
         );
 

@@ -12,12 +12,17 @@ Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
 {
     assert(pWalletInterface != nullptr);
 
-    return Wallet(pWalletInterface);
+    SecretKey scan_secret(pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
+    SecretKey spend_secret(pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
+
+    return Wallet(pWalletInterface, std::move(scan_secret), std::move(spend_secret));
 }
 
-mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount, const boost::optional<StealthAddress>& receiver_addr)
+mw::Transaction::CPtr Wallet::CreatePegInTx(
+    const uint64_t amount,
+    const boost::optional<StealthAddress>& receiver_addr)
 {
-    return PegIn(*this).CreatePegInTx(amount, receiver_addr.value_or(GetStealthAddress()));
+    return PegIn(*this).CreatePegInTx(amount, receiver_addr.value_or(GetPegInAddress()));
 }
 
 mw::Transaction::CPtr Wallet::CreatePegOutTx(
@@ -38,29 +43,41 @@ mw::Transaction::CPtr Wallet::Send(
 
 StealthAddress Wallet::GetStealthAddress(const uint32_t index) const
 {
-    SecretKey a(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
-    SecretKey b(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
-    SecretKey mi = Hasher(EHashTag::ADDRESS)
-        .Append<uint32_t>(index)
-        .Append(a)
-        .hash();
-
-    PublicKey Bi = Crypto::CalculatePublicKey(Crypto::AddPrivateKeys(b, mi).GetBigInt());
-    PublicKey Ai = Crypto::MultiplyKey(Bi, a);
+    PublicKey Bi = PublicKey::From(GetSpendKey(index));
+    PublicKey Ai = Bi.Mul(m_scanSecret); 
 
     return StealthAddress(Ai, Bi);
 }
 
 SecretKey Wallet::GetSpendKey(const uint32_t index) const
 {
-    SecretKey a(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
-    SecretKey b(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
     SecretKey mi = Hasher(EHashTag::ADDRESS)
         .Append<uint32_t>(index)
-        .Append(a)
+        .Append(m_scanSecret)
         .hash();
 
-    return Crypto::AddPrivateKeys(b, mi);
+    return Crypto::AddPrivateKeys(m_spendSecret, mi);
+}
+
+bool Wallet::IsSpendPubKey(const PublicKey& spend_pubkey, uint32_t& index_out) const
+{
+    if (GetChangeAddress().B() == spend_pubkey) {
+        index_out = CHANGE_INDEX;
+        return true;
+    }
+
+    if (GetPegInAddress().B() == spend_pubkey) {
+        index_out = PEGIN_INDEX;
+        return true;
+    }
+
+    // TODO: Check all receive addresses (Need to use a key cache for performance)
+    if (GetStealthAddress(0).B() == spend_pubkey) {
+        index_out = 0;
+        return true;
+    }
+
+    return false;
 }
 
 libmw::WalletBalance Wallet::GetBalance() const
@@ -107,9 +124,7 @@ void Wallet::BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canon
     );
 
     // Mark outputs as confirmed
-    SecretKey scan_secret(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
-    SecretKey spend_secret(m_pWalletInterface->GetHDKey("m/1/0/101'").keyBytes);
-    PublicKey spend_pubkey = Keys::From(spend_secret).PubKey();
+    PublicKey spend_pubkey = Keys::From(m_spendSecret).PubKey();
     for (const Output& output : pBlock->GetOutputs()) {
         try {
             auto iter = coinmap.find(output.GetCommitment());
@@ -227,18 +242,16 @@ libmw::Coin Wallet::RewindOutput(const Output& output) const
     if (t[0] == output.GetViewTag()) {
         PublicKey B = output.Ko().Sub(Hashed(EHashTag::OUT_KEY, t));
 
-        uint32_t index = 0; // TODO: Currently just supports index 0
-        StealthAddress wallet_addr = GetStealthAddress(index);
-
         // Check if B belongs to wallet
-        if (wallet_addr.B() == B) {
+        uint32_t index = 0;
+        if (IsSpendPubKey(B, index)) {
+            StealthAddress wallet_addr = GetStealthAddress(index);
             Deserializer hash64(Hash512(t).vec());
             SecretKey r = hash64.Read<SecretKey>();
             uint64_t value = output.GetMaskedValue() ^ hash64.Read<uint64_t>();
             BigInt<16> n = output.GetMaskedNonce() ^ hash64.ReadVector(16);
 
-            BlindingFactor blind = Crypto::BlindSwitch(r, value);
-            if (Crypto::CommitBlinded(value, blind) == output.GetCommitment()) {
+            if (Commitment::Switch(r, value) == output.GetCommitment()) {
                 // Calculate Carol's sending key 's' and check that s*B ?= Ke
                 SecretKey s = Hasher(EHashTag::SEND_KEY)
                     .Append(wallet_addr.A())
@@ -253,9 +266,9 @@ libmw::Coin Wallet::RewindOutput(const Output& output) const
                     );
                     return libmw::Coin{
                         output.GetFeatures(),
-                        false,
+                        index == CHANGE_INDEX,
                         private_key.array(),
-                        blind.array(),
+                        r.array(),
                         value,
                         output.GetCommitment().array(),
                         boost::none,

@@ -43,7 +43,7 @@ mw::Transaction::CPtr Transact::CreateTx(
         change_blind,
         EOutputFeatures::DEFAULT_OUTPUT,
         change_key,
-        m_wallet.GetStealthAddress(),
+        m_wallet.GetChangeAddress(),
         change_amount
     );
 
