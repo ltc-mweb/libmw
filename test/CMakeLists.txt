@@ -21,7 +21,6 @@ endfunction()
 add_subdirectory(framework)
 
 set(test_sources "TestMain.cpp")
-add_subdirectory(tests/common)
 add_subdirectory(tests/consensus)
 add_subdirectory(tests/crypto)
 add_subdirectory(tests/db)
