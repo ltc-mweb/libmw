@@ -210,8 +210,8 @@ void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
                     try {
                         libmw::Coin coin = RewindOutput(output);
                         coin.included_block = boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash());
-                        if (!coin.change_output) {
-
+                        if (!coin.change_output && !coin.pegin_output) {
+                            // TODO: Create CWalletTx
                         }
                     }
                     catch (std::exception&) {}
@@ -267,6 +267,7 @@ libmw::Coin Wallet::RewindOutput(const Output& output) const
                     return libmw::Coin{
                         output.GetFeatures(),
                         index == CHANGE_INDEX,
+                        index == PEGIN_INDEX,
                         private_key.array(),
                         r.array(),
                         value,

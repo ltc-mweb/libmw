@@ -164,6 +164,9 @@ struct Coin
     // True if this was a change output from a transaction created by this wallet.
     bool change_output;
 
+    // True if this was an output created from a pegin transaction.
+    bool pegin_output;
+
     // The private key needed in order to spend the coin.
     // May be empty for watch-only wallets.
     boost::optional<libmw::BlindingFactor> key;
