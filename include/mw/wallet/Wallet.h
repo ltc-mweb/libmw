@@ -13,8 +13,8 @@
 class Wallet
 {
 public:
-    Wallet(const libmw::IWallet::Ptr& pWalletInterface, SecretKey&& masterKey, PublicKey&& masterPub)
-        : m_pWalletInterface(pWalletInterface), m_masterKey(std::move(masterKey)), m_masterPub(std::move(masterPub)) { }
+    Wallet(const libmw::IWallet::Ptr& pWalletInterface)
+        : m_pWalletInterface(pWalletInterface) { }
 
     static Wallet Open(const libmw::IWallet::Ptr& pWalletInterface);
     
@@ -51,6 +51,4 @@ public:
 
 private:
     libmw::IWallet::Ptr m_pWalletInterface;
-    SecretKey m_masterKey;
-    PublicKey m_masterPub;
 };

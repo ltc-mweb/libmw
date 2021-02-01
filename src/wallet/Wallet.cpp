@@ -12,9 +12,7 @@ Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
 {
     assert(pWalletInterface != nullptr);
 
-    SecretKey master_key(pWalletInterface->GetHDKey("m/1/0/0").keyBytes);
-    PublicKey master_pub(Crypto::CalculatePublicKey(master_key.GetBigInt()));
-    return Wallet(pWalletInterface, std::move(master_key), std::move(master_pub));
+    return Wallet(pWalletInterface);
 }
 
 mw::Transaction::CPtr Wallet::CreatePegInTx(const uint64_t amount, const boost::optional<StealthAddress>& receiver_addr)
@@ -228,32 +226,44 @@ libmw::Coin Wallet::RewindOutput(const Output& output) const
     SecretKey t = Hashed(EHashTag::DERIVE, output.Ke().Mul(a));
     if (t[0] == output.GetViewTag()) {
         PublicKey B = output.Ko().Sub(Hashed(EHashTag::OUT_KEY, t));
-        // TODO: Check if B belongs to wallet
 
-        Deserializer hash64(Hash512(t).vec());
-        SecretKey r = hash64.Read<SecretKey>();
-        uint64_t value = output.GetMaskedValue() ^ hash64.Read<uint64_t>();
-        BigInt<16> n = output.GetMaskedNonce() ^ hash64.ReadVector(16);
+        uint32_t index = 0; // TODO: Currently just supports index 0
+        StealthAddress wallet_addr = GetStealthAddress(index);
 
-        BlindingFactor blind = Crypto::BlindSwitch(r, value);
-        if (Crypto::CommitBlinded(value, blind) == output.GetCommitment()) {
-            // TODO: Calculate Carol's sending key 's' and check that s*B ?= Ke
+        // Check if B belongs to wallet
+        if (wallet_addr.B() == B) {
+            Deserializer hash64(Hash512(t).vec());
+            SecretKey r = hash64.Read<SecretKey>();
+            uint64_t value = output.GetMaskedValue() ^ hash64.Read<uint64_t>();
+            BigInt<16> n = output.GetMaskedNonce() ^ hash64.ReadVector(16);
 
-            SecretKey private_key = Crypto::AddPrivateKeys(
-                Hashed(EHashTag::OUT_KEY, t),
-                GetSpendKey(0) // TODO: Determine index
-            );
-            return libmw::Coin{
-                output.GetFeatures(),
-                false,
-                private_key.array(),
-                blind.array(),
-                value,
-                output.GetCommitment().array(),
-                boost::none,
-                false,
-                boost::none
-            };
+            BlindingFactor blind = Crypto::BlindSwitch(r, value);
+            if (Crypto::CommitBlinded(value, blind) == output.GetCommitment()) {
+                // Calculate Carol's sending key 's' and check that s*B ?= Ke
+                SecretKey s = Hasher(EHashTag::SEND_KEY)
+                    .Append(wallet_addr.A())
+                    .Append(wallet_addr.B())
+                    .Append(value)
+                    .Append(n)
+                    .hash();
+                if (output.Ke() == wallet_addr.B().Mul(s)) {
+                    SecretKey private_key = Crypto::AddPrivateKeys(
+                        Hashed(EHashTag::OUT_KEY, t),
+                        GetSpendKey(index)
+                    );
+                    return libmw::Coin{
+                        output.GetFeatures(),
+                        false,
+                        private_key.array(),
+                        blind.array(),
+                        value,
+                        output.GetCommitment().array(),
+                        boost::none,
+                        false,
+                        boost::none
+                    };
+                }
+            }
         }
     }
 
