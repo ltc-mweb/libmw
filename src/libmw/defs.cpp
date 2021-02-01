@@ -52,6 +52,21 @@ MWEXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
     return pegouts;
 }
 
+MWEXPORT std::vector<PegIn> TxRef::GetPegins() const noexcept
+{
+    std::vector<PegIn> pegins;
+    for (const Kernel& kernel : pTransaction->GetKernels()) {
+        if (kernel.IsPegIn()) {
+            PegIn pegin;
+            pegin.amount = kernel.GetPeggedOut();
+            pegin.commitment = kernel.GetCommitment().array();
+            pegins.emplace_back(std::move(pegin));
+        }
+    }
+
+    return pegins;
+}
+
 MWEXPORT uint64_t TxRef::GetTotalFee() const noexcept
 {
     assert(pTransaction != nullptr);
