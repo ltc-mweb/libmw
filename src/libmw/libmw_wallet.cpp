@@ -8,10 +8,17 @@
 LIBMW_NAMESPACE
 WALLET_NAMESPACE
 
-// TODO: Support passing in receiver_addr
-MWEXPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(const libmw::IWallet::Ptr& pWallet, const uint64_t amount)
+MWEXPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(
+    const libmw::IWallet::Ptr& pWallet,
+    const uint64_t amount,
+    const libmw::MWEBAddress& address)
 {
-    mw::Transaction::CPtr pTx = Wallet::Open(pWallet).CreatePegInTx(amount, boost::none);
+    boost::optional<StealthAddress> pegin_address = boost::none;
+    if (!address.empty()) {
+        pegin_address = boost::make_optional(StealthAddress::Decode(address));
+    }
+
+    mw::Transaction::CPtr pTx = Wallet::Open(pWallet).CreatePegInTx(amount, pegin_address);
 
     assert(!pTx->GetKernels().empty());
     libmw::Commitment commit = pTx->GetKernels().front().GetCommitment().array();
@@ -62,9 +69,9 @@ MWEXPORT void ScanForOutputs(const libmw::IWallet::Ptr& pWallet, const libmw::IC
     Wallet::Open(pWallet).ScanForOutputs(pChain);
 }
 
-MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet)
+MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet, const uint32_t index)
 {
-    return Wallet::Open(pWallet).GetStealthAddress().Encode();
+    return Wallet::Open(pWallet).GetStealthAddress(index).Encode();
 }
 
 MWEXPORT bool IsOwnAddress(const libmw::IWallet::Ptr& pWallet, const libmw::MWEBAddress& address)

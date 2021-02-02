@@ -13,8 +13,8 @@
 class Wallet
 {
 public:
-    Wallet(const libmw::IWallet::Ptr& pWalletInterface, SecretKey&& masterKey, PublicKey&& masterPub)
-        : m_pWalletInterface(pWalletInterface), m_masterKey(std::move(masterKey)), m_masterPub(std::move(masterPub)) { }
+    Wallet(const libmw::IWallet::Ptr& pWalletInterface, SecretKey&& scan_secret, SecretKey&& spend_secret)
+        : m_pWalletInterface(pWalletInterface), m_scanSecret(std::move(scan_secret)), m_spendSecret(std::move(spend_secret)) { }
 
     static Wallet Open(const libmw::IWallet::Ptr& pWalletInterface);
     
@@ -35,7 +35,10 @@ public:
         const StealthAddress& receiver_address
     );
 
-    StealthAddress GetStealthAddress() const;
+    StealthAddress GetStealthAddress(const uint32_t index) const;
+    StealthAddress GetChangeAddress() const { return GetStealthAddress(CHANGE_INDEX); }
+    StealthAddress GetPegInAddress() const { return GetStealthAddress(PEGIN_INDEX); }
+
     libmw::WalletBalance GetBalance() const;
 
     void BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canonical_block_hash);
@@ -48,7 +51,13 @@ public:
     libmw::Coin RewindOutput(const Output& output) const;
 
 private:
+    SecretKey GetSpendKey(const uint32_t index) const;
+    bool IsSpendPubKey(const PublicKey& spend_pubkey, uint32_t& index_out) const;
+
     libmw::IWallet::Ptr m_pWalletInterface;
-    SecretKey m_masterKey;
-    PublicKey m_masterPub;
+    SecretKey m_scanSecret;
+    SecretKey m_spendSecret;
+
+    inline static constexpr uint32_t CHANGE_INDEX{ 2'000'000 };
+    inline static constexpr uint32_t PEGIN_INDEX{ 4'000'000 };
 };

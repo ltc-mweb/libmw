@@ -2,9 +2,6 @@
 
 #include <mw/consensus/Weight.h>
 
-#include <test_framework/models/Tx.h>
-#include <test_framework/TxBuilder.h>
-
 TEST_CASE("Weight::ExceedsMaximum")
 {
     std::vector<Input> inputs;

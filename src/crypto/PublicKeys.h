@@ -12,7 +12,10 @@ public:
     ~PublicKeys() = default;
 
     PublicKey CalculatePublicKey(const BigInt<32>& privateKey) const;
-    PublicKey PublicKeySum(const std::vector<PublicKey>& publicKeys) const;
+    PublicKey PublicKeySum(
+        const std::vector<PublicKey>& publicKeys,
+        const std::vector<PublicKey>& subtract
+    ) const;
 
 private:
     Locked<Context> m_context;

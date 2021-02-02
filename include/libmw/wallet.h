@@ -12,10 +12,12 @@ WALLET_NAMESPACE
 /// </summary>
 /// <param name="pWallet">The wallet to create the transaction for. Must not be null.</param>
 /// <param name="amount">The amount to peg-in.</param>
+/// <param name="address">The address to peg-in to. Can be empty.</param>
 /// <returns>The non-null libmw::TxRef and libmw::PegIn that were created.</returns>
 MWIMPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(
     const libmw::IWallet::Ptr& pWallet,
-    const uint64_t amount
+    const uint64_t amount,
+    const libmw::MWEBAddress& address = ""
 );
 
 /// <summary>
@@ -83,8 +85,9 @@ MWIMPORT void ScanForOutputs(
 /// FUTURE: Add multi-address support.
 /// </summary>
 /// <param name="pWallet">The wallet to calculate the MWEB wallet address for. Must not be null.</param>
+/// <param name="index">The index of the address keypair to use.</param>
 /// <returns>The MWEB wallet's bech32 address.</returns>
-MWIMPORT MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet);
+MWIMPORT MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet, const uint32_t index = 0);
 
 /// <summary>
 /// Determines if the MWEB wallet address belongs to the given wallet.

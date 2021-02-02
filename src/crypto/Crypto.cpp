@@ -2,13 +2,7 @@
 #include <mw/exceptions/CryptoException.h>
 #include <mw/common/Logger.h>
 
-//#include <crypto/Blake2.h>
-#include <crypto/sha256.h>
-#include <crypto/ripemd160.h>
-#include <crypto/hmac_sha256.h>
-#include <crypto/hmac_sha512.h>
 #include <crypto/aes.h>
-#include <crypto/siphash.h>
 #include <cassert>
 
 // Secp256k1
@@ -104,7 +98,7 @@ BlindingFactor Crypto::AddBlindingFactors(
     return Pedersen(SECP256K1_CONTEXT).PedersenBlindSum(sanitizedPositive, sanitizedNegative);
 }
 
-SecretKey Crypto::BlindSwitch(const SecretKey& secretKey, const uint64_t amount)
+BlindingFactor Crypto::BlindSwitch(const BlindingFactor& secretKey, const uint64_t amount)
 {
     return Pedersen(SECP256K1_CONTEXT).BlindSwitch(secretKey, amount);
 }
@@ -177,9 +171,9 @@ PublicKey Crypto::CalculatePublicKey(const BigInt<32>& privateKey)
     return PublicKeys(SECP256K1_CONTEXT).CalculatePublicKey(privateKey);
 }
 
-PublicKey Crypto::AddPublicKeys(const std::vector<PublicKey>& publicKeys)
+PublicKey Crypto::AddPublicKeys(const std::vector<PublicKey>& publicKeys, const std::vector<PublicKey>& subtract)
 {
-    return PublicKeys(SECP256K1_CONTEXT).PublicKeySum(publicKeys);
+    return PublicKeys(SECP256K1_CONTEXT).PublicKeySum(publicKeys, subtract);
 }
 
 PublicKey Crypto::ToPublicKey(const Commitment& commitment)

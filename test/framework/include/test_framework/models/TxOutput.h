@@ -11,21 +11,22 @@ TEST_NAMESPACE
 class TxOutput
 {
 public:
-    TxOutput(const BlindingFactor& blindingFactor, const uint64_t amount, const Output& output)
-        : m_blindingFactor(blindingFactor), m_amount(amount), m_output(output) { }
+    TxOutput(BlindingFactor&& blindingFactor, const uint64_t amount, Output&& output)
+        : m_blindingFactor(std::move(blindingFactor)), m_amount(amount), m_output(std::move(output)) { }
 
     static TxOutput Create(
         const EOutputFeatures features,
-        const BlindingFactor& blinding_factor,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
         const uint64_t amount)
     {
-        Output output = Output::Create(features, blinding_factor, sender_privkey, receiver_addr, amount);
+        BlindingFactor blinding_factor;
+        Output output = Output::Create(blinding_factor, features, sender_privkey, receiver_addr, amount);
 
-        return TxOutput{ blinding_factor, amount, std::move(output) };
+        return TxOutput{ std::move(blinding_factor), amount, std::move(output) };
     }
 
+    const BlindingFactor& GetBlind() const noexcept { return m_blindingFactor; }
     const BlindingFactor& GetBlindingFactor() const noexcept { return m_blindingFactor; }
     uint64_t GetAmount() const noexcept { return m_amount; }
     const Output& GetOutput() const noexcept { return m_output; }

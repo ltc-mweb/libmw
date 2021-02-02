@@ -8,15 +8,15 @@
 TEST_CASE("Tx UTXO")
 {
     uint64_t amount = 12345;
-    BlindingFactor blind = Random::CSPRNG<32>();
-    Commitment commit = Crypto::CommitBlinded(amount, blind);
+    BlindingFactor blind;
     Output output = Output::Create(
-        EOutputFeatures::DEFAULT_OUTPUT,
         blind,
+        EOutputFeatures::DEFAULT_OUTPUT,
         Random::CSPRNG<32>(),
         StealthAddress::Random(),
         amount
     );
+    Commitment commit = Crypto::CommitBlinded(amount, blind);
 
     uint64_t blockHeight = 20;
     mmr::LeafIndex leafIndex = mmr::LeafIndex::At(5);
@@ -45,8 +45,8 @@ TEST_CASE("Tx UTXO")
         REQUIRE(utxo.GetBlockHeight() == blockHeight);
         REQUIRE(utxo.GetLeafIndex() == leafIndex);
         REQUIRE(utxo.GetOutput() == output);
-        REQUIRE(utxo.GetCommitment() == commit);
-        REQUIRE(utxo.GetOwnerData() == output.GetOwnerData());
+        REQUIRE(utxo.GetCommitment() == Crypto::CommitBlinded(amount, blind));
         REQUIRE(utxo.GetRangeProof() == output.GetRangeProof());
+        REQUIRE(utxo.BuildProofData() == output.BuildProofData());
     }
 }

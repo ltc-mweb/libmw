@@ -111,6 +111,7 @@ struct BlockUndoRef
 struct TxRef
 {
     MWIMPORT std::vector<PegOut> GetPegouts() const noexcept;
+    MWIMPORT std::vector<PegIn> GetPegins() const noexcept;
     MWIMPORT uint64_t GetTotalFee() const noexcept;
     MWIMPORT std::set<KernelHash> GetKernelHashes() const noexcept;
     MWIMPORT std::set<libmw::Commitment> GetInputCommits() const noexcept;
@@ -162,6 +163,9 @@ struct Coin
 
     // True if this was a change output from a transaction created by this wallet.
     bool change_output;
+
+    // True if this was an output created from a pegin transaction.
+    bool pegin_output;
 
     // The private key needed in order to spend the coin.
     // May be empty for watch-only wallets.

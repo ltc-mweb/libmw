@@ -16,8 +16,7 @@ Commitment Pedersen::PedersenCommit(const uint64_t value, const BlindingFactor& 
         &secp256k1_generator_const_h,
         &secp256k1_generator_const_g
     );
-    if (result != 1)
-    {
+    if (result != 1) {
         ThrowCrypto("Failed to create commitment.");
     }
 
@@ -42,8 +41,7 @@ Commitment Pedersen::PedersenCommitSum(const std::vector<Commitment>& positive, 
         negativePtrs.size()
     );
 
-    if (result != 1)
-    {
+    if (result != 1) {
         ThrowCrypto("secp256k1_pedersen_commit_sum error");
     }
 
@@ -71,17 +69,16 @@ BlindingFactor Pedersen::PedersenBlindSum(const std::vector<BlindingFactor>& pos
         blindingFactors.size(),
         positive.size()
     );
-    if (result != 1)
-    {
+    if (result != 1) {
         ThrowCrypto("secp256k1_pedersen_blind_sum error");
     }
 
     return blindingFactor;
 }
 
-SecretKey Pedersen::BlindSwitch(const SecretKey& blindingFactor, const uint64_t amount) const
+BlindingFactor Pedersen::BlindSwitch(const BlindingFactor& blindingFactor, const uint64_t amount) const
 {
-    SecretKey blindSwitch;
+    BlindingFactor blindSwitch;
     const int result = secp256k1_blind_switch(
         m_context.Read()->Get(),
         blindSwitch.data(),
@@ -91,8 +88,7 @@ SecretKey Pedersen::BlindSwitch(const SecretKey& blindingFactor, const uint64_t 
         &secp256k1_generator_const_g,
         &GENERATOR_J_PUB
     );
-    if (result != 1)
-    {
+    if (result != 1) {
         ThrowCrypto("secp256k1_blind_switch failed");
     }
 

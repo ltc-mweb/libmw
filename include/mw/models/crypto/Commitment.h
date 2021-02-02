@@ -7,16 +7,16 @@
 #include <mw/models/crypto/BigInteger.h>
 #include <mw/traits/Printable.h>
 #include <mw/traits/Serializable.h>
-#include <mw/traits/Jsonable.h>
-#include <mw/util/BitUtil.h>
 
 #include <boost/container_hash/hash.hpp>
 #include <cassert>
 
+// Forward Declarations
+class BlindingFactor;
+
 class Commitment :
     public Traits::IPrintable,
-    public Traits::ISerializable,
-    public Traits::IJsonable
+    public Traits::ISerializable
 {
 public:
     static constexpr size_t const& SIZE = 33;
@@ -34,6 +34,13 @@ public:
     // Destructor
     //
     virtual ~Commitment() = default;
+
+    //
+    // Factories
+    //
+    static Commitment Switch(const BlindingFactor& blind, const uint64_t value);
+    static Commitment Blinded(const BlindingFactor& blind, const uint64_t value);
+    static Commitment Transparent(const uint64_t value);
 
     //
     // Operators
@@ -58,25 +65,8 @@ public:
     //
     // Serialization/Deserialization
     //
-    Serializer& Serialize(Serializer& serializer) const noexcept final
-    {
-        return m_bytes.Serialize(serializer);
-    }
-
-    static Commitment Deserialize(Deserializer& deserializer)
-    {
-        return Commitment(BigInt<SIZE>::Deserialize(deserializer));
-    }
-
-    json ToJSON() const noexcept final
-    {
-        return json(m_bytes.ToHex());
-    }
-
-    static Commitment FromJSON(const Json& json)
-    {
-        return Commitment::FromHex(json.Get<std::string>());
-    }
+    Serializer& Serialize(Serializer& serializer) const noexcept final;
+    static Commitment Deserialize(Deserializer& deserializer);
 
     std::string ToHex() const { return m_bytes.ToHex(); }
     static Commitment FromHex(const std::string& hex) { return Commitment(BigInt<SIZE>::FromHex(hex)); }

@@ -37,24 +37,22 @@ TxBuilder& TxBuilder::AddInput(
     return *this;
 }
 
-TxBuilder& TxBuilder::AddOutput(const uint64_t amount, const EOutputFeatures features, const BlindingFactor& blind)
+TxBuilder& TxBuilder::AddOutput(const uint64_t amount, const EOutputFeatures features)
 {
-    return AddOutput(amount, Random::CSPRNG<32>(), StealthAddress::Random(), features, blind);
+    return AddOutput(amount, Random::CSPRNG<32>(), StealthAddress::Random(), features);
 }
 
 TxBuilder& TxBuilder::AddOutput(
     const uint64_t amount,
     const SecretKey& sender_privkey,
     const StealthAddress& receiver_addr,
-    const EOutputFeatures features,
-    const BlindingFactor& blind)
+    const EOutputFeatures features)
 {
-    m_kernelOffset.Add(blind);
+    TxOutput output = TxOutput::Create(features, sender_privkey, receiver_addr, amount);
+    m_kernelOffset.Add(output.GetBlind());
     m_ownerOffset.Add(sender_privkey);
 
-    TxOutput output = TxOutput::Create(features, blind, sender_privkey, receiver_addr, amount);
     m_outputs.push_back(std::move(output));
-
     m_amount -= (int64_t)amount;
     return *this;
 }

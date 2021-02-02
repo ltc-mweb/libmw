@@ -3,7 +3,6 @@
 #include "Context.h"
 
 #include <mw/models/crypto/BlindingFactor.h>
-#include <mw/models/crypto/SecretKey.h>
 #include <mw/models/crypto/Commitment.h>
 
 class Pedersen
@@ -27,8 +26,8 @@ public:
         const std::vector<BlindingFactor>& negative
     ) const;
 
-    SecretKey BlindSwitch(
-        const SecretKey& secretKey,
+    BlindingFactor BlindSwitch(
+        const BlindingFactor& secretKey,
         const uint64_t amount
     ) const;
 

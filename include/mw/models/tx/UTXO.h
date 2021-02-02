@@ -21,9 +21,9 @@ public:
     const mmr::LeafIndex GetLeafIndex() const noexcept { return m_leafIdx; }
     const Output& GetOutput() const noexcept { return m_output; }
 
-	const Commitment& GetCommitment() const noexcept { return m_output.GetCommitment(); }
-    const OwnerData& GetOwnerData() const noexcept { return m_output.GetOwnerData(); }
-	RangeProof::CPtr GetRangeProof() const noexcept { return m_output.GetRangeProof(); }
+    const Commitment& GetCommitment() const noexcept { return m_output.GetCommitment(); }
+    RangeProof::CPtr GetRangeProof() const noexcept { return m_output.GetRangeProof(); }
+    ProofData BuildProofData() const noexcept { return m_output.BuildProofData(); }
     bool IsPeggedIn() const noexcept { return m_output.IsPeggedIn(); }
 
     Serializer& Serialize(Serializer& serializer) const noexcept

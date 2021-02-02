@@ -216,7 +216,7 @@ void TxBody::Validate() const
     std::transform(
         m_outputs.cbegin(), m_outputs.cend(),
         std::back_inserter(signatures),
-        [](const Output& output) { return output.GetOwnerData().GetSignedMsg(); }
+        [](const Output& output) { return output.BuildSignedMsg(); }
     );
 
     signatures.insert(signatures.end(), m_ownerSigs.begin(), m_ownerSigs.end());
@@ -232,9 +232,7 @@ void TxBody::Validate() const
     std::transform(
         m_outputs.cbegin(), m_outputs.cend(),
         std::back_inserter(rangeProofs),
-        [](const Output& output) {
-            return ProofData{ output.GetCommitment(), output.GetRangeProof(), output.GetOwnerData().Serialized() };
-        }
+        [](const Output& output) { return output.BuildProofData(); }
     );
     if (!Bulletproofs::BatchVerify(rangeProofs)) {
         ThrowValidation(EConsensusError::BULLETPROOF);
