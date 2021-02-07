@@ -161,11 +161,8 @@ struct Coin
     // This is used to determine the required number of confirmations before spending.
     uint8_t features;
 
-    // True if this was a change output from a transaction created by this wallet.
-    bool change_output;
-
-    // True if this was an output created from a pegin transaction.
-    bool pegin_output;
+    // Index of the subaddress this coin was received at.
+    uint32_t address_index;
 
     // The private key needed in order to spend the coin.
     // May be empty for watch-only wallets.
@@ -194,6 +191,9 @@ struct Coin
     // The hash of the canonical block where the coin was spent.
     // This will be empty when the coin has not yet been spent on-chain.
     boost::optional<libmw::BlockHash> spent_block;
+
+    // The time this output was seen by the wallet.
+    int64_t time_received;
 };
 
 /// <summary>

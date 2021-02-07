@@ -6,7 +6,7 @@
 
 Output::Output(
         Commitment&& commitment,
-        EOutputFeatures features,
+        Features features,
         PublicKey&& receiver_pubkey,
         PublicKey&& key_exchange_pubkey,
         uint8_t view_tag,
@@ -32,7 +32,7 @@ Output::Output(
 
 Output Output::Create(
     BlindingFactor& blind_out,
-    const EOutputFeatures features,
+    const Features& features,
     const SecretKey& sender_privkey,
     const StealthAddress& receiver_addr,
     const uint64_t value)
@@ -73,7 +73,7 @@ Output Output::Create(
 
     // Sign the malleable output data
     mw::Hash sig_message = Hasher()
-        .Append<uint8_t>(features)
+        .Append<uint8_t>(features.Get())
         .Append(Ko)
         .Append(Ke)
         .Append(t[0])
@@ -84,7 +84,7 @@ Output Output::Create(
     Signature signature = Schnorr::Sign(sender_privkey.data(), sig_message);
 
     std::vector<uint8_t> proof_data = Serializer()
-        .Append<uint8_t>(features)
+        .Append<uint8_t>(features.Get())
         .Append(Ko)
         .Append(Ke)
         .Append(t[0])
@@ -122,7 +122,7 @@ Output Output::Create(
 SignedMessage Output::BuildSignedMsg() const noexcept
 {
     mw::Hash hashed_msg = Hasher()
-        .Append<uint8_t>(m_features)
+        .Append<uint8_t>(m_features.Get())
         .Append(m_receiverPubKey)
         .Append(m_keyExchangePubKey)
         .Append(m_viewTag)
@@ -135,7 +135,7 @@ SignedMessage Output::BuildSignedMsg() const noexcept
 ProofData Output::BuildProofData() const noexcept
 {
     std::vector<uint8_t> message = Serializer()
-        .Append<uint8_t>(m_features)
+        .Append<uint8_t>(m_features.Get())
         .Append(m_receiverPubKey)
         .Append(m_keyExchangePubKey)
         .Append(m_viewTag)
@@ -152,7 +152,7 @@ Serializer& Output::Serialize(Serializer& serializer) const noexcept
 {
     return serializer
         .Append(m_commitment)
-        .Append<uint8_t>(m_features)
+        .Append<uint8_t>(m_features.Get())
         .Append(m_receiverPubKey)
         .Append(m_keyExchangePubKey)
         .Append(m_viewTag)

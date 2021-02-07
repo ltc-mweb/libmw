@@ -74,6 +74,17 @@ MWIMPORT void BlockDisconnected(
     const libmw::BlockRef& block
 );
 
+/// <summary>
+/// Checks the transaction to see if it belongs to the wallet, updating the wallet accordingly.
+/// This should be called when the transaction is added to the mempool.
+/// </summary>
+/// <param name="pWallet">The wallet to update. Must not be null.</param>
+/// <param name="tx">The transaction that was added to the mempool. Must not be null.</param>
+MWIMPORT void TransactionAddedToMempool(
+    const libmw::IWallet::Ptr& pWallet,
+    const libmw::TxRef& tx
+);
+
 MWIMPORT void ScanForOutputs(
     const libmw::IWallet::Ptr& pWallet,
     const libmw::IChain::Ptr& pChain

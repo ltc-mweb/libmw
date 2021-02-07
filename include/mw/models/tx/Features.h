@@ -8,18 +8,6 @@
 #include <string>
 #include <mw/exceptions/DeserializationException.h>
 
-class Features
-{
-public:
-    Features(const uint8_t features) noexcept : m_features(features) { }
-
-    bool IsSet(const uint8_t feature) const noexcept { return (m_features & feature) == feature; }
-    uint8_t Get() const noexcept { return m_features; }
-
-private:
-    uint8_t m_features;
-};
-
 enum EOutputFeatures : uint8_t
 {
     // No Flags
@@ -27,6 +15,23 @@ enum EOutputFeatures : uint8_t
 
     // Output is a pegged-in output, must not be spent until maturity
     PEGGED_IN = 1
+};
+
+class Features
+{
+public:
+    Features() noexcept : m_features(0) {}
+    Features(const uint8_t features) noexcept : m_features(features) {}
+    Features(const EOutputFeatures features) noexcept : m_features((uint8_t)features) {}
+
+    bool operator==(const uint8_t features) const noexcept { return m_features == features; }
+    bool operator==(const EOutputFeatures& features) const noexcept { return m_features == features; }
+
+    bool IsSet(const uint8_t feature) const noexcept { return (m_features & feature) == feature; }
+    uint8_t Get() const noexcept { return m_features; }
+
+private:
+    uint8_t m_features;
 };
 
 namespace OutputFeatures

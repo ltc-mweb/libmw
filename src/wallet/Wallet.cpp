@@ -190,7 +190,43 @@ void Wallet::BlockDisconnected(const mw::Block::CPtr& pBlock)
     m_pWalletInterface->AddCoins(coins_to_update);
 }
 
-// TODO: Implement
+void Wallet::TransactionAddedToMempool(const mw::Transaction::CPtr& pTx)
+{
+    std::vector<libmw::Coin> coins_to_update;
+
+    std::vector<libmw::Coin> coinlist = m_pWalletInterface->ListCoins();
+    std::unordered_map<Commitment, libmw::Coin> coinmap;
+    std::transform(
+        coinlist.cbegin(), coinlist.cend(),
+        std::inserter(coinmap, coinmap.end()),
+        [](const libmw::Coin& coin) { return std::make_pair(Commitment(coin.commitment), coin); }
+    );
+
+    // Mark outputs as confirmed
+    PublicKey spend_pubkey = Keys::From(m_spendSecret).PubKey();
+    for (const Output& output : pTx->GetOutputs()) {
+        try {
+            auto iter = coinmap.find(output.GetCommitment());
+            if (iter == coinmap.cend()) {
+                coins_to_update.push_back(RewindOutput(output));
+            }
+        }
+        catch (std::exception&) {}
+    }
+
+    // Mark inputs as spent
+    for (const Input& input : pTx->GetInputs()) {
+        auto iter = coinmap.find(input.GetCommitment());
+        if (iter != coinmap.cend()) {
+            libmw::Coin coin = iter->second;
+            coin.spent = true;
+            coins_to_update.push_back(coin);
+        }
+    }
+
+    m_pWalletInterface->AddCoins(coins_to_update);
+}
+
 void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
 {
     std::vector<libmw::Coin> orig_coins = m_pWalletInterface->ListCoins();
@@ -210,7 +246,7 @@ void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
                     try {
                         libmw::Coin coin = RewindOutput(output);
                         coin.included_block = boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash());
-                        if (!coin.change_output && !coin.pegin_output) {
+                        if (coin.address_index != CHANGE_INDEX && !Features(coin.features).IsSet(EOutputFeatures::PEGGED_IN)) {
                             // TODO: Create CWalletTx
                         }
                     }
@@ -265,16 +301,16 @@ libmw::Coin Wallet::RewindOutput(const Output& output) const
                         GetSpendKey(index)
                     );
                     return libmw::Coin{
-                        output.GetFeatures(),
-                        index == CHANGE_INDEX,
-                        index == PEGIN_INDEX,
+                        output.GetFeatures().Get(),
+                        index,
                         private_key.array(),
                         r.array(),
                         value,
                         output.GetCommitment().array(),
                         boost::none,
                         false,
-                        boost::none
+                        boost::none,
+                        time(nullptr)
                     };
                 }
             }

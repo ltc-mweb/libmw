@@ -43,6 +43,7 @@ public:
 
     void BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canonical_block_hash);
     void BlockDisconnected(const mw::Block::CPtr& pBlock);
+    void TransactionAddedToMempool(const mw::Transaction::CPtr& pTx);
     void ScanForOutputs(const libmw::IChain::Ptr& pChain);
 
     libmw::IWallet::Ptr GetInterface() const noexcept { return m_pWalletInterface; }

@@ -15,7 +15,7 @@ public:
         : m_blindingFactor(std::move(blindingFactor)), m_amount(amount), m_output(std::move(output)) { }
 
     static TxOutput Create(
-        const EOutputFeatures features,
+        const Features& features,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
         const uint64_t amount)
@@ -30,7 +30,7 @@ public:
     const BlindingFactor& GetBlindingFactor() const noexcept { return m_blindingFactor; }
     uint64_t GetAmount() const noexcept { return m_amount; }
     const Output& GetOutput() const noexcept { return m_output; }
-    EOutputFeatures GetFeatures() const noexcept { return m_output.GetFeatures(); }
+    Features GetFeatures() const noexcept { return m_output.GetFeatures(); }
     const Commitment& GetCommitment() const noexcept { return m_output.GetCommitment(); }
 
 private:

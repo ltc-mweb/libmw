@@ -33,7 +33,7 @@ public:
     //
     Output(
         Commitment&& commitment,
-        EOutputFeatures features,
+        Features features,
         PublicKey&& receiver_pubkey,
         PublicKey&& key_exchange_pubkey,
         uint8_t view_tag,
@@ -52,7 +52,7 @@ public:
     //
     static Output Create(
         BlindingFactor& blind_out,
-        const EOutputFeatures features,
+        const Features& features,
         const SecretKey& sender_privkey,
         const StealthAddress& receiver_addr,
         const uint64_t value
@@ -77,7 +77,7 @@ public:
     const Commitment& GetCommitment() const noexcept final { return m_commitment; }
     const RangeProof::CPtr& GetRangeProof() const noexcept { return m_pProof; }
 
-    EOutputFeatures GetFeatures() const noexcept { return m_features; }
+    Features GetFeatures() const noexcept { return m_features; }
     const PublicKey& GetReceiverPubKey() const noexcept { return m_receiverPubKey; }
     const PublicKey& GetKeyExchangePubKey() const noexcept { return m_keyExchangePubKey; }
     uint8_t GetViewTag() const noexcept { return m_viewTag; }
@@ -92,7 +92,7 @@ public:
     SignedMessage BuildSignedMsg() const noexcept;
     ProofData BuildProofData() const noexcept;
 
-    bool IsPeggedIn() const noexcept { return (GetFeatures() & EOutputFeatures::PEGGED_IN) == EOutputFeatures::PEGGED_IN; }
+    bool IsPeggedIn() const noexcept { return GetFeatures().IsSet(EOutputFeatures::PEGGED_IN); }
 
     OutputId ToIdentifier() const noexcept { return OutputId(GetFeatures(), m_commitment); }
 
@@ -111,7 +111,7 @@ private:
     // The homomorphic commitment representing the output amount
     Commitment m_commitment;
 
-    EOutputFeatures m_features;
+    Features m_features;
     PublicKey m_receiverPubKey;
     PublicKey m_keyExchangePubKey;
     uint8_t m_viewTag;

@@ -15,7 +15,7 @@ TxBuilder& TxBuilder::AddInput(const TxOutput& input)
     return AddInput(input.GetAmount(), input.GetFeatures(), input.GetBlindingFactor());
 }
 
-TxBuilder& TxBuilder::AddInput(const uint64_t amount, const EOutputFeatures features, const BlindingFactor& blind)
+TxBuilder& TxBuilder::AddInput(const uint64_t amount, const Features& features, const BlindingFactor& blind)
 {
     return AddInput(amount, Random::CSPRNG<32>(), features, blind);
 }
@@ -23,7 +23,7 @@ TxBuilder& TxBuilder::AddInput(const uint64_t amount, const EOutputFeatures feat
 TxBuilder& TxBuilder::AddInput(
     const uint64_t amount,
     const SecretKey& privkey,
-    const EOutputFeatures features,
+    const Features& features,
     const BlindingFactor& blind)
 {
     m_kernelOffset.Sub(blind);
@@ -37,7 +37,7 @@ TxBuilder& TxBuilder::AddInput(
     return *this;
 }
 
-TxBuilder& TxBuilder::AddOutput(const uint64_t amount, const EOutputFeatures features)
+TxBuilder& TxBuilder::AddOutput(const uint64_t amount, const Features& features)
 {
     return AddOutput(amount, Random::CSPRNG<32>(), StealthAddress::Random(), features);
 }
@@ -46,7 +46,7 @@ TxBuilder& TxBuilder::AddOutput(
     const uint64_t amount,
     const SecretKey& sender_privkey,
     const StealthAddress& receiver_addr,
-    const EOutputFeatures features)
+    const Features& features)
 {
     TxOutput output = TxOutput::Create(features, sender_privkey, receiver_addr, amount);
     m_kernelOffset.Add(output.GetBlind());

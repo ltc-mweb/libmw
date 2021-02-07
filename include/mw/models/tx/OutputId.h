@@ -22,7 +22,7 @@ public:
     //
     // Constructors
     //
-    OutputId(const EOutputFeatures features, const Commitment& commitment)
+    OutputId(const Features features, const Commitment& commitment)
         : m_features(features), m_commitment(commitment)
     {
         m_hash = Hashed(*this);
@@ -42,10 +42,10 @@ public:
     //
     // Getters
     //
-    EOutputFeatures GetFeatures() const noexcept { return m_features; }
+    Features GetFeatures() const noexcept { return m_features; }
     const Commitment& GetCommitment() const noexcept final { return m_commitment; }
 
-    bool IsPeggedIn() const noexcept { return (m_features & EOutputFeatures::PEGGED_IN) == EOutputFeatures::PEGGED_IN; }
+    bool IsPeggedIn() const noexcept { return m_features.IsSet(EOutputFeatures::PEGGED_IN); }
 
     //
     // Serialization/Deserialization
@@ -53,13 +53,13 @@ public:
     Serializer& Serialize(Serializer& serializer) const noexcept final
     {
         return serializer
-            .Append<uint8_t>((uint8_t)m_features)
+            .Append<uint8_t>((uint8_t)m_features.Get())
             .Append(m_commitment);
     }
 
     static OutputId Deserialize(Deserializer& deserializer)
     {
-        const EOutputFeatures features = (EOutputFeatures)deserializer.Read<uint8_t>();
+        const Features features = (EOutputFeatures)deserializer.Read<uint8_t>();
         Commitment commitment = Commitment::Deserialize(deserializer);
         return OutputId(features, std::move(commitment));
     }
@@ -71,7 +71,7 @@ public:
 
 private:
     // Options for an output's structure or use
-    EOutputFeatures m_features;
+    Features m_features;
 
     // The homomorphic commitment representing the output amount
     Commitment m_commitment;

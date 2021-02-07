@@ -58,7 +58,7 @@ MWEXPORT std::vector<PegIn> TxRef::GetPegins() const noexcept
     for (const Kernel& kernel : pTransaction->GetKernels()) {
         if (kernel.IsPegIn()) {
             PegIn pegin;
-            pegin.amount = kernel.GetPeggedOut();
+            pegin.amount = kernel.GetPeggedIn();
             pegin.commitment = kernel.GetCommitment().array();
             pegins.emplace_back(std::move(pegin));
         }

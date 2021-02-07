@@ -64,6 +64,13 @@ MWEXPORT void BlockDisconnected(
     Wallet::Open(pWallet).BlockDisconnected(block.pBlock);
 }
 
+MWEXPORT void TransactionAddedToMempool(
+    const libmw::IWallet::Ptr& pWallet,
+    const libmw::TxRef& tx)
+{
+    Wallet::Open(pWallet).TransactionAddedToMempool(tx.pTransaction);
+}
+
 MWEXPORT void ScanForOutputs(const libmw::IWallet::Ptr& pWallet, const libmw::IChain::Ptr& pChain)
 {
     Wallet::Open(pWallet).ScanForOutputs(pChain);
