@@ -62,12 +62,12 @@ SecretKey Wallet::GetSpendKey(const uint32_t index) const
 bool Wallet::IsSpendPubKey(const PublicKey& spend_pubkey, uint32_t& index_out) const
 {
     if (GetChangeAddress().B() == spend_pubkey) {
-        index_out = CHANGE_INDEX;
+        index_out = libmw::CHANGE_INDEX;
         return true;
     }
 
     if (GetPegInAddress().B() == spend_pubkey) {
-        index_out = PEGIN_INDEX;
+        index_out = libmw::PEGIN_INDEX;
         return true;
     }
 
@@ -246,7 +246,7 @@ void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
                     try {
                         libmw::Coin coin = RewindOutput(output);
                         coin.included_block = boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash());
-                        if (coin.address_index != CHANGE_INDEX && !Features(coin.features).IsSet(EOutputFeatures::PEGGED_IN)) {
+                        if (coin.address_index != libmw::CHANGE_INDEX && !Features(coin.features).IsSet(EOutputFeatures::PEGGED_IN)) {
                             // TODO: Create CWalletTx
                         }
                     }

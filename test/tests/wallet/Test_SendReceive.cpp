@@ -38,7 +38,7 @@ TEST_CASE("Wallet - SendReceive")
     REQUIRE(balance.locked_balance == 0);
 
     // Initiate 2,000,000 litoshi spend
-    libmw::MWEBAddress recv_address = libmw::wallet::GetAddress(pRecvWallet);
+    libmw::MWEBAddress recv_address = libmw::wallet::GetAddress(pRecvWallet, 0);
     libmw::TxRef received_tx = libmw::wallet::Send(pSendWallet, 2'000'000, 0, recv_address);
     libmw::node::CheckTransaction(received_tx);
 

@@ -13,7 +13,7 @@ MINER_NAMESPACE
 /// <returns>A non-null BlockBuilderRef</returns>
 MWIMPORT libmw::BlockBuilderRef NewBuilder(const uint64_t height, const libmw::CoinsViewRef& view);
 
-MWIMPORT uint8_t AddTransaction(
+MWIMPORT bool AddTransaction(
     const libmw::BlockBuilderRef& builder,
     const libmw::TxRef& transaction,
     const std::vector<libmw::PegIn>& pegins

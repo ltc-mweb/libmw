@@ -21,10 +21,10 @@ public:
     virtual ~IWallet() = default;
 
     /// <summary>
-    /// Generates a new HD key and saves it to the wallet database.
+    /// Retrieves the highest known subaddress key index used by the wallet.
     /// </summary>
-    /// <returns>The newly-generated libmw::PrivateKey.</returns>
-    virtual libmw::PrivateKey GenerateNewHDKey() = 0;
+    /// <returns>The highest index of a subaddress known to be generated for the wallet.</returns>
+    //virtual uint32_t GetHighestIndex() = 0;
 
     /// <summary>
     /// Calculates the private key at the given bip32 path.

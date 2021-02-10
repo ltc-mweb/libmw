@@ -214,5 +214,7 @@ struct WalletBalance
     uint64_t locked_balance = 0;
 };
 
+inline static constexpr uint32_t CHANGE_INDEX{ 2'000'000 };
+inline static constexpr uint32_t PEGIN_INDEX{ 4'000'000 };
 
 END_NAMESPACE

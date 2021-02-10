@@ -26,7 +26,7 @@ mw::Transaction::CPtr Transact::CreateTx(
 
     // Create receiver's output
     BlindingFactor receiver_blind;
-    SecretKey ephemeral_key = m_wallet.NewKey();
+    SecretKey ephemeral_key = Random::CSPRNG<32>();
     Output receiver_output = Output::Create(
         receiver_blind,
         EOutputFeatures::DEFAULT_OUTPUT,
@@ -38,7 +38,7 @@ mw::Transaction::CPtr Transact::CreateTx(
     // Create change output
     const uint64_t change_amount = WalletUtil::TotalAmount(input_coins) - (amount + fee);
     BlindingFactor change_blind;
-    SecretKey change_key = m_wallet.NewKey();
+    SecretKey change_key = Random::CSPRNG<32>();
     Output change_output = Output::Create(
         change_blind,
         EOutputFeatures::DEFAULT_OUTPUT,

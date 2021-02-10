@@ -36,8 +36,8 @@ public:
     );
 
     StealthAddress GetStealthAddress(const uint32_t index) const;
-    StealthAddress GetChangeAddress() const { return GetStealthAddress(CHANGE_INDEX); }
-    StealthAddress GetPegInAddress() const { return GetStealthAddress(PEGIN_INDEX); }
+    StealthAddress GetChangeAddress() const { return GetStealthAddress(libmw::CHANGE_INDEX); }
+    StealthAddress GetPegInAddress() const { return GetStealthAddress(libmw::PEGIN_INDEX); }
 
     libmw::WalletBalance GetBalance() const;
 
@@ -47,7 +47,6 @@ public:
     void ScanForOutputs(const libmw::IChain::Ptr& pChain);
 
     libmw::IWallet::Ptr GetInterface() const noexcept { return m_pWalletInterface; }
-    SecretKey NewKey() const { return m_pWalletInterface->GenerateNewHDKey().keyBytes; }
 
     libmw::Coin RewindOutput(const Output& output) const;
 
@@ -58,7 +57,4 @@ private:
     libmw::IWallet::Ptr m_pWalletInterface;
     SecretKey m_scanSecret;
     SecretKey m_spendSecret;
-
-    inline static constexpr uint32_t CHANGE_INDEX{ 2'000'000 };
-    inline static constexpr uint32_t PEGIN_INDEX{ 4'000'000 };
 };

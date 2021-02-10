@@ -24,13 +24,6 @@ public:
 
     }
 
-    libmw::PrivateKey GenerateNewHDKey() final
-    {
-        KeyChainPath path = m_nextPath;
-        m_nextPath = m_nextPath.GetNextSibling();
-        return libmw::PrivateKey{ path.Format(), ToBlind(path.Format()).array() };
-    }
-
     libmw::PrivateKey GetHDKey(const std::string& bip32Path) const final
     {
         return libmw::PrivateKey{ bip32Path, ToBlind(bip32Path).array() };

@@ -6,6 +6,8 @@ MW_NAMESPACE
 
 bool BlockBuilder::AddTransaction(const Transaction::CPtr& pTransaction, const std::vector<PegInCoin>& pegins)
 {
+    // TODO - Check weight
+
     // Verify pegin amount matches
     const uint64_t actual_amount = pTransaction->GetPegInAmount();
     const uint64_t expected_amount = std::accumulate(pegins.cbegin(), pegins.cend(), (uint64_t)0,

@@ -83,7 +83,7 @@ MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet, const
 
 MWEXPORT bool IsOwnAddress(const libmw::IWallet::Ptr& pWallet, const libmw::MWEBAddress& address)
 {
-    return GetAddress(pWallet) == address;
+    return GetAddress(pWallet, 0) == address; // TODO: Check all addresses
 }
 
 MWEXPORT libmw::WalletBalance GetBalance(const libmw::IWallet::Ptr& pWallet)
