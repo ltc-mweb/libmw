@@ -49,12 +49,12 @@ TEST_CASE("BlockBuilder")
 
         test::Tx builder_tx1 = test::Tx::CreatePegIn(150);
         libmw::PegIn builder_tx1_pegin{ 150, builder_tx1.GetKernels().front().GetCommitment().array() };
-        uint8_t tx1_status = libmw::miner::AddTransaction(
+        bool tx1_status = libmw::miner::AddTransaction(
             block_builder,
             libmw::TxRef{ builder_tx1.GetTransaction() },
             { builder_tx1_pegin }
         );
-        REQUIRE(tx1_status == 0);
+        REQUIRE(tx1_status);
 
         // TODO: Test pegouts and regular txs
 
