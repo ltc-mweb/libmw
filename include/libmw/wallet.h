@@ -3,9 +3,39 @@
 #include "defs.h"
 #include "interfaces/chain_interface.h"
 #include "interfaces/wallet_interface.h"
+#include <boost/variant.hpp>
 
 LIBMW_NAMESPACE
+
+struct PegOutRecipient
+{
+    uint64_t amount;
+    std::string address;
+};
+
+struct MWEBRecipient
+{
+    uint64_t amount;
+    libmw::MWEBAddress address;
+};
+
+struct PegInRecipient
+{
+    uint64_t amount;
+    libmw::MWEBAddress address;
+};
+
+typedef boost::variant<MWEBRecipient, PegInRecipient, PegOutRecipient> Recipient;
+
 WALLET_NAMESPACE
+
+MWIMPORT libmw::TxRef CreateTx(
+    const libmw::IWallet::Ptr& pWallet,
+    const std::vector<libmw::Commitment>& selected_inputs,
+    const std::vector<libmw::Recipient>& recipients,
+    const boost::optional<uint64_t>& pegin_amount,
+    const uint64_t fee
+);
 
 /// <summary>
 /// Creates a peg-in transaction.

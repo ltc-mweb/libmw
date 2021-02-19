@@ -35,6 +35,14 @@ public:
         const StealthAddress& receiver_address
     );
 
+    mw::Transaction::CPtr CreateTx(
+        const std::vector<Commitment>& input_commits,
+        const std::vector<std::pair<uint64_t, StealthAddress>>& recipients, // Includes pegins & change
+        const std::vector<PegOutCoin>& pegouts,
+        const boost::optional<uint64_t>& pegin_amount,
+        const uint64_t fee
+    ) const;
+
     StealthAddress GetStealthAddress(const uint32_t index) const;
     StealthAddress GetChangeAddress() const { return GetStealthAddress(libmw::CHANGE_INDEX); }
     StealthAddress GetPegInAddress() const { return GetStealthAddress(libmw::PEGIN_INDEX); }
@@ -45,6 +53,20 @@ public:
     void BlockDisconnected(const mw::Block::CPtr& pBlock);
     void TransactionAddedToMempool(const mw::Transaction::CPtr& pTx);
     void ScanForOutputs(const libmw::IChain::Ptr& pChain);
+
+    std::vector<libmw::Coin> GetCoins(const std::vector<Commitment>& commitments) const
+    {
+        std::vector<libmw::Coin> coins;
+        std::transform(
+            commitments.cbegin(), commitments.cend(),
+            std::back_inserter(coins),
+            [this](const Commitment& commitment) {
+                return m_pWalletInterface->GetCoin(commitment.array());
+            }
+        );
+
+        return coins;
+    }
 
     libmw::IWallet::Ptr GetInterface() const noexcept { return m_pWalletInterface; }
 

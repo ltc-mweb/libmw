@@ -41,6 +41,13 @@ public:
     virtual std::vector<libmw::Coin> ListCoins() const = 0;
 
     /// <summary>
+    /// Retrieves the MWEB coin with the matching commitment.
+    /// </summary>
+    /// <returns>The coin with the matching output commitment.</returns>
+    /// <throws>std::runtime_error if no matching commitment is found.</throws>
+    virtual libmw::Coin GetCoin(const libmw::Commitment& output_commit) const = 0;
+
+    /// <summary>
     /// Adds the MWEB coins to the wallet's database.
     /// </summary>
     /// <param name="coins">A possibly-empty vector of MWEB coins to add to the wallet's DB.</param>

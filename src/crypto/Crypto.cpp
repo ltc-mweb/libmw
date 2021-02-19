@@ -2,7 +2,6 @@
 #include <mw/exceptions/CryptoException.h>
 #include <mw/common/Logger.h>
 
-#include <crypto/aes.h>
 #include <cassert>
 
 // Secp256k1
@@ -118,52 +117,6 @@ SecretKey Crypto::AddPrivateKeys(const SecretKey& secretKey1, const SecretKey& s
     }
 
     ThrowCrypto("secp256k1_ec_privkey_tweak_add failed");
-}
-
-std::vector<uint8_t> Crypto::AES256_Encrypt(
-    const std::vector<uint8_t>& input,
-    const SecretKey& key,
-    const BigInt<16>& iv)
-{
-    assert(input.size() <= INT_MAX);
-
-    std::vector<uint8_t> ciphertext;
-
-    // max ciphertext len for a n bytes of plaintext is n + AES_BLOCKSIZE bytes
-    ciphertext.resize(input.size() + AES_BLOCKSIZE);
-
-    AES256CBCEncrypt enc(key.data(), iv.data(), true);
-    const size_t nLen = enc.Encrypt(input.data(), (int)input.size(), ciphertext.data());
-    if (nLen < input.size())
-    {
-        ThrowCrypto("Failed to encrypt");
-    }
-
-    ciphertext.resize(nLen);
-
-    return ciphertext;
-}
-
-std::vector<uint8_t> Crypto::AES256_Decrypt(
-    const std::vector<uint8_t>& ciphertext,
-    const SecretKey& key,
-    const BigInt<16>& iv)
-{
-    assert(ciphertext.size() <= INT_MAX);
-
-    // plaintext will always be equal to or lesser than length of ciphertext
-    std::vector<uint8_t> plaintext(ciphertext.size());
-
-    AES256CBCDecrypt dec(key.data(), iv.data(), true);
-    size_t nLen = dec.Decrypt(ciphertext.data(), (int)ciphertext.size(), plaintext.data());
-    if (nLen == 0)
-    {
-        ThrowCrypto("Failed to decrypt");
-    }
-
-    plaintext.resize(nLen);
-
-    return plaintext;
 }
 
 PublicKey Crypto::CalculatePublicKey(const BigInt<32>& privateKey)

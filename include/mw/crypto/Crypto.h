@@ -55,24 +55,6 @@ public:
     );
 
     //
-    // Encrypts the input with AES256 using the given key.
-    //
-    static std::vector<uint8_t> AES256_Encrypt(
-        const std::vector<uint8_t>& input,
-        const SecretKey& key,
-        const BigInt<16>& iv
-    );
-
-    //
-    // Decrypts the input with AES256 using the given key.
-    //
-    static std::vector<uint8_t> AES256_Decrypt(
-        const std::vector<uint8_t>& ciphertext,
-        const SecretKey& key,
-        const BigInt<16>& iv
-    );
-
-    //
     // Calculates the 33 byte public key from the 32 byte private key using curve secp256k1.
     //
     static PublicKey CalculatePublicKey(const BigInt<32>& privateKey);

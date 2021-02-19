@@ -40,6 +40,15 @@ mw::Transaction::CPtr Wallet::Send(
 {
     return Transact(*this).CreateTx(amount, fee_base, receiver_address);
 }
+mw::Transaction::CPtr Wallet::CreateTx(
+    const std::vector<Commitment>& input_commits,
+    const std::vector<std::pair<uint64_t, StealthAddress>>& recipients,
+    const std::vector<PegOutCoin>& pegouts,
+    const boost::optional<uint64_t>& pegin_amount,
+    const uint64_t fee) const
+{
+    return Transact(*this).CreateTx(input_commits, recipients, pegouts, pegin_amount, fee);
+}
 
 StealthAddress Wallet::GetStealthAddress(const uint32_t index) const
 {

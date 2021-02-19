@@ -8,6 +8,39 @@
 LIBMW_NAMESPACE
 WALLET_NAMESPACE
 
+MWEXPORT libmw::TxRef CreateTx(
+    const libmw::IWallet::Ptr& pWallet,
+    const std::vector<libmw::Commitment>& selected_inputs,
+    const std::vector<libmw::Recipient>& recipients,
+    const boost::optional<uint64_t>& pegin_amount,
+    const uint64_t fee)
+{
+    std::vector<std::pair<uint64_t, StealthAddress>> receivers;
+    std::vector<PegOutCoin> pegouts;
+
+    for (const libmw::Recipient& recipient : recipients) {
+        if (recipient.which() == 0) {
+            const libmw::MWEBRecipient& mweb_recipient = boost::get<libmw::MWEBRecipient>(recipient);
+            receivers.push_back(std::make_pair(mweb_recipient.amount, StealthAddress::Decode(mweb_recipient.address)));
+        } else if (recipient.which() == 1) {
+            const libmw::PegInRecipient& pegin_recipient = boost::get<libmw::PegInRecipient>(recipient);
+            receivers.push_back(std::make_pair(pegin_recipient.amount, StealthAddress::Decode(pegin_recipient.address)));
+        } else {
+            const libmw::PegOutRecipient& pegout_recipient = boost::get<libmw::PegOutRecipient>(recipient);
+            pegouts.push_back(PegOutCoin(pegout_recipient.amount, Bech32Address::FromString(pegout_recipient.address)));
+        }
+    }
+
+    mw::Transaction::CPtr pTransaction = Wallet::Open(pWallet).CreateTx(
+        TransformCommitments(selected_inputs),
+        receivers,
+        pegouts,
+        pegin_amount,
+        fee
+    );
+    return libmw::TxRef{ pTransaction };
+}
+
 MWEXPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(
     const libmw::IWallet::Ptr& pWallet,
     const uint64_t amount,

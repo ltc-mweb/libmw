@@ -34,6 +34,17 @@ public:
         return m_coins;
     }
 
+    libmw::Coin GetCoin(const libmw::Commitment& output_commit) const final
+    {
+        for (const libmw::Coin& coin : m_coins) {
+            if (coin.commitment == output_commit) {
+                return coin;
+            }
+        }
+
+        throw std::runtime_error("No matching coin found");
+    }
+
     void AddCoins(const std::vector<libmw::Coin>& coins) final
     {
         for (const libmw::Coin& coin : coins) {

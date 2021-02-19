@@ -80,3 +80,15 @@ static libmw::BlockAndPegs TransformBlock(const mw::Block::Ptr& pBlock)
 
     return libmw::BlockAndPegs{ pBlock, pegins, pegouts };
 }
+
+static std::vector<Commitment> TransformCommitments(const std::vector<libmw::Commitment>& libmw_commits)
+{
+    std::vector<Commitment> commits;
+    std::transform(
+        libmw_commits.cbegin(), libmw_commits.cend(),
+        std::back_inserter(commits),
+        [](const libmw::Commitment& commit) { return Commitment(commit); }
+    );
+
+    return commits;
+}

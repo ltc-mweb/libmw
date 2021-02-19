@@ -2,19 +2,19 @@ set(TARGET_NAME litecoin)
 
 file(GLOB SOURCE_CODE
     bech32.cpp
-    chainparamsbase.cpp
+    #chainparamsbase.cpp
     clientversion.cpp
     #dbwrapper.cpp
     fs.cpp
     hash.cpp
     logging.cpp
-    random.cpp
+    #random.cpp
     sync.cpp
     uint256.cpp
-    crypto/aes.cpp
+    #crypto/aes.cpp
     crypto/bech32.cpp
     #crypto/blake2b.cpp
-    crypto/chacha20.cpp
+    #crypto/chacha20.cpp
     crypto/hmac_sha256.cpp
     crypto/hmac_sha512.cpp
     crypto/ripemd160.cpp
@@ -26,7 +26,7 @@ file(GLOB SOURCE_CODE
     support/cleanse.cpp
     support/lockedpool.cpp
     util/strencodings.cpp
-    util/system.cpp
+    #util/system.cpp
     util/time.cpp
 )
 

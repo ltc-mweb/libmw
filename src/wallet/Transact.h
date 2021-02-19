@@ -2,6 +2,8 @@
 
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/wallet/StealthAddress.h>
+#include <mw/models/tx/PegInCoin.h>
+#include <mw/models/tx/PegOutCoin.h>
 
 // Forward Declarations
 class Wallet;
@@ -24,6 +26,14 @@ public:
         const uint64_t amount,
         const uint64_t fee_base,
         const StealthAddress& receiver_addr
+    ) const;
+
+    mw::Transaction::CPtr CreateTx(
+        const std::vector<Commitment>& input_commits,
+        const std::vector<std::pair<uint64_t, StealthAddress>>& recipients,
+        const std::vector<PegOutCoin>& pegouts,
+        const boost::optional<uint64_t>& pegin_amount,
+        const uint64_t fee
     ) const;
 
 private:
