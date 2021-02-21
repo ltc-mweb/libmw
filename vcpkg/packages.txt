@@ -7,4 +7,5 @@ boost-filesystem
 boost-optional
 boost-container-hash
 boost-thread
+boost-variant
 openssl
