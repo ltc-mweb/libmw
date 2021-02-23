@@ -43,9 +43,8 @@ public:
     /// <summary>
     /// Retrieves the MWEB coin with the matching commitment.
     /// </summary>
-    /// <returns>The coin with the matching output commitment.</returns>
-    /// <throws>std::runtime_error if no matching commitment is found.</throws>
-    virtual libmw::Coin GetCoin(const libmw::Commitment& output_commit) const = 0;
+    /// <returns>True if the coin was found.</returns>
+    virtual bool GetCoin(const libmw::Commitment& output_commit, libmw::Coin& coin) const = 0;
 
     /// <summary>
     /// Adds the MWEB coins to the wallet's database.
@@ -58,15 +57,6 @@ public:
     /// </summary>
     /// <param name="coins">A possibly-empty vector of MWEB coins to remove from the wallet's DB.</param>
     virtual void DeleteCoins(const std::vector<libmw::Coin>& coins) = 0;
-
-    /// <summary>
-    /// Use the Litecoin coin selection algorithm to select MWEB coins.
-    /// Throws if there are insufficient funds.
-    /// </summary>
-    /// <returns>The selected coins.</returns>
-    virtual std::vector<libmw::Coin> SelectCoins(
-        const std::vector<libmw::Coin>& coins,
-        const uint64_t amount) const = 0;
 
     /// <summary>
     /// Returns the depth of the block in the active chain.

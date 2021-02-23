@@ -17,23 +17,6 @@ public:
         : m_pWalletInterface(pWalletInterface), m_scanSecret(std::move(scan_secret)), m_spendSecret(std::move(spend_secret)) { }
 
     static Wallet Open(const libmw::IWallet::Ptr& pWalletInterface);
-    
-    mw::Transaction::CPtr CreatePegInTx(
-        const uint64_t amount,
-        const boost::optional<StealthAddress>& receiver_addr
-    );
-
-    mw::Transaction::CPtr CreatePegOutTx(
-        const uint64_t amount,
-        const uint64_t fee_base,
-        const Bech32Address& address
-    );
-
-    mw::Transaction::CPtr Send(
-        const uint64_t amount,
-        const uint64_t fee_base,
-        const StealthAddress& receiver_address
-    );
 
     mw::Transaction::CPtr CreateTx(
         const std::vector<Commitment>& input_commits,
@@ -42,6 +25,8 @@ public:
         const boost::optional<uint64_t>& pegin_amount,
         const uint64_t fee
     ) const;
+
+    bool CommitTx(const mw::Transaction::CPtr& pTransaction);
 
     StealthAddress GetStealthAddress(const uint32_t index) const;
     StealthAddress GetChangeAddress() const { return GetStealthAddress(libmw::CHANGE_INDEX); }
@@ -57,13 +42,12 @@ public:
     std::vector<libmw::Coin> GetCoins(const std::vector<Commitment>& commitments) const
     {
         std::vector<libmw::Coin> coins;
-        std::transform(
-            commitments.cbegin(), commitments.cend(),
-            std::back_inserter(coins),
-            [this](const Commitment& commitment) {
-                return m_pWalletInterface->GetCoin(commitment.array());
+        for (const Commitment& commitment : commitments) {
+            libmw::Coin coin;
+            if (m_pWalletInterface->GetCoin(commitment.array(), coin)) {
+                coins.push_back(std::move(coin));
             }
-        );
+        }
 
         return coins;
     }

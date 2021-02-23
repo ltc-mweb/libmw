@@ -4,8 +4,6 @@
 #include <mw/config/ChainParams.h>
 #include <mw/exceptions/InsufficientFundsException.h>
 
-#include "PegIn.h"
-#include "PegOut.h"
 #include "Transact.h"
 
 Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
@@ -18,28 +16,6 @@ Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
     return Wallet(pWalletInterface, std::move(scan_secret), std::move(spend_secret));
 }
 
-mw::Transaction::CPtr Wallet::CreatePegInTx(
-    const uint64_t amount,
-    const boost::optional<StealthAddress>& receiver_addr)
-{
-    return PegIn(*this).CreatePegInTx(amount, receiver_addr.value_or(GetPegInAddress()));
-}
-
-mw::Transaction::CPtr Wallet::CreatePegOutTx(
-    const uint64_t amount,
-    const uint64_t fee_base,
-    const Bech32Address& address)
-{
-    return PegOut(*this).CreatePegOutTx(amount, fee_base, address);
-}
-
-mw::Transaction::CPtr Wallet::Send(
-    const uint64_t amount,
-    const uint64_t fee_base,
-    const StealthAddress& receiver_address)
-{
-    return Transact(*this).CreateTx(amount, fee_base, receiver_address);
-}
 mw::Transaction::CPtr Wallet::CreateTx(
     const std::vector<Commitment>& input_commits,
     const std::vector<std::pair<uint64_t, StealthAddress>>& recipients,
@@ -48,6 +24,12 @@ mw::Transaction::CPtr Wallet::CreateTx(
     const uint64_t fee) const
 {
     return Transact(*this).CreateTx(input_commits, recipients, pegouts, pegin_amount, fee);
+}
+
+bool Wallet::CommitTx(const mw::Transaction::CPtr& pTransaction)
+{
+    // TODO: Implement
+    return false;
 }
 
 StealthAddress Wallet::GetStealthAddress(const uint32_t index) const

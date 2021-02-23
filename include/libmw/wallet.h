@@ -38,49 +38,6 @@ MWIMPORT libmw::TxRef CreateTx(
 );
 
 /// <summary>
-/// Creates a peg-in transaction.
-/// </summary>
-/// <param name="pWallet">The wallet to create the transaction for. Must not be null.</param>
-/// <param name="amount">The amount to peg-in.</param>
-/// <param name="address">The address to peg-in to. Can be empty.</param>
-/// <returns>The non-null libmw::TxRef and libmw::PegIn that were created.</returns>
-MWIMPORT std::pair<libmw::TxRef, libmw::PegIn> CreatePegInTx(
-    const libmw::IWallet::Ptr& pWallet,
-    const uint64_t amount,
-    const libmw::MWEBAddress& address = ""
-);
-
-/// <summary>
-/// Creates a peg-out transaction.
-/// </summary>
-/// <param name="pWallet">The wallet to create the transaction for. Must not be null.</param>
-/// <param name="amount">The amount to pegout. Must be positive.</param>
-/// <param name="fee_base">The base fee rate to be multiplied by transaction weight.</param>
-/// <param name="address">The LTC address to send the coins to. Must be a valid bech32 address.</param>
-/// <returns>The non-null libmw::TxRef and libmw::PegOut that were created.</returns>
-MWIMPORT std::pair<libmw::TxRef, libmw::PegOut> CreatePegOutTx(
-    const libmw::IWallet::Ptr& pWallet,
-    const uint64_t amount,
-    const uint64_t fee_base,
-    const std::string& address
-);
-
-/// <summary>
-/// Initiates a send to the MWEB address specified.
-/// </summary>
-/// <param name="pWallet">The wallet to send from. Must not be null.</param>
-/// <param name="amount">The amount to send. Must be positive.</param>
-/// <param name="fee_base">The base fee rate to be multiplied by transaction weight.</param>
-/// <param name="address">The address to send to.</param>
-/// <returns>A complete transaction, ready to be broadcast.</returns>
-MWIMPORT libmw::TxRef Send(
-    const libmw::IWallet::Ptr& pWallet,
-    const uint64_t amount,
-    const uint64_t fee_base,
-    const libmw::MWEBAddress& address
-);
-
-/// <summary>
 /// Checks the transactions in the block to see if any belong to the wallet, updating the wallet accordingly.
 /// This should be called when connecting a block to the active chain.
 /// </summary>
@@ -144,6 +101,13 @@ MWIMPORT bool IsOwnAddress(const libmw::IWallet::Ptr& pWallet, const MWEBAddress
 /// <param name="pWallet">The wallet to update. Must not be null.</param>
 /// <returns>The confirmed, unconfirmed, and immature balances.</returns>
 MWIMPORT WalletBalance GetBalance(const libmw::IWallet::Ptr& pWallet);
+
+MWIMPORT bool RewindOutput(
+    const libmw::IWallet::Ptr& pWallet,
+    const libmw::TxRef& tx,
+    const libmw::Commitment& output_commit,
+    libmw::Coin& coin_out
+);
 
 END_NAMESPACE // wallet
 END_NAMESPACE // libmw

@@ -1,8 +1,8 @@
 set(Wallet_Tests
     "Test_GetStealthAddress.cpp"
-    "Test_Pegins.cpp"
-    "Test_PegOut.cpp"
-    "Test_SendReceive.cpp"
+#    "Test_Pegins.cpp"
+#    "Test_PegOut.cpp"
+#    "Test_SendReceive.cpp"
 )
 
 list_prepend(Wallet_Tests ${CMAKE_CURRENT_LIST_DIR}/)

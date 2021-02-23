@@ -3,6 +3,7 @@
 #include <mw/models/block/Block.h>
 #include <mw/models/tx/Transaction.h>
 #include <mw/node/INode.h>
+#include <mw/consensus/Weight.h>
 
 LIBMW_NAMESPACE
 
@@ -27,6 +28,12 @@ MWEXPORT uint64_t BlockRef::GetTotalFee() const noexcept
     return pBlock->GetTotalFee();
 }
 
+MWEXPORT uint64_t BlockRef::GetWeight() const noexcept
+{
+    assert(pBlock != nullptr);
+    return Weight::Calculate(pBlock->GetTxBody());
+}
+
 MWEXPORT std::set<KernelHash> BlockRef::GetKernelHashes() const
 {
     assert(pBlock != nullptr);
@@ -35,6 +42,26 @@ MWEXPORT std::set<KernelHash> BlockRef::GetKernelHashes() const
         kernelHashes.insert(kernel.GetHash().ToArray());
     }
     return kernelHashes;
+}
+
+MWEXPORT std::vector<libmw::Commitment> BlockRef::GetInputCommits() const
+{
+    assert(pBlock != nullptr);
+    std::vector<libmw::Commitment> input_commits;
+    for (const Input& input : pBlock->GetInputs()) {
+        input_commits.push_back(input.GetCommitment().array());
+    }
+    return input_commits;
+}
+
+MWEXPORT std::vector<libmw::Commitment> BlockRef::GetOutputCommits() const
+{
+    assert(pBlock != nullptr);
+    std::vector<libmw::Commitment> output_commits;
+    for (const Output& output : pBlock->GetOutputs()) {
+        output_commits.push_back(output.GetCommitment().array());
+    }
+    return output_commits;
 }
 
 MWEXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
@@ -71,6 +98,12 @@ MWEXPORT uint64_t TxRef::GetTotalFee() const noexcept
 {
     assert(pTransaction != nullptr);
     return pTransaction->GetTotalFee();
+}
+
+MWEXPORT uint64_t TxRef::GetWeight() const noexcept
+{
+    assert(pTransaction != nullptr);
+    return Weight::Calculate(pTransaction->GetBody());
 }
 
 MWEXPORT std::set<KernelHash> TxRef::GetKernelHashes() const noexcept

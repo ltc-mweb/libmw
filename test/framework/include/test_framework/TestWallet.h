@@ -34,15 +34,16 @@ public:
         return m_coins;
     }
 
-    libmw::Coin GetCoin(const libmw::Commitment& output_commit) const final
+    bool GetCoin(const libmw::Commitment& output_commit, libmw::Coin& coin_out) const final
     {
         for (const libmw::Coin& coin : m_coins) {
             if (coin.commitment == output_commit) {
-                return coin;
+                coin_out = coin;
+                return true;
             }
         }
 
-        throw std::runtime_error("No matching coin found");
+        return false;
     }
 
     void AddCoins(const std::vector<libmw::Coin>& coins) final
@@ -73,32 +74,6 @@ public:
                 }
             }
         }
-    }
-
-    std::vector<libmw::Coin> SelectCoins(
-        const std::vector<libmw::Coin>& coins,
-        const uint64_t amount) const final
-    {
-        std::vector<libmw::Coin> selected_coins;
-
-        uint64_t inputs_amount = 0;
-        for (const libmw::Coin& coin : coins) {
-            if (coin.spent) {
-                continue;
-            }
-
-            inputs_amount += coin.amount;
-            selected_coins.push_back(coin);
-            if (inputs_amount >= amount) {
-                break;
-            }
-        }
-
-        if (inputs_amount < amount) {
-            ThrowInsufficientFunds("Not enough funds");
-        }
-
-        return selected_coins;
     }
 
     uint64_t GetDepthInActiveChain(const libmw::BlockHash& canonical_block_hash) const final

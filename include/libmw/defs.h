@@ -91,7 +91,10 @@ struct BlockRef
     MWIMPORT libmw::BlockHash GetHash() const noexcept;
     MWIMPORT libmw::HeaderRef GetHeader() const;
     MWIMPORT uint64_t GetTotalFee() const noexcept;
+    MWIMPORT uint64_t GetWeight() const noexcept;
     MWIMPORT std::set<KernelHash> GetKernelHashes() const;
+    MWIMPORT std::vector<libmw::Commitment> GetInputCommits() const;
+    MWIMPORT std::vector<libmw::Commitment> GetOutputCommits() const;
 
     std::shared_ptr<mw::Block> pBlock;
 };
@@ -113,6 +116,7 @@ struct TxRef
     MWIMPORT std::vector<PegOut> GetPegouts() const noexcept;
     MWIMPORT std::vector<PegIn> GetPegins() const noexcept;
     MWIMPORT uint64_t GetTotalFee() const noexcept;
+    MWIMPORT uint64_t GetWeight() const noexcept;
     MWIMPORT std::set<KernelHash> GetKernelHashes() const noexcept;
     MWIMPORT std::set<libmw::Commitment> GetInputCommits() const noexcept;
     MWIMPORT std::set<libmw::Commitment> GetOutputCommits() const noexcept;
