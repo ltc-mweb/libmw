@@ -57,9 +57,11 @@ bool Wallet::IsSpendPubKey(const PublicKey& spend_pubkey, uint32_t& index_out) c
     }
 
     // TODO: Check all receive addresses (Need to use a key cache for performance)
-    if (GetStealthAddress(0).B() == spend_pubkey) {
-        index_out = 0;
-        return true;
+    for (uint32_t i = 0; i < 100; i++) {
+        if (GetStealthAddress(i).B() == spend_pubkey) {
+            index_out = i;
+            return true;
+        }
     }
 
     return false;
@@ -69,11 +71,7 @@ void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
 {
     // TODO: Just return outputs
 
-    //std::vector<libmw::Coin> orig_coins = m_pWalletInterface->ListCoins();
-    //m_pWalletInterface->DeleteCoins(orig_coins);
-
-    //std::vector<libmw::Coin> coins_to_update;
-    //std::unordered_map<Commitment, libmw::Coin&> coinmap;
+    //std::vector<libmw::Coin> coins_found;
 
     //auto pChainIter = pChain->NewIterator();
     //while (pChainIter->Valid()) {
@@ -104,9 +102,6 @@ void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
 
     //    pChainIter->Next();
     //}
-
-    ////std::cout << "Adding coins: " << coins_to_update.size() << std::endl;
-    //m_pWalletInterface->AddCoins(coins_to_update);
 }
 
 bool Wallet::RewindOutput(const Output& output, libmw::Coin& coin) const
