@@ -26,8 +26,6 @@ public:
         const uint64_t fee
     ) const;
 
-    bool CommitTx(const mw::Transaction::CPtr& pTransaction);
-
     StealthAddress GetStealthAddress(const uint32_t index) const;
     StealthAddress GetChangeAddress() const { return GetStealthAddress(libmw::CHANGE_INDEX); }
     StealthAddress GetPegInAddress() const { return GetStealthAddress(libmw::PEGIN_INDEX); }

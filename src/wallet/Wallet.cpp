@@ -26,12 +26,6 @@ mw::Transaction::CPtr Wallet::CreateTx(
     return Transact(*this).CreateTx(input_commits, recipients, pegouts, pegin_amount, fee);
 }
 
-bool Wallet::CommitTx(const mw::Transaction::CPtr& pTransaction)
-{
-    // TODO: Implement
-    return false;
-}
-
 StealthAddress Wallet::GetStealthAddress(const uint32_t index) const
 {
     PublicKey Bi = PublicKey::From(GetSpendKey(index));
