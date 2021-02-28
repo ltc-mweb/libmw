@@ -32,11 +32,6 @@ public:
     StealthAddress GetChangeAddress() const { return GetStealthAddress(libmw::CHANGE_INDEX); }
     StealthAddress GetPegInAddress() const { return GetStealthAddress(libmw::PEGIN_INDEX); }
 
-    libmw::WalletBalance GetBalance() const;
-
-    void BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canonical_block_hash);
-    void BlockDisconnected(const mw::Block::CPtr& pBlock);
-    void TransactionAddedToMempool(const mw::Transaction::CPtr& pTx);
     void ScanForOutputs(const libmw::IChain::Ptr& pChain);
 
     std::vector<libmw::Coin> GetCoins(const std::vector<Commitment>& commitments) const
@@ -54,7 +49,7 @@ public:
 
     libmw::IWallet::Ptr GetInterface() const noexcept { return m_pWalletInterface; }
 
-    libmw::Coin RewindOutput(const Output& output) const;
+    bool RewindOutput(const Output& output, libmw::Coin& coin) const;
 
 private:
     SecretKey GetSpendKey(const uint32_t index) const;

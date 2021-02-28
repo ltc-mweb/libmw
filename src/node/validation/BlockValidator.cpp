@@ -38,14 +38,14 @@ void BlockValidator::ValidatePegInCoins(
         }
     );
 
-    auto pegInKernels = pBlock->GetPegInKernels();
-    if (pegInKernels.size() != pegInAmounts.size()) {
+    auto pegin_coins = pBlock->GetPegIns();
+    if (pegin_coins.size() != pegInAmounts.size()) {
         ThrowValidation(EConsensusError::PEGIN_MISMATCH);
     }
 
-    for (const auto& kernel : pegInKernels) {
-        auto pIter = pegInAmounts.find(kernel.GetCommitment());
-        if (pIter == pegInAmounts.end() || kernel.GetAmount() != pIter->second) {
+    for (const auto& pegin : pegin_coins) {
+        auto pIter = pegInAmounts.find(pegin.GetCommitment());
+        if (pIter == pegInAmounts.end() || pegin.GetAmount() != pIter->second) {
             ThrowValidation(EConsensusError::PEGIN_MISMATCH);
         }
     }
@@ -63,14 +63,14 @@ void BlockValidator::ValidatePegOutCoins(
         }
     );
 
-    auto pegOutKernels = pBlock->GetPegOutKernels();
-    if (pegOutKernels.size() != pegOutAmounts.size()) {
+    auto pegout_coins = pBlock->GetPegOuts();
+    if (pegout_coins.size() != pegOutAmounts.size()) {
         ThrowValidation(EConsensusError::PEGOUT_MISMATCH);
     }
 
-    for (const auto& kernel : pegOutKernels) {
-        auto pIter = pegOutAmounts.find(kernel.GetAddress().value());
-        if (kernel.GetAmount() != pIter->second) {
+    for (const auto& pegout : pegout_coins) {
+        auto pIter = pegOutAmounts.find(pegout.GetAddress());
+        if (pIter == pegOutAmounts.end() || pegout.GetAmount() != pIter->second) {
             ThrowValidation(EConsensusError::PEGOUT_MISMATCH);
         }
     }

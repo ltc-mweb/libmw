@@ -33,15 +33,7 @@ TEST_CASE("ValidateState")
             .AddOutput(30, EOutputFeatures::PEGGED_IN)
             .Build();
 
-        auto pegInKernels = tx1.GetTransaction()->GetPegInKernels();
-        std::vector<PegInCoin> pegInCoins;
-        std::transform(
-            pegInKernels.cbegin(), pegInKernels.cend(),
-            std::back_inserter(pegInCoins),
-            [](const Kernel& kernel) {
-                return PegInCoin(kernel.GetAmount(), kernel.GetCommitment());
-            }
-        );
+        std::vector<PegInCoin> pegInCoins = tx1.GetTransaction()->GetPegIns();
 
         auto block1 = miner.MineBlock(150, { tx1 });
         pNode->ValidateBlock(block1.GetBlock(), block1.GetHash(), pegInCoins, {});
@@ -56,15 +48,7 @@ TEST_CASE("ValidateState")
             .AddOutput(20)
             .Build();
 
-        auto pegOutKernels = tx2.GetTransaction()->GetPegOutKernels();
-        std::vector<PegOutCoin> pegOutCoins;
-        std::transform(
-            pegOutKernels.cbegin(), pegOutKernels.cend(),
-            std::back_inserter(pegOutCoins),
-            [](const Kernel& kernel) {
-                return PegOutCoin(kernel.GetAmount(), *kernel.GetAddress());
-            }
-        );
+        std::vector<PegOutCoin> pegOutCoins = tx2.GetTransaction()->GetPegOuts();
 
         auto block2 = miner.MineBlock(151, { tx2 });
         pNode->ValidateBlock(block2.GetBlock(), block2.GetHash(), {}, pegOutCoins);

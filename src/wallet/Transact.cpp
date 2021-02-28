@@ -13,6 +13,10 @@ mw::Transaction::CPtr Transact::CreateTx(
     const boost::optional<uint64_t>& pegin_amount,
     const uint64_t fee) const
 {
+    if (pegouts.size() > 1) {
+        throw std::runtime_error("Only supporting one pegout at this time.");
+    }
+
     uint64_t pegout_total = std::accumulate(
         pegouts.cbegin(), pegouts.cend(), (uint64_t)0,
         [](uint64_t sum, const PegOutCoin& pegout) { return sum + pegout.GetAmount(); }
@@ -25,8 +29,16 @@ mw::Transaction::CPtr Transact::CreateTx(
 
     // Get input coins
     std::vector<libmw::Coin> input_coins = m_wallet.GetCoins(input_commits);
-    if ((WalletUtil::TotalAmount(input_coins) + pegin_amount.value_or(0)) == (pegout_total + recipient_total + fee)) {
-        // TODO: ThrowInsufficientFunds("Total amount mismatch");
+    LOG_INFO_F(
+        "Creating Txs: Inputs({}), pegins({}), pegouts({}), recipients({}), fee({})",
+        WalletUtil::TotalAmount(input_coins),
+        pegin_amount.value_or(0),
+        pegout_total,
+        recipient_total,
+        fee
+    );
+    if ((WalletUtil::TotalAmount(input_coins) + pegin_amount.value_or(0)) != (pegout_total + recipient_total + fee)) {
+        ThrowInsufficientFunds("Total amount mismatch");
     }
 
     // Sign inputs
@@ -45,10 +57,14 @@ mw::Transaction::CPtr Transact::CreateTx(
         .Sub(kernel_offset)
         .Total();
 
-    Kernel kernel = Kernel::CreatePlain(kernel_blind, fee);
-    if (pegin_amount) {
-        kernel = Kernel::CreatePegIn(kernel_blind, *pegin_amount + fee); // TODO: Add fee field to peg-in kernel.
-    }
+    // Create the kernel
+    Kernel kernel = Kernel::Create(
+        kernel_blind,
+        fee,
+        pegin_amount,
+        pegouts.empty() ? boost::none : boost::make_optional(pegouts.front()),
+        boost::none
+    );
 
     // FUTURE: Only necessary when none of the addresses are owned by this wallet?
     BlindingFactor owner_sig_key = Random::CSPRNG<32>();
@@ -62,23 +78,6 @@ mw::Transaction::CPtr Transact::CreateTx(
         .Sub(input_keys)
         .Sub(owner_sig_key)
         .Total();
-
-    // Add/update the affected coins in the database.
-    {
-        std::vector<libmw::Coin> coins_to_update = input_coins;
-
-        // Rewind the output to retrieve the spendable coins in cases where we own the receiving address (i.e. change).
-        // This uses the same process that occurs on restore,
-        // so a successful rewind means we know it can be restored from seed later.
-        for (const Output& output : outputs.outputs) {
-            try {
-                libmw::Coin coin = m_wallet.RewindOutput(output);
-                coins_to_update.push_back(std::move(coin));
-            } catch (const std::exception&) { }
-        }
-
-        m_wallet.GetInterface()->AddCoins(coins_to_update);
-    }
 
     // Build the transaction
     return mw::Transaction::Create(

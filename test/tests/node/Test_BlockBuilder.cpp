@@ -16,7 +16,7 @@ TEST_CASE("BlockBuilder")
     {
         auto pDatabase = std::make_shared<TestDBWrapper>();
         libmw::ChainParams params{ datadir.u8string(), "test" };
-        libmw::CoinsViewRef db_view = libmw::node::Initialize(params, libmw::HeaderRef{ nullptr }, pDatabase);
+        libmw::CoinsViewRef db_view = libmw::node::Initialize(params, libmw::HeaderRef{ nullptr }, pDatabase, {});
         libmw::CoinsViewRef cached_view = db_view.CreateCache();
 
         test::Miner miner;

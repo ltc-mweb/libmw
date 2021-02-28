@@ -19,7 +19,7 @@ public:
     }
 
     TestWallet(BlindingFactor&& seed)
-        : libmw::IWallet(), m_seed(std::move(seed)), m_nextPath({ 1, 1, 0 }), m_coins{}, m_depthInChain{}
+        : libmw::IWallet(), m_seed(std::move(seed)), m_nextPath({ 1, 1, 0 }), m_coins{}
     {
 
     }
@@ -27,11 +27,6 @@ public:
     libmw::PrivateKey GetHDKey(const std::string& bip32Path) const final
     {
         return libmw::PrivateKey{ bip32Path, ToBlind(bip32Path).array() };
-    }
-
-    std::vector<libmw::Coin> ListCoins() const final
-    {
-        return m_coins;
     }
 
     bool GetCoin(const libmw::Commitment& output_commit, libmw::Coin& coin_out) const final
@@ -46,7 +41,7 @@ public:
         return false;
     }
 
-    void AddCoins(const std::vector<libmw::Coin>& coins) final
+    void AddCoins(const std::vector<libmw::Coin>& coins)
     {
         for (const libmw::Coin& coin : coins) {
             bool replaced = false;
@@ -64,38 +59,6 @@ public:
         }
     }
 
-    void DeleteCoins(const std::vector<libmw::Coin>& coins) final
-    {
-        for (const libmw::Coin& coin : coins) {
-            for (auto iter = m_coins.begin(); iter != m_coins.end(); iter++) {
-                if (coin.commitment == iter->commitment) {
-                    m_coins.erase(iter);
-                    break;
-                }
-            }
-        }
-    }
-
-    uint64_t GetDepthInActiveChain(const libmw::BlockHash& canonical_block_hash) const final
-    {
-        auto iter = m_depthInChain.find(canonical_block_hash);
-        if (iter != m_depthInChain.end()) {
-            return iter->second;
-        }
-
-        return 0;
-    }
-
-    void SetDepthInActiveChain(const libmw::BlockHash& canonical_block_hash, const uint64_t depth)
-    {
-        auto iter = m_depthInChain.find(canonical_block_hash);
-        if (iter != m_depthInChain.end()) {
-            iter->second = depth;
-        } else {
-            m_depthInChain.insert({ canonical_block_hash, depth });
-        }
-    }
-
 private:
     // Just uses a quick, insecure method for generating deterministic keys from a path.
     // Suitable for testing only. Do not use in a production environment.
@@ -107,5 +70,4 @@ private:
     BlindingFactor m_seed;
     KeyChainPath m_nextPath;
     std::vector<libmw::Coin> m_coins;
-    std::map<libmw::BlockHash, uint64_t> m_depthInChain;
 };

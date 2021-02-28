@@ -10,6 +10,7 @@
 #include <mw/models/crypto/Bech32Address.h>
 #include <mw/models/crypto/BlindingFactor.h>
 #include <mw/models/crypto/Signature.h>
+#include <mw/models/tx/PegOutCoin.h>
 #include <mw/models/tx/KernelType.h>
 #include <boost/optional.hpp>
 
@@ -28,22 +29,20 @@ class Kernel :
 public:
     Kernel() = default;
     Kernel(
-        const uint8_t features,
         const uint64_t fee,
-        const uint64_t lockHeight,
-        const uint64_t amount,
-        boost::optional<Bech32Address>&& address,
-        std::vector<uint8_t>&& extraData,
+        boost::optional<uint64_t> pegin,
+        boost::optional<PegOutCoin> pegout,
+        boost::optional<uint64_t> lockHeight,
+        std::vector<uint8_t> extraData,
         Commitment&& excess,
         Signature&& signature
-    ) : m_features(features),
-        m_fee(fee),
+    ) : m_fee(fee),
+        m_pegin(pegin),
+        m_pegout(std::move(pegout)),
         m_lockHeight(lockHeight),
+        m_extraData(std::move(extraData)),
         m_excess(std::move(excess)),
-        m_signature(std::move(signature)),
-        m_amount(amount),
-        m_address(std::move(address)),
-        m_extraData(std::move(extraData))
+        m_signature(std::move(signature))
     {
         m_hash = Hashed(*this);
     }
@@ -51,18 +50,12 @@ public:
     //
     // Factories
     //
-    static Kernel CreatePlain(const BlindingFactor& blind, const uint64_t fee);
-    static Kernel CreatePegIn(const BlindingFactor& blind, const uint64_t amount);
-    static Kernel CreatePegOut(
-        const BlindingFactor& blind,
-        const uint64_t amount,
-        const uint64_t fee,
-        const Bech32Address& address
-    );
-    static Kernel CreateHeightLocked(
+    static Kernel Create(
         const BlindingFactor& blind,
         const uint64_t fee,
-        const uint64_t lock_height
+        const boost::optional<uint64_t>& pegin_amount,
+        const boost::optional<PegOutCoin>& pegout,
+        const boost::optional<uint64_t>& lock_height
     );
 
     //
@@ -75,23 +68,32 @@ public:
     //
     // Getters
     //
-    const uint8_t GetFeatures() const noexcept { return m_features; }
     uint64_t GetFee() const noexcept { return m_fee; }
-    uint64_t GetLockHeight() const noexcept { return m_lockHeight; }
+    uint64_t GetLockHeight() const noexcept { return m_lockHeight.value_or(0); }
     const Commitment& GetExcess() const noexcept { return m_excess; }
     const Signature& GetSignature() const noexcept { return m_signature; }
     const std::vector<uint8_t>& GetExtraData() const noexcept { return m_extraData; }
 
     mw::Hash GetSignatureMessage() const;
+    static mw::Hash GetSignatureMessage(
+        const uint64_t fee,
+        const boost::optional<uint64_t>& pegin_amount,
+        const boost::optional<PegOutCoin>& pegout,
+        const boost::optional<uint64_t>& lock_height,
+        const std::vector<uint8_t>& extra_data
+    );
 
-    bool IsPegIn() const noexcept { return GetFeatures() == KernelType::PEGIN_KERNEL; }
-    bool IsPegOut() const noexcept { return GetFeatures() == KernelType::PEGOUT_KERNEL; }
+    bool HasPegIn() const noexcept { return m_pegin.has_value(); }
+    bool HasPegOut() const noexcept { return m_pegout.has_value(); }
 
-    uint64_t GetPeggedIn() const noexcept { return IsPegIn() ? m_amount : 0; }
-    uint64_t GetPeggedOut() const noexcept { return IsPegOut() ? m_amount : 0; }
+    uint64_t GetPegIn() const noexcept { return m_pegin.value_or(0); }
+    const boost::optional<PegOutCoin>& GetPegOut() const noexcept { return m_pegout; }
 
-    uint64_t GetAmount() const noexcept { return m_amount; }
-    const boost::optional<Bech32Address>& GetAddress() const noexcept { return m_address; }
+    int64_t GetSupplyChange() const noexcept
+    {
+        return (m_pegin.value_or(0) - m_fee) -
+            (int64_t)(m_pegout.has_value() ? m_pegout.value().GetAmount() : 0);
+    }
 
     //
     // Serialization/Deserialization
@@ -107,15 +109,14 @@ public:
     const Commitment& GetCommitment() const noexcept final { return m_excess; }
 
 private:
-    // Options for a kernel's structure or use
-    uint8_t m_features;
 
     // Fee originally included in the transaction this proof is for.
     uint64_t m_fee;
 
-    // This kernel is not valid earlier than m_lockHeight blocks
-    // The max m_lockHeight of all *inputs* to this transaction
-    uint64_t m_lockHeight;
+    boost::optional<uint64_t> m_pegin;
+    boost::optional<PegOutCoin> m_pegout;
+    boost::optional<uint64_t> m_lockHeight;
+    std::vector<uint8_t> m_extraData;
 
     // Remainder of the sum of all transaction commitments. 
     // If the transaction is well formed, amounts components should sum to zero and the excess is hence a valid public key.
@@ -125,17 +126,15 @@ private:
     Signature m_signature;
 
     mw::Hash m_hash;
-    uint64_t m_amount;
-    boost::optional<Bech32Address> m_address;
-    std::vector<uint8_t> m_extraData;
 };
 
-// Sorts so that all pegin kernels are first, then are ordered by hash.
+// Sorts by net supply increase [pegin - (fee + pegout)] with highest increase first, then sorts by hash.
 static struct
 {
     bool operator()(const Kernel& a, const Kernel& b) const
     {
-        return (a.IsPegIn() && !b.IsPegIn())
-            || (a.IsPegIn() == b.IsPegIn() && a.GetHash() < b.GetHash());
+        int64_t a_pegin = a.GetSupplyChange();
+        int64_t b_pegin = b.GetSupplyChange();
+        return (a_pegin > b_pegin) || (a_pegin == b_pegin && a.GetHash() < b.GetHash());
     }
 } KernelSort;

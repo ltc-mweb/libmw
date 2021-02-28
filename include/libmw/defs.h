@@ -156,6 +156,9 @@ struct BlockBuilderRef
     std::shared_ptr<mw::BlockBuilder> pBuilder;
 };
 
+inline static constexpr uint32_t CHANGE_INDEX{ 2'000'000 };
+inline static constexpr uint32_t PEGIN_INDEX{ 4'000'000 };
+
 /// <summary>
 /// Represents an output owned by the wallet.
 /// </summary>
@@ -183,21 +186,8 @@ struct Coin
     // The output commitment (v*H + r*G).
     libmw::Commitment commitment;
 
-    // The hash of the canonical block where the coin was included.
-    // This will be empty when the coin has not yet been seen on-chain.
-    boost::optional<libmw::BlockHash> included_block;
-
-    // Indicates whether the coin has been spent.
-    // If true, but spent_block is empty, this coin should be considered "locked."
-    // This will occur when a transaction that spends this coin has not yet confirmed.
-    bool spent;
-
-    // The hash of the canonical block where the coin was spent.
-    // This will be empty when the coin has not yet been spent on-chain.
-    boost::optional<libmw::BlockHash> spent_block;
-
-    // The time this output was seen by the wallet.
-    int64_t time_received;
+    bool IsChange() const noexcept { return address_index == CHANGE_INDEX; }
+    bool IsPegIn() const noexcept { return address_index == PEGIN_INDEX; }
 };
 
 /// <summary>
@@ -217,8 +207,5 @@ struct WalletBalance
     // Coins that have been spent, but whose spending txs has not yet been seen on-chain.
     uint64_t locked_balance = 0;
 };
-
-inline static constexpr uint32_t CHANGE_INDEX{ 2'000'000 };
-inline static constexpr uint32_t PEGIN_INDEX{ 4'000'000 };
 
 END_NAMESPACE

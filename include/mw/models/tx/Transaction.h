@@ -102,10 +102,10 @@ public:
     std::vector<Commitment> GetKernelCommits() const noexcept { return m_body.GetKernelCommits(); }
     std::vector<Commitment> GetInputCommits() const noexcept { return m_body.GetInputCommits(); }
     std::vector<Commitment> GetOutputCommits() const noexcept { return m_body.GetOutputCommits(); }
-    std::vector<Kernel> GetPegInKernels() const noexcept { return m_body.GetPegInKernels(); }
+    std::vector<PegInCoin> GetPegIns() const noexcept { return m_body.GetPegIns(); }
     std::vector<Output> GetPegInOutputs() const noexcept { return m_body.GetPegInOutputs(); }
     uint64_t GetPegInAmount() const noexcept { return m_body.GetPegInAmount(); }
-    std::vector<Kernel> GetPegOutKernels() const noexcept { return m_body.GetPegOutKernels(); }
+    std::vector<PegOutCoin> GetPegOuts() const noexcept { return m_body.GetPegOuts(); }
     int64_t GetSupplyChange() const noexcept { return m_body.GetSupplyChange(); }
 
     //

@@ -18,7 +18,6 @@ mw::INode::Ptr InitializeNode(
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
 {
     auto pConfig = NodeConfig::Create(datadir, { });
-    LoggerAPI::Initialize(pConfig->GetDataDir().GetChild("logs").CreateDirIfMissing(), "DEBUG"); // TODO: Read config
 
     mw::ChainParams::Initialize(hrp, 20); // TODO: Pass in pegin-maturity
 

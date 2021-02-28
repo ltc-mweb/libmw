@@ -40,8 +40,8 @@ TEST_CASE("Wallet - Peg-out")
 
     uint64_t expected_fee = fee_rate * Weight::Calculate({ .num_kernels = 1, .num_owner_sigs = 1, .num_outputs = 2 });
     uint64_t change_amount = 2'000'000 - expected_fee;
-    REQUIRE(pegout_tx.first.pTransaction->GetPegOutKernels().size() == 1);
-    REQUIRE(pegout_tx.first.pTransaction->GetPegOutKernels()[0].GetFee() == expected_fee);
+    REQUIRE(pegout_tx.first.pTransaction->GetPegOuts().size() == 1);
+    REQUIRE(pegout_tx.first.pTransaction->GetKernels()[0].GetFee() == expected_fee);
 
     libmw::node::CheckTransaction(pegout_tx.first);
 

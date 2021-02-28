@@ -1,92 +1,51 @@
 #include <mw/models/tx/Kernel.h>
 #include <mw/crypto/Schnorr.h>
 
-Kernel Kernel::CreatePlain(const BlindingFactor& blind, const uint64_t fee)
-{
-    Commitment excess_commit = Crypto::CommitBlinded(0, blind);
-    mw::Hash sig_message = Hasher()
-        .Append<uint8_t>(KernelType::PLAIN_KERNEL)
-        .Append<uint64_t>(fee)
-        .hash();
-    Signature sig = Schnorr::Sign(blind.data(), sig_message);
+static const uint8_t PEGIN_FEATURE_BIT = 0x01;
+static const uint8_t PEGOUT_FEATURE_BIT = 0x02;
+static const uint8_t HEIGHT_LOCK_FEATURE_BIT = 0x04;
+static const uint8_t EXTRA_DATA_FEATURE_BIT = 0x08;
 
-    return Kernel(
-        KernelType::PLAIN_KERNEL,
-        fee,
-        0,
-        0,
-        boost::none,
-        std::vector<uint8_t>{ },
-        std::move(excess_commit),
-        std::move(sig)
-    );
-}
-
-Kernel Kernel::CreatePegIn(const BlindingFactor& blind, const uint64_t amount)
-{
-    Commitment excess_commit = Crypto::CommitBlinded(0, blind);
-    mw::Hash sig_message = Hasher()
-        .Append<uint8_t>(KernelType::PEGIN_KERNEL)
-        .Append<uint64_t>(amount)
-        .hash();
-    Signature sig = Schnorr::Sign(blind.data(), sig_message);
-
-    return Kernel(
-        KernelType::PEGIN_KERNEL,
-        0,
-        0,
-        amount,
-        boost::none,
-        std::vector<uint8_t>{ },
-        std::move(excess_commit),
-        std::move(sig)
-    );
-}
-
-Kernel Kernel::CreatePegOut(
+Kernel Kernel::Create(
     const BlindingFactor& blind,
-    const uint64_t amount,
-    const uint64_t fee,
-    const Bech32Address& address)
+    const uint64_t fee, // TODO: Make fee optional? This would allow us to pay for fees on the LTC side for peg-in transactions
+    const boost::optional<uint64_t>& pegin_amount,
+    const boost::optional<PegOutCoin>& pegout,
+    const boost::optional<uint64_t>& lock_height)
 {
-    Commitment excess_commit = Crypto::CommitBlinded(0, blind);
-    mw::Hash sig_message = Hasher()
-        .Append<uint8_t>(KernelType::PEGOUT_KERNEL)
-        .Append<uint64_t>(fee)
-        .Append<uint64_t>(amount)
-        .Append(address)
-        .hash();
-    Signature sig = Schnorr::Sign(blind.data(), sig_message);
+    uint8_t features_byte =
+        (pegin_amount.has_value() ? PEGIN_FEATURE_BIT : 0) |
+        (pegout.has_value() ? PEGOUT_FEATURE_BIT : 0) |
+        (lock_height.has_value() ? HEIGHT_LOCK_FEATURE_BIT : 0);
+
+    Hasher sig_message_hasher = Hasher();
+    sig_message_hasher
+        .Append<uint8_t>(features_byte)
+        .Append<uint64_t>(fee);
+
+    if (pegin_amount.has_value()) {
+        sig_message_hasher.Append<uint64_t>(pegin_amount.value());
+    }
+
+    if (pegout.has_value()) {
+        sig_message_hasher
+            .Append<uint64_t>(pegout.value().GetAmount())
+            .Append<Bech32Address>(pegout.value().GetAddress());
+    }
+
+    if (lock_height.has_value()) {
+        sig_message_hasher.Append<uint64_t>(lock_height.value());
+    }
+
+    Commitment excess_commit = Commitment::Blinded(blind, 0);
+    Signature sig = Schnorr::Sign(blind.data(), sig_message_hasher.hash());
 
     return Kernel(
-        KernelType::PEGOUT_KERNEL,
         fee,
-        0, // TODO: Can peg-out kernels have lock-heights?
-        amount,
-        boost::make_optional<Bech32Address>(Bech32Address(address)),
-        std::vector<uint8_t>{ },
-        std::move(excess_commit),
-        std::move(sig)
-    );
-}
-
-Kernel Kernel::CreateHeightLocked(const BlindingFactor& blind, const uint64_t fee, const uint64_t lock_height)
-{
-    Commitment excess_commit = Crypto::CommitBlinded(0, blind);
-    mw::Hash sig_message = Hasher()
-        .Append<uint8_t>(KernelType::HEIGHT_LOCKED)
-        .Append<uint64_t>(fee)
-        .Append<uint64_t>(lock_height)
-        .hash();
-    Signature sig = Schnorr::Sign(blind.data(), sig_message);
-
-    return Kernel(
-        KernelType::HEIGHT_LOCKED,
-        fee,
+        pegin_amount,
+        pegout,
         lock_height,
-        0,
-        boost::none,
-        std::vector<uint8_t>{ },
+        std::vector<uint8_t>{},
         std::move(excess_commit),
         std::move(sig)
     );
@@ -94,139 +53,126 @@ Kernel Kernel::CreateHeightLocked(const BlindingFactor& blind, const uint64_t fe
 
 mw::Hash Kernel::GetSignatureMessage() const
 {
-    Serializer serializer;
-    serializer.Append<uint8_t>(m_features);
+    return Kernel::GetSignatureMessage(m_fee, m_pegin, m_pegout, m_lockHeight, m_extraData);
+}
 
-    switch (m_features) {
-    case KernelType::PLAIN_KERNEL:
-    {
-        serializer.Append<uint64_t>(m_fee);
-        break;
-    }
-    case KernelType::PEGIN_KERNEL:
-    {
-        serializer.Append<uint64_t>(m_amount);
-        break;
-    }
-    case KernelType::PEGOUT_KERNEL:
-    {
-        serializer.Append<uint64_t>(m_fee);
-        serializer.Append<uint64_t>(m_amount);
-        serializer.Append(m_address.value());
-        break;
-    }
-    case KernelType::HEIGHT_LOCKED:
-    {
-        serializer.Append<uint64_t>(m_fee);
-        serializer.Append<uint64_t>(m_lockHeight);
-        break;
-    }
-    default:
-    {
-        serializer.Append<uint64_t>(m_fee);
-        serializer.Append(m_extraData);
-    }
+mw::Hash Kernel::GetSignatureMessage(
+    const uint64_t fee,
+    const boost::optional<uint64_t>& pegin_amount,
+    const boost::optional<PegOutCoin>& pegout,
+    const boost::optional<uint64_t>& lock_height,
+    const std::vector<uint8_t>& extra_data)
+{
+    uint8_t features_byte =
+        (pegin_amount.has_value() ? PEGIN_FEATURE_BIT : 0) |
+        (pegout.has_value() ? PEGOUT_FEATURE_BIT : 0) |
+        (lock_height.has_value() ? HEIGHT_LOCK_FEATURE_BIT : 0) |
+        (extra_data.size() > 0 ? EXTRA_DATA_FEATURE_BIT : 0);
+
+    Hasher sig_message_hasher = Hasher();
+    sig_message_hasher
+        .Append<uint8_t>(features_byte)
+        .Append<uint64_t>(fee);
+
+    if (pegin_amount.has_value()) {
+        sig_message_hasher.Append<uint64_t>(pegin_amount.value());
     }
 
-    return Hashed(serializer.vec());
+    if (pegout.has_value()) {
+        sig_message_hasher
+            .Append<uint64_t>(pegout.value().GetAmount())
+            .Append<Bech32Address>(pegout.value().GetAddress());
+    }
+
+    if (lock_height.has_value()) {
+        sig_message_hasher.Append<uint64_t>(lock_height.value());
+    }
+
+    if (!extra_data.empty()) {
+        sig_message_hasher
+            .Append<uint8_t>((uint8_t)extra_data.size())
+            .Append(extra_data);
+    }
+
+    return sig_message_hasher.hash();
 }
 
 Serializer& Kernel::Serialize(Serializer& serializer) const noexcept
 {
-    serializer.Append<uint8_t>(m_features);
+    uint8_t features_byte =
+        (m_pegin.has_value() ? PEGIN_FEATURE_BIT : 0) |
+        (m_pegout.has_value() ? PEGOUT_FEATURE_BIT : 0) |
+        (m_lockHeight.has_value() ? HEIGHT_LOCK_FEATURE_BIT : 0) |
+        (m_extraData.size() > 0 ? EXTRA_DATA_FEATURE_BIT : 0);
 
-    switch ((KernelType::EKernelType)m_features) {
-    case KernelType::PLAIN_KERNEL:
-    {
-        serializer.Append<uint64_t>(m_fee);
-        break;
-    }
-    case KernelType::PEGIN_KERNEL:
-    {
-        serializer.Append<uint64_t>(m_amount);
-        break;
-    }
-    case KernelType::PEGOUT_KERNEL:
-    {
-        serializer.Append<uint64_t>(m_fee);
-        serializer.Append<uint64_t>(m_amount);
-        serializer.Append(m_address.value());
-        break;
-    }
-    case KernelType::HEIGHT_LOCKED:
-    {
-        serializer.Append<uint64_t>(m_fee);
-        serializer.Append<uint64_t>(m_lockHeight);
-        break;
-    }
-    default:
-    {
-        serializer.Append<uint64_t>(m_fee);
-        serializer.Append<uint8_t>((uint8_t)m_extraData.size());
-        serializer.Append(m_extraData);
-    }
+    serializer
+        .Append<uint8_t>(features_byte)
+        .Append<uint64_t>(m_fee);
+
+    if (m_pegin.has_value()) {
+        serializer.Append<uint64_t>(m_pegin.value());
     }
 
-    return serializer
+    if (m_pegout.has_value()) {
+        serializer
+            .Append<uint64_t>(m_pegout.value().GetAmount())
+            .Append(m_pegout.value().GetAddress());
+    }
+
+    if (m_lockHeight.has_value()) {
+        serializer.Append<uint64_t>(m_lockHeight.value());
+    }
+
+    if (!m_extraData.empty()) {
+        serializer
+            .Append<uint8_t>((uint8_t)m_extraData.size())
+            .Append(m_extraData);
+    }
+
+    serializer
         .Append(m_excess)
         .Append(m_signature);
+
+    return serializer;
 }
 
 Kernel Kernel::Deserialize(Deserializer& deserializer)
 {
-    uint8_t type = deserializer.Read<uint8_t>();
+    uint8_t features = deserializer.Read<uint8_t>();
+    uint64_t fee = deserializer.Read<uint64_t>();
 
-    uint64_t fee = 0;
-    uint64_t lockHeight = 0;
-    uint64_t amount = 0;
-    boost::optional<Bech32Address> address = boost::none;
-    std::vector<uint8_t> extraData{};
+    boost::optional<uint64_t> pegin = boost::none;
+    if (features & PEGIN_FEATURE_BIT) {
+        pegin = deserializer.Read<uint64_t>();
+    }
 
-    switch (type) {
-    case KernelType::PLAIN_KERNEL:
-    {
-        fee = deserializer.Read<uint64_t>();
-        break;
+    boost::optional<PegOutCoin> pegout = boost::none;
+    if (features & PEGOUT_FEATURE_BIT) {
+        uint64_t amount = deserializer.Read<uint64_t>();
+        Bech32Address address = deserializer.Read<Bech32Address>();
+        pegout = PegOutCoin(amount, std::move(address));
     }
-    case KernelType::PEGIN_KERNEL:
-    {
-        amount = deserializer.Read<uint64_t>();
-        break;
-    }
-    case KernelType::PEGOUT_KERNEL:
-    {
-        fee = deserializer.Read<uint64_t>();
-        amount = deserializer.Read<uint64_t>();
-        address = boost::make_optional(Bech32Address::Deserialize(deserializer));
-        break;
-    }
-    case KernelType::HEIGHT_LOCKED:
-    {
-        fee = deserializer.Read<uint64_t>();
-        lockHeight = deserializer.Read<uint64_t>();
-        break;
-    }
-    default:
-    {
-        fee = deserializer.Read<uint64_t>();
 
-        uint8_t messageSize = deserializer.Read<uint8_t>();
-        if (messageSize > 0) {
-            extraData = deserializer.ReadVector(messageSize);
-        }
+    boost::optional<uint64_t> lock_height = boost::none;
+    if (features & HEIGHT_LOCK_FEATURE_BIT) {
+        lock_height = deserializer.Read<uint64_t>();
     }
+
+    std::vector<uint8_t> extra_data;
+    if (features & EXTRA_DATA_FEATURE_BIT) {
+        uint8_t num_bytes = deserializer.Read<uint8_t>();
+        extra_data = deserializer.ReadVector(num_bytes);
     }
 
     Commitment excess = Commitment::Deserialize(deserializer);
     Signature signature = Signature::Deserialize(deserializer);
 
     return Kernel{
-        type,
         fee,
-        lockHeight,
-        amount,
-        std::move(address),
-        std::move(extraData),
+        std::move(pegin),
+        std::move(pegout),
+        std::move(lock_height),
+        std::move(extra_data),
         std::move(excess),
         std::move(signature)
     };

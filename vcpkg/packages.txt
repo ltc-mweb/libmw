@@ -2,7 +2,6 @@ nlohmann-json
 mio
 fmt
 Catch2
-spdlog
 boost-filesystem
 boost-optional
 boost-container-hash

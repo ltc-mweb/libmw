@@ -23,7 +23,7 @@ namespace LoggerAPI
         ERR = 5
     };
 
-    LOGGER_API void Initialize(const FilePath& logDirectory, const std::string& logLevel);
+    LOGGER_API void Initialize(const std::function<void(const std::string&)>& log_callback);
     LOGGER_API void Shutdown();
     LOGGER_API void Flush();
 
@@ -47,17 +47,14 @@ static void LOG_F(
     const char* format,
     const Args& ... args) noexcept
 {
-    if (logLevel >= GetLogLevel(file))
+    try
     {
-        try
-        {
-            std::string message = StringUtil::Format(format, args...);
-            Log(file, logLevel, function, line, message);
-        }
-        catch (std::exception&)
-        {
-            // Logger failure should not disrupt program flow
-        }
+        std::string message = StringUtil::Format(format, args...);
+        Log(file, logLevel, function, line, message);
+    }
+    catch (std::exception&)
+    {
+        // Logger failure should not disrupt program flow
     }
 }
 

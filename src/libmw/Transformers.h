@@ -49,32 +49,23 @@ static std::vector<mw::Transaction::CPtr> TransformTxs(const std::vector<libmw::
 
 static libmw::BlockAndPegs TransformBlock(const mw::Block::Ptr& pBlock)
 {
-    std::vector<Kernel> pegin_kernels = pBlock->GetPegInKernels();
+    std::vector<PegInCoin> pegin_coins = pBlock->GetPegIns();
     std::vector<libmw::PegIn> pegins;
     std::transform(
-        pegin_kernels.cbegin(), pegin_kernels.cend(),
+        pegin_coins.cbegin(), pegin_coins.cend(),
         std::back_inserter(pegins),
-        [](const Kernel& kernel) {
-            libmw::PegIn pegin;
-            pegin.amount = kernel.GetAmount();
-            const auto& commit = kernel.GetCommitment().vec();
-            std::copy(commit.begin(), commit.end(), pegin.commitment.data());
-            return pegin;
+        [](const PegInCoin& pegin) {
+            return libmw::PegIn{ pegin.GetAmount(), pegin.GetCommitment().array() };
         }
     );
 
-    std::vector<Kernel> pegout_kernels = pBlock->GetPegOutKernels();
+    std::vector<PegOutCoin> pegout_coins = pBlock->GetPegOuts();
     std::vector<libmw::PegOut> pegouts;
     std::transform(
-        pegout_kernels.cbegin(), pegout_kernels.cend(),
+        pegout_coins.cbegin(), pegout_coins.cend(),
         std::back_inserter(pegouts),
-        [](const Kernel& kernel) {
-            assert(kernel.GetAddress().has_value());
-
-            libmw::PegOut pegout;
-            pegout.amount = kernel.GetAmount();
-            pegout.address = kernel.GetAddress().value().ToString();
-            return pegout;
+        [](const PegOutCoin& pegout) {
+            return libmw::PegOut{ pegout.GetAmount(), pegout.GetAddress().ToString() };
         }
     );
 

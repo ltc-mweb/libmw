@@ -68,11 +68,9 @@ MWEXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
 {
     std::vector<PegOut> pegouts;
     for (const Kernel& kernel : pTransaction->GetKernels()) {
-        if (kernel.IsPegOut()) {
-            PegOut pegout;
-            pegout.amount = kernel.GetPeggedOut();
-            pegout.address = kernel.GetAddress().value().ToString();
-            pegouts.emplace_back(std::move(pegout));
+        if (kernel.HasPegOut()) {
+            const PegOutCoin& pegout = kernel.GetPegOut().value();
+            pegouts.emplace_back(PegOut{ pegout.GetAmount(), pegout.GetAddress().ToString() });
         }
     }
 
@@ -83,11 +81,8 @@ MWEXPORT std::vector<PegIn> TxRef::GetPegins() const noexcept
 {
     std::vector<PegIn> pegins;
     for (const Kernel& kernel : pTransaction->GetKernels()) {
-        if (kernel.IsPegIn()) {
-            PegIn pegin;
-            pegin.amount = kernel.GetPeggedIn();
-            pegin.commitment = kernel.GetCommitment().array();
-            pegins.emplace_back(std::move(pegin));
+        if (kernel.HasPegIn()) {
+            pegins.emplace_back(PegIn{ kernel.GetPegIn(), kernel.GetCommitment().array() });
         }
     }
 

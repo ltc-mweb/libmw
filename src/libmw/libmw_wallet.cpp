@@ -41,28 +41,6 @@ MWEXPORT libmw::TxRef CreateTx(
     return libmw::TxRef{ pTransaction };
 }
 
-MWEXPORT void BlockConnected(
-    const libmw::IWallet::Ptr& pWallet,
-    const libmw::BlockRef& block,
-    const libmw::BlockHash& canonical_block_hash)
-{
-    Wallet::Open(pWallet).BlockConnected(block.pBlock, canonical_block_hash);
-}
-
-MWEXPORT void BlockDisconnected(
-    const libmw::IWallet::Ptr& pWallet,
-    const libmw::BlockRef& block)
-{
-    Wallet::Open(pWallet).BlockDisconnected(block.pBlock);
-}
-
-MWEXPORT void TransactionAddedToMempool(
-    const libmw::IWallet::Ptr& pWallet,
-    const libmw::TxRef& tx)
-{
-    Wallet::Open(pWallet).TransactionAddedToMempool(tx.pTransaction);
-}
-
 MWEXPORT void ScanForOutputs(const libmw::IWallet::Ptr& pWallet, const libmw::IChain::Ptr& pChain)
 {
     Wallet::Open(pWallet).ScanForOutputs(pChain);
@@ -75,32 +53,44 @@ MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet, const
 
 MWEXPORT bool IsOwnAddress(const libmw::IWallet::Ptr& pWallet, const libmw::MWEBAddress& address)
 {
-    return GetAddress(pWallet, 0) == address; // TODO: Check all addresses
-}
+    for (size_t i = 0; i < 100; i++) {
+        if (GetAddress(pWallet, i) == address) {
+            return true;
+        }
+    }
 
-MWEXPORT libmw::WalletBalance GetBalance(const libmw::IWallet::Ptr& pWallet)
-{
-    return Wallet::Open(pWallet).GetBalance();
+    if (GetAddress(pWallet, libmw::CHANGE_INDEX) == address || GetAddress(pWallet, libmw::PEGIN_INDEX) == address) {
+        return true;
+    }
+
+    return false;
 }
 
 MWEXPORT bool RewindOutput(
     const libmw::IWallet::Ptr& pWallet,
-    const libmw::TxRef& tx,
+    const boost::variant<libmw::TxRef, libmw::BlockRef>& parent,
     const libmw::Commitment& output_commit,
     libmw::Coin& coin_out)
 {
-    assert(tx.pTransaction != nullptr);
-
     ::Commitment commitment(output_commit);
-    for (const Output& output : tx.pTransaction->GetOutputs()) {
-        if (output.GetCommitment() == commitment) {
-            try {
-                coin_out = Wallet::Open(pWallet).RewindOutput(output);
-                return true;
-            }
-            catch (...) {}
 
-            break;
+    if (parent.type() == typeid(libmw::TxRef)) {
+        const libmw::TxRef& tx = boost::get<libmw::TxRef>(parent);
+        assert(tx.pTransaction != nullptr);
+
+        for (const Output& output : tx.pTransaction->GetOutputs()) {
+            if (output.GetCommitment() == commitment) {
+                return Wallet::Open(pWallet).RewindOutput(output, coin_out);
+            }
+        }
+    } else {
+        const libmw::BlockRef& block = boost::get<libmw::BlockRef>(parent);
+        assert(block.pBlock != nullptr);
+
+        for (const Output& output : block.pBlock->GetOutputs()) {
+            if (output.GetCommitment() == commitment) {
+                return Wallet::Open(pWallet).RewindOutput(output, coin_out);
+            }
         }
     }
 

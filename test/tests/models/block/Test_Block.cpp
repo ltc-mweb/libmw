@@ -35,9 +35,9 @@ TEST_CASE("Block")
     REQUIRE(block.GetKernelOffset() == pHeader->GetKernelOffset());
     REQUIRE(block.GetOwnerOffset() == pHeader->GetOwnerOffset());
 
-    REQUIRE(block.GetPegInKernels() == pTransaction->GetKernels());
+    REQUIRE(block.GetPegIns() == pTransaction->GetPegIns());
     REQUIRE(block.GetPegInAmount() == 30);
-    REQUIRE(block.GetPegOutKernels().empty());
+    REQUIRE(block.GetPegOuts().empty());
 
     Deserializer deserializer = block.Serialized();
     mw::Block block2 = mw::Block::Deserialize(deserializer);
