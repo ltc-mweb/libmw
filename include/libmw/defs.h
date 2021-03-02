@@ -60,6 +60,11 @@ typedef std::string MWEBAddress;
 static const uint8_t NORMAL_OUTPUT = 0;
 static const uint8_t PEGIN_OUTPUT = 1;
 
+static constexpr size_t MAX_BLOCK_WEIGHT = 21'000;
+static constexpr size_t KERNEL_WEIGHT = 2;
+static constexpr size_t OWNER_SIG_WEIGHT = 1;
+static constexpr size_t OUTPUT_WEIGHT = 18;
+
 struct PegIn
 {
     uint64_t amount;
