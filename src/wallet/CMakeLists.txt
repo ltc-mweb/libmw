@@ -1,8 +1,6 @@
 set(TARGET_NAME Wallet)
 
 add_library(${TARGET_NAME} STATIC
-	"PegIn.cpp"
-	"PegOut.cpp"
 	"Transact.cpp"
 	"Wallet.cpp"
 )

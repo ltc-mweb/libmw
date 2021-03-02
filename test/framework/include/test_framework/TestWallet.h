@@ -19,7 +19,7 @@ public:
     }
 
     TestWallet(BlindingFactor&& seed)
-        : libmw::IWallet(), m_seed(std::move(seed)), m_nextPath({ 1, 1, 0 }), m_coins{}, m_depthInChain{}
+        : libmw::IWallet(), m_seed(std::move(seed)), m_nextPath({ 1, 1, 0 }), m_coins{}
     {
 
     }
@@ -29,23 +29,19 @@ public:
         return libmw::PrivateKey{ bip32Path, ToBlind(bip32Path).array() };
     }
 
-    std::vector<libmw::Coin> ListCoins() const final
-    {
-        return m_coins;
-    }
-
-    libmw::Coin GetCoin(const libmw::Commitment& output_commit) const final
+    bool GetCoin(const libmw::Commitment& output_commit, libmw::Coin& coin_out) const final
     {
         for (const libmw::Coin& coin : m_coins) {
             if (coin.commitment == output_commit) {
-                return coin;
+                coin_out = coin;
+                return true;
             }
         }
 
-        throw std::runtime_error("No matching coin found");
+        return false;
     }
 
-    void AddCoins(const std::vector<libmw::Coin>& coins) final
+    void AddCoins(const std::vector<libmw::Coin>& coins)
     {
         for (const libmw::Coin& coin : coins) {
             bool replaced = false;
@@ -63,64 +59,6 @@ public:
         }
     }
 
-    void DeleteCoins(const std::vector<libmw::Coin>& coins) final
-    {
-        for (const libmw::Coin& coin : coins) {
-            for (auto iter = m_coins.begin(); iter != m_coins.end(); iter++) {
-                if (coin.commitment == iter->commitment) {
-                    m_coins.erase(iter);
-                    break;
-                }
-            }
-        }
-    }
-
-    std::vector<libmw::Coin> SelectCoins(
-        const std::vector<libmw::Coin>& coins,
-        const uint64_t amount) const final
-    {
-        std::vector<libmw::Coin> selected_coins;
-
-        uint64_t inputs_amount = 0;
-        for (const libmw::Coin& coin : coins) {
-            if (coin.spent) {
-                continue;
-            }
-
-            inputs_amount += coin.amount;
-            selected_coins.push_back(coin);
-            if (inputs_amount >= amount) {
-                break;
-            }
-        }
-
-        if (inputs_amount < amount) {
-            ThrowInsufficientFunds("Not enough funds");
-        }
-
-        return selected_coins;
-    }
-
-    uint64_t GetDepthInActiveChain(const libmw::BlockHash& canonical_block_hash) const final
-    {
-        auto iter = m_depthInChain.find(canonical_block_hash);
-        if (iter != m_depthInChain.end()) {
-            return iter->second;
-        }
-
-        return 0;
-    }
-
-    void SetDepthInActiveChain(const libmw::BlockHash& canonical_block_hash, const uint64_t depth)
-    {
-        auto iter = m_depthInChain.find(canonical_block_hash);
-        if (iter != m_depthInChain.end()) {
-            iter->second = depth;
-        } else {
-            m_depthInChain.insert({ canonical_block_hash, depth });
-        }
-    }
-
 private:
     // Just uses a quick, insecure method for generating deterministic keys from a path.
     // Suitable for testing only. Do not use in a production environment.
@@ -132,5 +70,4 @@ private:
     BlindingFactor m_seed;
     KeyChainPath m_nextPath;
     std::vector<libmw::Coin> m_coins;
-    std::map<libmw::BlockHash, uint64_t> m_depthInChain;
 };

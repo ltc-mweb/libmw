@@ -12,11 +12,13 @@ NODE_NAMESPACE
 /// <param name="chainParams">The chain parameters to use.</param>
 /// <param name="header">The possibly-null chain tip.</param>
 /// <param name="pDBWrapper">A wrapper around the node database. Must not be null.</param>
+/// <param name="log_callback">A callback to the logger print function.</param>
 /// <returns>The CoinsViewDB which represents the state of the flushed chain.</returns>
 MWIMPORT libmw::CoinsViewRef Initialize(
     const libmw::ChainParams& chainParams,
     const libmw::HeaderRef& header,
-    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper
+    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+    const std::function<void(const std::string&)>& log_callback
 ); // TODO: Take in a BlockStore
 
 /// <summary>

@@ -4,6 +4,7 @@
 #include "BlockStoreWrapper.h"
 #include "State.h"
 
+#include <mw/common/Logger.h>
 #include <mw/exceptions/ValidationException.h>
 #include <mw/models/block/Block.h>
 #include <mw/models/block/BlockUndo.h>
@@ -20,8 +21,10 @@ NODE_NAMESPACE
 MWEXPORT libmw::CoinsViewRef Initialize(
     const libmw::ChainParams& chainParams,
     const libmw::HeaderRef& header,
-    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
+    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+    const std::function<void(const std::string&)>& log_callback)
 {
+    LoggerAPI::Initialize(log_callback);
     NODE = mw::InitializeNode(FilePath{ chainParams.dataDirectory }, chainParams.hrp, header.pHeader, pDBWrapper);
 
     return libmw::CoinsViewRef{ NODE->GetDBView() };

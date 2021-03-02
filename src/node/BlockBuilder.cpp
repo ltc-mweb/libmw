@@ -30,13 +30,13 @@ bool BlockBuilder::AddTransaction(const Transaction::CPtr& pTransaction, const s
     }
 
     // Verify pegin outputs are included
-    std::vector<Kernel> pegin_kernels = pTransaction->GetPegInKernels();
-    if (pegin_kernels.size() != pegins.size()) {
+    std::vector<PegInCoin> pegin_coins = pTransaction->GetPegIns();
+    if (pegin_coins.size() != pegins.size()) {
         std::cout << "Mismatched pegin count" << std::endl;
         return false;
     }
 
-    for (const Kernel& pegin : pegin_kernels) {
+    for (const PegInCoin& pegin : pegin_coins) {
         if (pegin_commitments.find(pegin.GetCommitment()) == pegin_commitments.end()) {
             std::cout << "Pegin commitment not found" << std::endl;
             return false;

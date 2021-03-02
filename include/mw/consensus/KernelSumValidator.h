@@ -25,13 +25,7 @@ public:
         int64_t total_mw_supply = 0;
         for (const Kernel& kernel : kernels)
         {
-            if (kernel.IsPegIn()) {
-                total_mw_supply += (int64_t)kernel.GetAmount();
-            } else if (kernel.IsPegOut()) {
-                total_mw_supply -= (int64_t)kernel.GetAmount();
-            }
-
-            total_mw_supply -= (int64_t)kernel.GetFee();
+            total_mw_supply += kernel.GetSupplyChange();
 
             // Total supply can never go below 0
             if (total_mw_supply < 0) {

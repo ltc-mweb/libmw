@@ -4,8 +4,6 @@
 #include <mw/config/ChainParams.h>
 #include <mw/exceptions/InsufficientFundsException.h>
 
-#include "PegIn.h"
-#include "PegOut.h"
 #include "Transact.h"
 
 Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
@@ -18,28 +16,6 @@ Wallet Wallet::Open(const libmw::IWallet::Ptr& pWalletInterface)
     return Wallet(pWalletInterface, std::move(scan_secret), std::move(spend_secret));
 }
 
-mw::Transaction::CPtr Wallet::CreatePegInTx(
-    const uint64_t amount,
-    const boost::optional<StealthAddress>& receiver_addr)
-{
-    return PegIn(*this).CreatePegInTx(amount, receiver_addr.value_or(GetPegInAddress()));
-}
-
-mw::Transaction::CPtr Wallet::CreatePegOutTx(
-    const uint64_t amount,
-    const uint64_t fee_base,
-    const Bech32Address& address)
-{
-    return PegOut(*this).CreatePegOutTx(amount, fee_base, address);
-}
-
-mw::Transaction::CPtr Wallet::Send(
-    const uint64_t amount,
-    const uint64_t fee_base,
-    const StealthAddress& receiver_address)
-{
-    return Transact(*this).CreateTx(amount, fee_base, receiver_address);
-}
 mw::Transaction::CPtr Wallet::CreateTx(
     const std::vector<Commitment>& input_commits,
     const std::vector<std::pair<uint64_t, StealthAddress>>& recipients,
@@ -81,205 +57,54 @@ bool Wallet::IsSpendPubKey(const PublicKey& spend_pubkey, uint32_t& index_out) c
     }
 
     // TODO: Check all receive addresses (Need to use a key cache for performance)
-    if (GetStealthAddress(0).B() == spend_pubkey) {
-        index_out = 0;
-        return true;
+    for (uint32_t i = 0; i < 100; i++) {
+        if (GetStealthAddress(i).B() == spend_pubkey) {
+            index_out = i;
+            return true;
+        }
     }
 
     return false;
 }
 
-libmw::WalletBalance Wallet::GetBalance() const
-{
-    libmw::WalletBalance balance;
-
-    std::vector<libmw::Coin> coins = m_pWalletInterface->ListCoins();
-    for (const libmw::Coin& coin : coins) {
-        if (coin.spent_block.has_value()) {
-            continue;
-        }
-
-        uint64_t num_confirmations = 0;
-        if (coin.included_block.has_value()) {
-            num_confirmations = m_pWalletInterface->GetDepthInActiveChain(coin.included_block.value());
-        }
-
-        // FUTURE: Also calculate watch-only balances
-
-        if (num_confirmations == 0) {
-            balance.unconfirmed_balance += coin.amount;
-        } else if (coin.spent) {
-            balance.locked_balance += coin.amount;
-        } else if ((coin.features & libmw::PEGIN_OUTPUT) == 0 || num_confirmations >= mw::ChainParams::GetPegInMaturity()) {
-            balance.confirmed_balance += coin.amount;
-        } else {
-            balance.immature_balance += coin.amount;
-        }
-    }
-
-    return balance;
-}
-
-void Wallet::BlockConnected(const mw::Block::CPtr& pBlock, const mw::Hash& canonical_block_hash)
-{
-    std::vector<libmw::Coin> coins_to_update;
-
-    std::vector<libmw::Coin> coinlist = m_pWalletInterface->ListCoins();
-    std::unordered_map<Commitment, libmw::Coin> coinmap;
-    std::transform(
-        coinlist.cbegin(), coinlist.cend(),
-        std::inserter(coinmap, coinmap.end()),
-        [](const libmw::Coin& coin) { return std::make_pair(Commitment(coin.commitment), coin); }
-    );
-
-    // Mark outputs as confirmed
-    PublicKey spend_pubkey = Keys::From(m_spendSecret).PubKey();
-    for (const Output& output : pBlock->GetOutputs()) {
-        try {
-            auto iter = coinmap.find(output.GetCommitment());
-            if (iter != coinmap.cend()) {
-                libmw::Coin coin = iter->second;
-                coin.included_block = canonical_block_hash.ToArray();
-                coins_to_update.push_back(std::move(coin));
-            } else {
-                libmw::Coin coin = RewindOutput(output);
-                coin.included_block = canonical_block_hash.ToArray();
-                coins_to_update.push_back(std::move(coin));
-            }
-        } catch (std::exception&) { }
-    }
-
-    // Mark inputs as spent
-    for (const Input& input : pBlock->GetInputs()) {
-        auto iter = coinmap.find(input.GetCommitment());
-        if (iter != coinmap.cend()) {
-            libmw::Coin coin = iter->second;
-            coin.spent = true;
-            coin.spent_block = canonical_block_hash.ToArray();
-            coins_to_update.push_back(coin);
-        }
-    }
-
-    m_pWalletInterface->AddCoins(coins_to_update);
-}
-
-void Wallet::BlockDisconnected(const mw::Block::CPtr& pBlock)
-{
-    std::vector<libmw::Coin> coins_to_update;
-
-    std::vector<libmw::Coin> coinlist = m_pWalletInterface->ListCoins();
-    std::unordered_map<Commitment, libmw::Coin> coinmap;
-    std::transform(
-        coinlist.cbegin(), coinlist.cend(),
-        std::inserter(coinmap, coinmap.end()),
-        [](const libmw::Coin& coin) { return std::make_pair(Commitment(coin.commitment), coin); }
-    );
-
-    // Mark outputs as unconfirmed
-    for (const Output& output : pBlock->GetOutputs()) {
-        auto iter = coinmap.find(output.GetCommitment());
-        if (iter != coinmap.cend()) {
-            libmw::Coin coin = iter->second;
-            coin.included_block = boost::none;
-            coins_to_update.push_back(coin);
-        }
-    }
-
-    // Mark inputs as unspent
-    for (const Input& input : pBlock->GetInputs()) {
-        auto iter = coinmap.find(input.GetCommitment());
-        if (iter != coinmap.cend()) {
-            libmw::Coin coin = iter->second;
-            coin.spent = true;
-            coin.spent_block = boost::none;
-            coins_to_update.push_back(coin);
-        }
-    }
-
-    m_pWalletInterface->AddCoins(coins_to_update);
-}
-
-void Wallet::TransactionAddedToMempool(const mw::Transaction::CPtr& pTx)
-{
-    std::vector<libmw::Coin> coins_to_update;
-
-    std::vector<libmw::Coin> coinlist = m_pWalletInterface->ListCoins();
-    std::unordered_map<Commitment, libmw::Coin> coinmap;
-    std::transform(
-        coinlist.cbegin(), coinlist.cend(),
-        std::inserter(coinmap, coinmap.end()),
-        [](const libmw::Coin& coin) { return std::make_pair(Commitment(coin.commitment), coin); }
-    );
-
-    // Mark outputs as confirmed
-    PublicKey spend_pubkey = Keys::From(m_spendSecret).PubKey();
-    for (const Output& output : pTx->GetOutputs()) {
-        try {
-            auto iter = coinmap.find(output.GetCommitment());
-            if (iter == coinmap.cend()) {
-                coins_to_update.push_back(RewindOutput(output));
-            }
-        }
-        catch (std::exception&) {}
-    }
-
-    // Mark inputs as spent
-    for (const Input& input : pTx->GetInputs()) {
-        auto iter = coinmap.find(input.GetCommitment());
-        if (iter != coinmap.cend()) {
-            libmw::Coin coin = iter->second;
-            coin.spent = true;
-            coins_to_update.push_back(coin);
-        }
-    }
-
-    m_pWalletInterface->AddCoins(coins_to_update);
-}
-
 void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
 {
-    std::vector<libmw::Coin> orig_coins = m_pWalletInterface->ListCoins();
-    m_pWalletInterface->DeleteCoins(orig_coins);
+    // TODO: Just return outputs
 
-    std::vector<libmw::Coin> coins_to_update;
-    std::unordered_map<Commitment, libmw::Coin&> coinmap;
+    //std::vector<libmw::Coin> coins_found;
 
-    auto pChainIter = pChain->NewIterator();
-    while (pChainIter->Valid()) {
-        try {
-            libmw::BlockRef block_ref = pChainIter->GetBlock();
-            if (block_ref.IsNull()) {
-                // TODO: Use output mmr
-            } else {
-                for (const Output& output : block_ref.pBlock->GetOutputs()) {
-                    try {
-                        libmw::Coin coin = RewindOutput(output);
-                        coin.included_block = boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash());
-                        if (coin.address_index != libmw::CHANGE_INDEX && !Features(coin.features).IsSet(EOutputFeatures::PEGGED_IN)) {
-                            // TODO: Create CWalletTx
-                        }
-                    }
-                    catch (std::exception&) {}
-                }
+    //auto pChainIter = pChain->NewIterator();
+    //while (pChainIter->Valid()) {
+    //    try {
+    //        libmw::BlockRef block_ref = pChainIter->GetBlock();
+    //        if (block_ref.IsNull()) {
+    //            // TODO: Use output mmr
+    //        } else {
+    //            for (const Output& output : block_ref.pBlock->GetOutputs()) {
+    //                libmw::Coin coin;
+    //                if (RewindOutput(output, coin)) {
+    //                    coin.included_block = boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash());
+    //                    if (coin.address_index != libmw::CHANGE_INDEX && !Features(coin.features).IsSet(EOutputFeatures::PEGGED_IN)) {
+    //                        // TODO: Create CWalletTx
+    //                    }
+    //                }
+    //            }
 
-                for (const Input& input : block_ref.pBlock->GetInputs()) {
-                    auto pCoinIter = coinmap.find(input.GetCommitment());
-                    if (pCoinIter != coinmap.end()) {
-                        pCoinIter->second.spent = true;
-                        pCoinIter->second.spent_block = pChainIter->GetCanonicalHash();
-                    }
-                }
-            }
-        } catch (std::exception&) {}
+    //            for (const Input& input : block_ref.pBlock->GetInputs()) {
+    //                auto pCoinIter = coinmap.find(input.GetCommitment());
+    //                if (pCoinIter != coinmap.end()) {
+    //                    pCoinIter->second.spent = true;
+    //                    pCoinIter->second.spent_block = pChainIter->GetCanonicalHash();
+    //                }
+    //            }
+    //        }
+    //    } catch (std::exception&) {}
 
-        pChainIter->Next();
-    }
-
-    //std::cout << "Adding coins: " << coins_to_update.size() << std::endl;
-    m_pWalletInterface->AddCoins(coins_to_update);
+    //    pChainIter->Next();
+    //}
 }
 
-libmw::Coin Wallet::RewindOutput(const Output& output) const
+bool Wallet::RewindOutput(const Output& output, libmw::Coin& coin) const
 {
     SecretKey a(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
 
@@ -309,22 +134,19 @@ libmw::Coin Wallet::RewindOutput(const Output& output) const
                         Hashed(EHashTag::OUT_KEY, t),
                         GetSpendKey(index)
                     );
-                    return libmw::Coin{
+                    coin = libmw::Coin{
                         output.GetFeatures().Get(),
                         index,
                         private_key.array(),
                         r.array(),
                         value,
-                        output.GetCommitment().array(),
-                        boost::none,
-                        false,
-                        boost::none,
-                        time(nullptr)
+                        output.GetCommitment().array()
                     };
+                    return true;
                 }
             }
         }
     }
 
-    throw std::runtime_error("Unable to rewind output");
+    return false;
 }

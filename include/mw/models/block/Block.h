@@ -54,9 +54,9 @@ public:
     const BlindingFactor& GetOwnerOffset() const noexcept { return m_pHeader->GetOwnerOffset(); }
 
     uint64_t GetTotalFee() const noexcept { return m_body.GetTotalFee(); }
-    std::vector<Kernel> GetPegInKernels() const noexcept { return m_body.GetPegInKernels(); }
+    std::vector<PegInCoin> GetPegIns() const noexcept { return m_body.GetPegIns(); }
     uint64_t GetPegInAmount() const noexcept { return m_body.GetPegInAmount(); }
-    std::vector<Kernel> GetPegOutKernels() const noexcept { return m_body.GetPegOutKernels(); }
+    std::vector<PegOutCoin> GetPegOuts() const noexcept { return m_body.GetPegOuts(); }
 
     //
     // Serialization/Deserialization

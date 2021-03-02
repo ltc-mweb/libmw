@@ -1,6 +1,6 @@
 #include <test_framework/models/Tx.h>
 
-test::Tx test::Tx::CreatePegIn(const uint64_t amount)
+test::Tx test::Tx::CreatePegIn(const uint64_t amount, const uint64_t fee)
 {
     BlindingFactor txOffset = Random::CSPRNG<32>();
 
@@ -13,7 +13,7 @@ test::Tx test::Tx::CreatePegIn(const uint64_t amount)
     );
 
     BlindingFactor kernelBF = Crypto::AddBlindingFactors({ output.GetBlind() }, { txOffset });
-    Kernel kernel = Kernel::CreatePegIn(kernelBF, amount);
+    Kernel kernel = Kernel::Create(kernelBF, fee, amount, boost::none, boost::none);
 
     auto pTx = mw::Transaction::Create(txOffset, sender_privkey, {}, { output.GetOutput() }, { kernel }, {});
     return Tx{ pTx, { output } };

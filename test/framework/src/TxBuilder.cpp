@@ -62,7 +62,7 @@ TxBuilder& TxBuilder::AddPlainKernel(const uint64_t fee, const bool add_owner_si
     SecretKey kernel_excess = Random::CSPRNG<32>();
     m_kernelOffset.Sub(kernel_excess);
 
-    Kernel kernel = Kernel::CreatePlain(kernel_excess, fee);
+    Kernel kernel = Kernel::Create(kernel_excess, fee, boost::none, boost::none, boost::none);
 
     if (add_owner_sig) {
         SecretKey offset = Random::CSPRNG<32>();
@@ -78,12 +78,12 @@ TxBuilder& TxBuilder::AddPlainKernel(const uint64_t fee, const bool add_owner_si
     return *this;
 }
 
-TxBuilder& TxBuilder::AddPeginKernel(const uint64_t amount, const bool add_owner_sig)
+TxBuilder& TxBuilder::AddPeginKernel(const uint64_t amount, const uint64_t fee, const bool add_owner_sig)
 {
     SecretKey kernel_excess = Random::CSPRNG<32>();
     m_kernelOffset.Sub(kernel_excess);
 
-    Kernel kernel = Kernel::CreatePegIn(kernel_excess, amount);
+    Kernel kernel = Kernel::Create(kernel_excess, fee, amount, boost::none, boost::none);
 
     if (add_owner_sig) {
         SecretKey offset = Random::CSPRNG<32>();
@@ -105,7 +105,7 @@ TxBuilder& TxBuilder::AddPegoutKernel(const uint64_t amount, const uint64_t fee,
     m_kernelOffset.Sub(kernel_excess);
     Bech32Address ltc_address("hrp", Random::CSPRNG<32>().vec());
 
-    Kernel kernel = Kernel::CreatePegOut(kernel_excess, amount, fee, ltc_address);
+    Kernel kernel = Kernel::Create(kernel_excess, fee, boost::none, PegOutCoin(amount, ltc_address), boost::none);
 
     if (add_owner_sig) {
         SecretKey offset = Random::CSPRNG<32>();

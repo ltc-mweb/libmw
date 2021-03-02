@@ -4,16 +4,16 @@
 
 #include <unordered_set>
 
-std::vector<Kernel> TxBody::GetPegInKernels() const noexcept
+std::vector<PegInCoin> TxBody::GetPegIns() const noexcept
 {
-    std::vector<Kernel> peggedIn;
-    std::copy_if(
-        m_kernels.cbegin(), m_kernels.cend(),
-        std::back_inserter(peggedIn),
-        [](const auto& kernel) -> bool { return kernel.IsPegIn(); }
-    );
+    std::vector<PegInCoin> pegins;
+    for (const Kernel& kernel : m_kernels) {
+        if (kernel.HasPegIn()) {
+            pegins.push_back(PegInCoin(kernel.GetPegIn(), kernel.GetCommitment()));
+        }
+    }
 
-    return peggedIn;
+    return pegins;
 }
 
 std::vector<Output> TxBody::GetPegInOutputs() const noexcept
@@ -32,20 +32,19 @@ uint64_t TxBody::GetPegInAmount() const noexcept
 {
     return std::accumulate(
         m_kernels.cbegin(), m_kernels.cend(), (uint64_t)0,
-        [](const uint64_t sum, const auto& kernel) noexcept { return sum + kernel.GetPeggedIn(); }
+        [](const uint64_t sum, const auto& kernel) noexcept { return sum + kernel.GetPegIn(); }
     );
 }
 
-std::vector<Kernel> TxBody::GetPegOutKernels() const noexcept
+std::vector<PegOutCoin> TxBody::GetPegOuts() const noexcept
 {
-    std::vector<Kernel> peggedOut;
-    std::copy_if(
-        m_kernels.cbegin(), m_kernels.cend(),
-        std::back_inserter(peggedOut),
-        [](const auto& kernel) -> bool { return kernel.IsPegOut(); }
-    );
-
-    return peggedOut;
+    std::vector<PegOutCoin> pegouts;
+    for (const Kernel& kernel : m_kernels) {
+        if (kernel.HasPegOut()) {
+            pegouts.push_back(kernel.GetPegOut().value());
+        }
+    }
+    return pegouts;
 }
 
 uint64_t TxBody::GetTotalFee() const noexcept
@@ -60,13 +59,7 @@ int64_t TxBody::GetSupplyChange() const noexcept
 {
     int64_t coins_added = 0;
     for (const Kernel& kernel : m_kernels) {
-        if (kernel.IsPegIn()) {
-            coins_added += (int64_t)kernel.GetAmount();
-        } else if (kernel.IsPegOut()) {
-            coins_added -= (int64_t)kernel.GetAmount();
-        }
-
-        coins_added -= (int64_t)kernel.GetFee();
+        coins_added += kernel.GetSupplyChange();
     }
 
     return coins_added;

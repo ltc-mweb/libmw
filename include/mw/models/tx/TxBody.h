@@ -11,6 +11,8 @@
 #include <mw/models/tx/Input.h>
 #include <mw/models/tx/Output.h>
 #include <mw/models/tx/Kernel.h>
+#include <mw/models/tx/PegInCoin.h>
+#include <mw/models/tx/PegOutCoin.h>
 #include <mw/crypto/Bulletproofs.h>
 #include <mw/crypto/Schnorr.h>
 
@@ -68,10 +70,10 @@ public:
     std::vector<Commitment> GetInputCommits() const noexcept { return Commitments::From(m_inputs); }
     std::vector<Commitment> GetOutputCommits() const noexcept { return Commitments::From(m_outputs); }
 
-    std::vector<Kernel> GetPegInKernels() const noexcept;
+    std::vector<PegInCoin> GetPegIns() const noexcept;
     std::vector<Output> GetPegInOutputs() const noexcept;
     uint64_t GetPegInAmount() const noexcept;
-    std::vector<Kernel> GetPegOutKernels() const noexcept;
+    std::vector<PegOutCoin> GetPegOuts() const noexcept;
     uint64_t GetTotalFee() const noexcept;
     int64_t GetSupplyChange() const noexcept;
 

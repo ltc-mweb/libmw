@@ -157,7 +157,7 @@ TEST_CASE("KernelSumValidator::ValidateForBlock - Without Builder")
 
     // Add kernel
     const uint64_t fee = 500'000;
-    kernels.push_back(Kernel::CreatePlain(excess, fee));
+    kernels.push_back(Kernel::Create(excess, fee, boost::none, boost::none, boost::none));
 
     // Create Transaction
     auto pTransaction = mw::Transaction::Create(

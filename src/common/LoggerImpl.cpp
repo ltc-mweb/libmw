@@ -1,9 +1,6 @@
 #include "LoggerImpl.h"
 #include "ThreadManagerImpl.h"
 
-#include <spdlog/async.h>
-#include <spdlog/sinks/rotating_file_sink.h>
-
 #include <mw/file/FilePath.h>
 #include <random>
 
@@ -12,6 +9,11 @@ Logger& Logger::GetInstance()
     static Logger instance;
     return instance;
 }
+
+void null_logger(const std::string&) {}
+
+Logger::Logger()
+    : m_callback(null_logger) { }
 
 static std::string random_string(size_t length)
 {
@@ -32,82 +34,15 @@ static std::string random_string(size_t length)
     return s;
 }
 
-// TODO: Make asynchronous
-void Logger::StartLogger(const FilePath& logDirectory, const spdlog::level::level_enum& logLevel)
+void Logger::StartLogger(const std::function<void(const std::string&)>& log_callback)
 {
     std::unique_lock<std::shared_mutex> write_lock(m_mutex);
-
-    logDirectory.CreateDirIfMissing();
-
-    {
-        const FilePath logPath = logDirectory.GetChild("Node.log");
-        m_pNodeLogger = spdlog::rotating_logger_mt("NODE" + random_string(10), logPath.ToString(), 5 * 1024 * 1024, 10);
-        //m_pNodeLogger = spdlog::create_async<spdlog::sinks::rotating_file_sink_mt>("NODE", sink, 32768, spdlog::async_overflow_policy::block, nullptr, std::chrono::seconds(5));
-        spdlog::set_pattern("[%D %X.%e%z] [%l] %v");
-        if (m_pNodeLogger != nullptr)
-        {
-            m_pNodeLogger->set_level(logLevel);
-        }
-    }
-    
-    {
-        const FilePath logPath = logDirectory.GetChild("Wallet.log");
-        m_pWalletLogger = spdlog::rotating_logger_mt("WALLET" + random_string(10), logPath.ToString(), 5 * 1024 * 1024, 10);
-        //auto sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logPath.ToString(), 5 * 1024 * 1024, 10);
-        //m_pWalletLogger = spdlog::create_async("WALLET", sink, 8192, spdlog::async_overflow_policy::block, nullptr, std::chrono::seconds(5));
-        spdlog::set_pattern("[%D %X.%e%z] [%l] %v");
-        if (m_pWalletLogger != nullptr)
-        {
-            m_pWalletLogger->set_level(logLevel);
-        }
-    }
+    m_callback = log_callback;
 }
 
 void Logger::StopLogger()
 {
-    Flush();
 
-    std::unique_lock<std::shared_mutex> write_lock(m_mutex);
-    m_pNodeLogger.reset();
-    m_pWalletLogger.reset();
-}
-
-spdlog::level::level_enum Logger::Convert(LoggerAPI::LogLevel logLevel) noexcept
-{
-    switch (logLevel)
-    {
-        case LoggerAPI::LogLevel::TRACE:
-            return spdlog::level::trace;
-        case LoggerAPI::LogLevel::DEBUG:
-            return spdlog::level::debug;
-        case LoggerAPI::LogLevel::INFO:
-            return spdlog::level::info;
-        case LoggerAPI::LogLevel::WARN:
-            return spdlog::level::warn;
-        case LoggerAPI::LogLevel::ERR:
-            return spdlog::level::err;
-        default:
-            return spdlog::level::off;
-    }
-}
-
-LoggerAPI::LogLevel Logger::Convert(spdlog::level::level_enum logLevel) noexcept
-{
-    switch (logLevel)
-    {
-        case spdlog::level::trace:
-            return LoggerAPI::LogLevel::TRACE;
-        case spdlog::level::debug:
-            return LoggerAPI::LogLevel::DEBUG;
-        case spdlog::level::info:
-            return LoggerAPI::LogLevel::INFO;
-        case spdlog::level::warn:
-            return LoggerAPI::LogLevel::WARN;
-        case spdlog::level::err:
-            return LoggerAPI::LogLevel::ERR;
-        default:
-            return LoggerAPI::LogLevel::NONE;
-    }
 }
 
 void Logger::Log(
@@ -117,112 +52,40 @@ void Logger::Log(
 {
     std::shared_lock<std::shared_mutex> read_lock(m_mutex);
 
-    auto pLogger = GetLogger(file);
-    if (pLogger != nullptr)
+    std::string eventTextClean = eventText;
+    size_t newlinePos = eventTextClean.find("\n");
+    while (newlinePos != std::string::npos)
     {
-        std::string eventTextClean = eventText;
-        size_t newlinePos = eventTextClean.find("\n");
-        while (newlinePos != std::string::npos)
+        if (eventTextClean.size() > newlinePos + 2)
         {
-            if (eventTextClean.size() > newlinePos + 2)
-            {
-                eventTextClean.erase(newlinePos, 2);
-            }
-            else
-            {
-                eventTextClean.erase(newlinePos, 1);
-            }
-
-            newlinePos = eventTextClean.find("\n");
+            eventTextClean.erase(newlinePos, 2);
+        }
+        else
+        {
+            eventTextClean.erase(newlinePos, 1);
         }
 
-        const std::string threadName = ThreadManager::GetInstance().GetCurrentThreadName();
-        if (!threadName.empty())
-        {
-            eventTextClean = threadName + " " + eventTextClean;
-        }
-
-        pLogger->log(Convert(logLevel), eventTextClean);
-    }
-}
-
-LoggerAPI::LogLevel Logger::GetLogLevel(const LoggerAPI::LogFile file) const noexcept
-{
-    std::shared_lock<std::shared_mutex> read_lock(m_mutex);
-    auto pLogger = GetLogger(file);
-    if (pLogger != nullptr)
-    {
-        return Convert(pLogger->level());
+        newlinePos = eventTextClean.find("\n");
     }
 
-    return LoggerAPI::LogLevel::NONE;
-}
-
-void Logger::Flush()
-{
-    std::shared_lock<std::shared_mutex> read_lock(m_mutex);
-    if (m_pNodeLogger != nullptr)
+    const std::string threadName = ThreadManager::GetInstance().GetCurrentThreadName();
+    if (!threadName.empty())
     {
-        m_pNodeLogger->flush();
+        eventTextClean = threadName + " " + eventTextClean;
     }
 
-    if (m_pWalletLogger != nullptr)
-    {
-        m_pWalletLogger->flush();
-    }
-}
-
-std::shared_ptr<spdlog::logger> Logger::GetLogger(const LoggerAPI::LogFile file) noexcept
-{
-    if (file == LoggerAPI::LogFile::WALLET)
-    {
-        return m_pWalletLogger;
-    }
-    else
-    {
-        return m_pNodeLogger;
-    }
-}
-
-std::shared_ptr<const spdlog::logger> Logger::GetLogger(const LoggerAPI::LogFile file) const noexcept
-{
-    if (file == LoggerAPI::LogFile::WALLET)
-    {
-        return m_pWalletLogger;
-    }
-    else
-    {
-        return m_pNodeLogger;
-    }
+    m_callback(eventTextClean);
 }
 
 namespace LoggerAPI
 {
-    LOGGER_API void Initialize(const FilePath& logDirectory, const std::string& logLevel)
+    LOGGER_API void Initialize(const std::function<void(const std::string&)>& log_callback)
     {
-        spdlog::level::level_enum logLevelEnum = spdlog::level::level_enum::debug;
-        if (logLevel == "TRACE")
-        {
-            logLevelEnum = spdlog::level::level_enum::trace;
+        if (log_callback) {
+            Logger::GetInstance().StartLogger(log_callback);
+        } else {
+            Logger::GetInstance().StartLogger(null_logger);
         }
-        else if (logLevel == "DEBUG")
-        {
-            logLevelEnum = spdlog::level::level_enum::debug;
-        }
-        else if (logLevel == "INFO")
-        {
-            logLevelEnum = spdlog::level::level_enum::info;
-        }
-        else if (logLevel == "WARN")
-        {
-            logLevelEnum = spdlog::level::level_enum::warn;
-        }
-        else if (logLevel == "ERROR")
-        {
-            logLevelEnum = spdlog::level::level_enum::err;
-        }
-
-        Logger::GetInstance().StartLogger(logDirectory, logLevelEnum);
     }
 
     LOGGER_API void Shutdown()
@@ -232,12 +95,7 @@ namespace LoggerAPI
 
     LOGGER_API void Flush()
     {
-        Logger::GetInstance().Flush();
-    }
 
-    LOGGER_API LogLevel GetLogLevel(const LogFile file) noexcept
-    {
-        return Logger::GetInstance().GetLogLevel(file);
     }
 
     LOGGER_API void Log(
