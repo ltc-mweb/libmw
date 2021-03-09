@@ -171,6 +171,18 @@ void TxBody::Validate() const
         ThrowValidation(EConsensusError::DUPLICATE_COMMITS);
     }
 
+    // Verify no duplicate kernels
+    std::unordered_set<Commitment> kernel_commits;
+    std::transform(
+        m_kernels.cbegin(), m_kernels.cend(),
+        std::inserter(kernel_commits, kernel_commits.end()),
+        [](const Kernel& kernel) { return kernel.GetCommitment(); }
+    );
+
+    if (kernel_commits.size() != m_kernels.size()) {
+        ThrowValidation(EConsensusError::DUPLICATE_COMMITS);
+    }
+
     // Verify kernel exists with matching hash for each owner sig
     std::unordered_set<mw::Hash> kernel_hashes;
     std::transform(
