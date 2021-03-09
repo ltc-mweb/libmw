@@ -3,9 +3,9 @@
 
 MMR_NAMESPACE
 
-LeafSet::Ptr LeafSet::Open(const FilePath& leafset_dir)
+LeafSet::Ptr LeafSet::Open(const FilePath& leafset_dir, const uint32_t file_index)
 {
-	File file = leafset_dir.GetChild("leafset.bin");
+	File file = leafset_dir.GetChild(StringUtil::Format("leaf{:0>6}.dat", file_index));
     if (!file.Exists()) {
         file.Create();
     }
@@ -20,10 +20,13 @@ LeafSet::Ptr LeafSet::Open(const FilePath& leafset_dir)
 
     MemMap mappedFile{ file };
     mappedFile.Map();
-	return std::shared_ptr<LeafSet>(new LeafSet{ std::move(mappedFile), nextLeafIdx });
+	return std::shared_ptr<LeafSet>(new LeafSet{ leafset_dir, std::move(mappedFile), nextLeafIdx });
 }
 
-void LeafSet::ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unordered_map<uint64_t, uint8_t>& modifiedBytes)
+void LeafSet::ApplyUpdates(
+    const uint32_t file_index,
+    const mmr::LeafIndex& nextLeafIdx,
+    const std::unordered_map<uint64_t, uint8_t>& modifiedBytes)
 {
 	for (auto byte : modifiedBytes) {
 		m_modifiedBytes[byte.first + 8] = byte.second;
@@ -36,21 +39,29 @@ void LeafSet::ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unorder
 
     m_nextLeafIdx = nextLeafIdx;
 
-    Flush();
+    Flush(file_index);
 }
 
-void LeafSet::Flush()
+void LeafSet::Flush(const uint32_t file_index)
 {
     m_mmap.Unmap();
 
-    std::vector<uint8_t> nextLeafIdxBytes = Serializer().Append<uint64_t>(m_nextLeafIdx.Get()).vec();
+    std::vector<uint8_t> nextLeafIdxBytes = Serializer()
+        .Append<uint64_t>(m_nextLeafIdx.Get())
+        .vec();
     assert(nextLeafIdxBytes.size() == 8);
 
     for (uint8_t i = 0; i < 8; i++) {
         m_modifiedBytes[i] = nextLeafIdxBytes[i];
     }
 
-    m_mmap.GetFile().WriteBytes(m_modifiedBytes);
+    FilePath new_leafset_path = m_dir.GetChild(StringUtil::Format("leaf{:0>6}.dat", file_index));
+    m_mmap.GetFile().CopyTo(new_leafset_path);
+
+    File new_leafset_file(std::move(new_leafset_path));
+    new_leafset_file.WriteBytes(m_modifiedBytes);
+
+    m_mmap = MemMap{ new_leafset_file };
     m_mmap.Map();
 
     m_modifiedBytes.clear();

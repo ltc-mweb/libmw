@@ -21,21 +21,25 @@ class FileBackend : public IBackend
 public:
     static std::shared_ptr<FileBackend> Open(
         const char dbPrefix,
-        const FilePath& path,
+        const FilePath& mmr_dir,
+        const uint32_t file_index,
         const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
     {
+        const FilePath path = GetPath(mmr_dir, dbPrefix, file_index);
         return std::make_shared<FileBackend>(
             dbPrefix,
-            AppendOnlyFile::Load(path.GetChild("pmmr_hash.bin")),
+            mmr_dir,
+            AppendOnlyFile::Load(path),
             pDBWrapper
         );
     }
 
     FileBackend(
         const char dbPrefix,
+        const FilePath& mmr_dir,
         const AppendOnlyFile::Ptr& pHashFile,
         const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
-        : m_dbPrefix(dbPrefix), m_pHashFile(pHashFile), m_pDatabase(pDBWrapper) {}
+        : m_dbPrefix(dbPrefix), m_dir(mmr_dir), m_pHashFile(pHashFile), m_pDatabase(pDBWrapper) {}
 
     void AddLeaf(const Leaf& leaf) final
     {
@@ -90,24 +94,26 @@ public:
         return std::move(*pLeaf);
     }
 
-    void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr) final
+    void Commit(const uint32_t file_index, const std::unique_ptr<libmw::IDBBatch>& pBatch) final
     {
-        m_pHashFile->Commit();
-        LeafDB ldb(m_dbPrefix, m_pDatabase.get(), pBatch.get());
-        ldb.Add(m_leaves);
-        m_leaves.clear();
-        m_leafMap.clear();
-    }
+        m_pHashFile->Commit(GetPath(m_dir, m_dbPrefix, file_index));
 
-    void Rollback() noexcept final
-    {
-        m_pHashFile->Rollback();
+        // Update database
+        LeafDB(m_dbPrefix, m_pDatabase.get(), pBatch.get())
+            .Add(m_leaves);
+
         m_leaves.clear();
         m_leafMap.clear();
     }
 
 private:
+    static FilePath GetPath(const FilePath& dir, const char prefix, const uint32_t file_index)
+    {
+        return dir.GetChild(StringUtil::Format("{}{:0>6}.dat", prefix, file_index));;
+    }
+
     char m_dbPrefix;
+    FilePath m_dir;
     AppendOnlyFile::Ptr m_pHashFile;
     std::vector<Leaf> m_leaves;
     std::map<mw::Hash, size_t> m_leafMap;

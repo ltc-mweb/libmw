@@ -27,6 +27,7 @@ public:
     Commitment() = default;
     Commitment(BigInt<SIZE>&& bytes) : m_bytes(std::move(bytes)) { }
     Commitment(const BigInt<SIZE>& bytes) : m_bytes(bytes) { }
+    Commitment(const std::array<uint8_t, SIZE>& bytes) : m_bytes(bytes) { }
     Commitment(const Commitment& other) = default;
     Commitment(Commitment&& other) noexcept = default;
 

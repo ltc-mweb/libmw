@@ -85,6 +85,7 @@ void MMRCache::Rewind(const uint64_t numLeaves)
 }
 
 void MMRCache::BatchWrite(
+    const uint32_t /*index*/,
     const LeafIndex& firstLeafIdx,
     const std::vector<Leaf>& leaves,
     const std::unique_ptr<libmw::IDBBatch>&)
@@ -96,10 +97,15 @@ void MMRCache::BatchWrite(
     }
 }
 
-void MMRCache::Flush(const std::unique_ptr<libmw::IDBBatch>& pBatch)
+void MMRCache::Flush(const uint32_t file_index, const std::unique_ptr<libmw::IDBBatch>& pBatch)
 {
-    LOG_TRACE_F("MMRCache: Flushing {} leaves at {}", m_leaves.size(), m_firstLeaf.GetLeafIndex());
-    m_pBase->BatchWrite(m_firstLeaf, m_leaves, pBatch);
+    LOG_TRACE_F(
+        "MMRCache: Flushing {} leaves at {} with file index {}",
+        m_leaves.size(),
+        m_firstLeaf.GetLeafIndex(),
+        file_index
+    );
+    m_pBase->BatchWrite(file_index, m_firstLeaf, m_leaves, pBatch);
     m_firstLeaf = GetNextLeafIdx();
     m_leaves.clear();
     m_nodes.clear();

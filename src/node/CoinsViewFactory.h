@@ -25,6 +25,7 @@ public:
 private:
     static mmr::MMR::Ptr BuildAndValidateKernelMMR(
         const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+        const uint32_t file_index,
         const mw::IBlockStore& blockStore,
         const FilePath& chainDir,
         const mw::Hash& firstMWHeaderHash,
@@ -33,6 +34,7 @@ private:
     );
 
 	static mmr::LeafSet::Ptr BuildAndValidateLeafSet(
+        const uint32_t file_index,
 		const FilePath& chainDir,
 		const mw::Header::CPtr& pStateHeader,
 		const std::vector<UTXO::CPtr>& utxos
@@ -40,6 +42,7 @@ private:
 
     static mmr::MMR::Ptr BuildAndValidateOutputMMR(
         const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+        const uint32_t file_index,
         const FilePath& chainDir,
         const mw::Header::CPtr& pStateHeader,
         const std::vector<UTXO::CPtr>& utxos
@@ -47,6 +50,7 @@ private:
 
 	static mmr::MMR::Ptr BuildAndValidateRangeProofMMR(
         const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+        const uint32_t file_index,
 		const FilePath& chainDir,
 		const mw::Header::CPtr& pStateHeader,
 		const std::vector<UTXO::CPtr>& utxos

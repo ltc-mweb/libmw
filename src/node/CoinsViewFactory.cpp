@@ -6,6 +6,7 @@
 #include <mw/crypto/Schnorr.h>
 #include <mw/consensus/KernelSumValidator.h>
 #include <mw/db/CoinDB.h>
+#include <mw/db/MMRInfoDB.h>
 
 static const size_t KERNEL_BATCH_SIZE = 512;
 static const size_t PROOF_BATCH_SIZE = 512;
@@ -27,7 +28,22 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
         ThrowValidation(EConsensusError::MMR_MISMATCH);
     }
 
+	auto pBatch = pDBWrapper->CreateBatch();
+
+	MMRInfo mmr_info;
+
+	MMRInfoDB mmr_db(pDBWrapper.get(), pBatch.get());
+	auto pMMRInfo = mmr_db.GetLatest();
+	if (pMMRInfo) {
+		mmr_info = *pMMRInfo;
+	}
+
+	mmr_info.index++;
+	mmr_info.pruned = stateHeaderHash;
+	mmr_info.compacted = boost::none; // TODO: Should we just always compact to stateHeaderHash?
+
 	auto pLeafSet = BuildAndValidateLeafSet(
+		mmr_info.index,
 		chainDir,
 		pStateHeader,
 		utxos
@@ -35,6 +51,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 
     auto pKernelMMR = BuildAndValidateKernelMMR(
         pDBWrapper,
+		mmr_info.index,
         blockStore,
         chainDir,
 		firstMWHeaderHash,
@@ -44,6 +61,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 
 	auto pOutputMMR = BuildAndValidateOutputMMR(
         pDBWrapper,
+		mmr_info.index,
 		chainDir,
 		pStateHeader,
 		utxos
@@ -51,6 +69,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 
 	auto pRangeProofMMR = BuildAndValidateRangeProofMMR(
         pDBWrapper,
+		mmr_info.index,
 		chainDir,
 		pStateHeader,
 		utxos
@@ -71,7 +90,6 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	);
 
 	// Add UTXOs to database
-	auto pBatch = pDBWrapper->CreateBatch();
 	CoinDB coinDB(pDBWrapper.get(), pBatch.get());
 	coinDB.AddUTXOs(utxos);
 	pBatch->Commit();
@@ -89,6 +107,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 // TODO: Also validate peg-in/peg-out transactions
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+	const uint32_t file_index,
 	const mw::IBlockStore& blockStore,
     const FilePath& chainDir,
     const mw::Hash& firstMWHeaderHash,
@@ -96,7 +115,7 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
     const std::vector<Kernel>& kernels)
 {
     auto mmrPath = chainDir.GetChild("kernels");
-    mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(mmr::FileBackend::Open('K', mmrPath, pDBWrapper));
+    mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(mmr::FileBackend::Open('K', mmrPath, file_index, pDBWrapper));
 
     auto pNextHeader = blockStore.GetHeader(firstMWHeaderHash);
 	assert(pNextHeader != nullptr);
@@ -148,12 +167,12 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
 }
 
 mmr::LeafSet::Ptr CoinsViewFactory::BuildAndValidateLeafSet(
+	const uint32_t file_index,
 	const FilePath& chainDir,
 	const mw::Header::CPtr& pStateHeader,
 	const std::vector<UTXO::CPtr>& utxos)
 {
-	File file(chainDir.GetChild("leafset.bin"));
-	auto pLeafSet = mmr::LeafSet::Open(chainDir);
+	auto pLeafSet = mmr::LeafSet::Open(chainDir, file_index);
 	for (const UTXO::CPtr& pUTXO : utxos)
 	{
 		pLeafSet->Add(pUTXO->GetLeafIndex());
@@ -168,12 +187,13 @@ mmr::LeafSet::Ptr CoinsViewFactory::BuildAndValidateLeafSet(
 
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateOutputMMR(
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+	const uint32_t file_index,
     const FilePath& chainDir,
     const mw::Header::CPtr& pStateHeader,
     const std::vector<UTXO::CPtr>& utxos)
 {
     auto mmrPath = chainDir.GetChild("outputs");
-    auto pBackend = mmr::FileBackend::Open('O', mmrPath, pDBWrapper);
+    auto pBackend = mmr::FileBackend::Open('O', mmrPath, file_index, pDBWrapper);
     mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
 
 	// TODO: Need parent hashes
@@ -191,12 +211,13 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateOutputMMR(
 
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+	const uint32_t file_index,
 	const FilePath& chainDir,
 	const mw::Header::CPtr& pStateHeader,
 	const std::vector<UTXO::CPtr>& utxos)
 {
     auto mmrPath = chainDir.GetChild("rangeproofs");
-    auto pBackend = mmr::FileBackend::Open('R', mmrPath, pDBWrapper);
+    auto pBackend = mmr::FileBackend::Open('R', mmrPath, file_index, pDBWrapper);
 	mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
 
 	std::vector<ProofData> proofs;

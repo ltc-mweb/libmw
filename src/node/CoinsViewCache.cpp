@@ -4,6 +4,7 @@
 #include <mw/consensus/Aggregation.h>
 #include <mw/consensus/KernelSumValidator.h>
 #include <mw/common/Logger.h>
+#include <mw/db/MMRInfoDB.h>
 
 MW_NAMESPACE
 
@@ -214,10 +215,29 @@ void CoinsViewCache::Flush(const std::unique_ptr<libmw::IDBBatch>& pBatch)
 {
     m_pBase->WriteBatch(pBatch, *m_pUpdates, GetBestHeader());
 
-    m_pLeafSet->Flush();
-    m_pKernelMMR->Flush(pBatch);
-    m_pOutputPMMR->Flush(pBatch);
-    m_pRangeProofPMMR->Flush(pBatch);
+    MMRInfo mmr_info;
+    if (!m_pBase->IsCache()) {
+        auto current_mmr_info = MMRInfoDB(GetDatabase().get(), pBatch.get())
+            .GetLatest();
+        if (current_mmr_info) {
+            mmr_info = *current_mmr_info;
+        }
+
+        ++mmr_info.index;
+        mmr_info.pruned = GetBestHeader()->GetHash();
+    }
+
+    m_pLeafSet->Flush(mmr_info.index);
+    // TODO: Flush PruneList
+    m_pKernelMMR->Flush(mmr_info.index, pBatch);
+    m_pOutputPMMR->Flush(mmr_info.index, pBatch);
+    m_pRangeProofPMMR->Flush(mmr_info.index, pBatch);
+
+    if (!m_pBase->IsCache()) {
+        MMRInfoDB(GetDatabase().get(), pBatch.get())
+            .Save(mmr_info);
+    }
+
     m_pUpdates->Clear();
 }
 

@@ -4,9 +4,8 @@
 #include <mw/file/FilePath.h>
 #include <mw/file/MemMap.h>
 #include <mw/common/Logger.h>
-#include <mw/traits/Batchable.h>
 
-class AppendOnlyFile : public Traits::IBatchable
+class AppendOnlyFile
 {
 public:
     using Ptr = std::shared_ptr<AppendOnlyFile>;
@@ -31,29 +30,30 @@ public:
         return pAppendOnlyFile;
     }
 
-    void Commit() final
+    void Commit(const FilePath& new_path)
     {
-        if (m_fileSize == m_bufferIndex && m_buffer.empty())
-        {
-            return;
-        }
-
-        if (m_fileSize < m_bufferIndex)
-        {
+        if (m_fileSize < m_bufferIndex) {
             ThrowFile_F("Buffer index is past the end of {}", m_file);
         }
 
         m_mmap.Unmap();
 
-        m_file.Write(m_bufferIndex, m_buffer, true);
-        m_fileSize = m_file.GetSize();
+        m_file.CopyTo(new_path);
+        m_file = File(new_path);
+
+        if (m_fileSize != m_bufferIndex || !m_buffer.empty()) {
+            m_file.Write(m_bufferIndex, m_buffer, true);
+            m_fileSize = m_file.GetSize();
+        }
+
         m_bufferIndex = m_fileSize;
         m_buffer.clear();
 
+        m_mmap = MemMap{ m_file };
         m_mmap.Map();
     }
 
-    void Rollback() noexcept final
+    void Rollback() noexcept
     {
         m_bufferIndex = m_fileSize;
         m_buffer.clear();

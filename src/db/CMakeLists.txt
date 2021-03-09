@@ -3,6 +3,7 @@ set(TARGET_NAME Database)
 file(GLOB SOURCE_CODE
 	"CoinDB.cpp"
 	"LeafDB.cpp"
+	"MMRInfoDB.cpp"
 )
 
 add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})

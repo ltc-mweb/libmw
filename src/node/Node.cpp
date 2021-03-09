@@ -2,6 +2,7 @@
 #include "CoinsViewFactory.h"
 
 #include <mw/config/ChainParams.h>
+#include <mw/db/MMRInfoDB.h>
 #include <mw/node/validation/BlockValidator.h>
 #include <mw/consensus/Aggregation.h>
 #include <mw/common/Logger.h>
@@ -21,19 +22,22 @@ mw::INode::Ptr InitializeNode(
 
     mw::ChainParams::Initialize(hrp, 20); // TODO: Pass in pegin-maturity
 
+    auto current_mmr_info = MMRInfoDB(pDBWrapper.get(), nullptr).GetLatest();
+    uint32_t file_index = current_mmr_info ? current_mmr_info->index : 0;
+
     auto chain_dir = pConfig->GetChainDir();
-    auto pLeafSet = mmr::LeafSet::Open(chain_dir);
+    auto pLeafSet = mmr::LeafSet::Open(chain_dir, file_index);
 
     auto kernels_path = chain_dir.GetChild("kernels").CreateDirIfMissing();
-    auto pKernelsBackend = mmr::FileBackend::Open('K', kernels_path, pDBWrapper);
+    auto pKernelsBackend = mmr::FileBackend::Open('K', kernels_path, file_index, pDBWrapper);
     mmr::MMR::Ptr pKernelsMMR = std::make_shared<mmr::MMR>(pKernelsBackend);
 
     auto outputs_path = chain_dir.GetChild("outputs").CreateDirIfMissing();
-    auto pOutputBackend = mmr::FileBackend::Open('O', outputs_path, pDBWrapper);
+    auto pOutputBackend = mmr::FileBackend::Open('O', outputs_path, file_index, pDBWrapper);
     mmr::MMR::Ptr pOutputMMR = std::make_shared<mmr::MMR>(pOutputBackend);
 
     auto rangeproof_path = chain_dir.GetChild("proofs").CreateDirIfMissing();
-    auto pRangeProofBackend = mmr::FileBackend::Open('R', rangeproof_path, pDBWrapper);
+    auto pRangeProofBackend = mmr::FileBackend::Open('R', rangeproof_path, file_index, pDBWrapper);
     mmr::MMR::Ptr pRangeProofMMR = std::make_shared<mmr::MMR>(pRangeProofBackend);
 
     // TODO: Validate Current State

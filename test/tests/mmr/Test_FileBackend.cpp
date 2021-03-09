@@ -24,12 +24,12 @@ TEST_CASE("mmr::FileBackend")
         auto pDatabase = std::make_shared<TestDBWrapper>();
 
         {
-            auto pBackend = FileBackend::Open('T', tempDir, pDatabase);
+            auto pBackend = FileBackend::Open('T', tempDir, 0, pDatabase);
             pBackend->AddLeaf(mmr::Leaf::Create(mmr::LeafIndex::At(0), { 0x05, 0x03, 0x07 }));
-            pBackend->Commit();
+            pBackend->Commit(1, nullptr);
         }
         {
-            auto pBackend = FileBackend::Open('T', tempDir, pDatabase);
+            auto pBackend = FileBackend::Open('T', tempDir, 1, pDatabase);
             REQUIRE(pBackend->GetNumLeaves() == 1);
             auto leaf = pBackend->GetLeaf(mmr::LeafIndex::At(0));
             REQUIRE(leaf.vec() == std::vector<uint8_t>{ 0x05, 0x03, 0x07 });

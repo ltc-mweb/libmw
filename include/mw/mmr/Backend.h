@@ -32,8 +32,7 @@ public:
 
     virtual LeafIndex GetNextLeaf() const noexcept { return LeafIndex::At(GetNumLeaves()); }
 
-    virtual void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr) = 0;
-    virtual void Rollback() noexcept = 0;
+    virtual void Commit(const uint32_t index, const std::unique_ptr<libmw::IDBBatch>& pBatch) = 0;
 };
 
 END_NAMESPACE

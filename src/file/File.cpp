@@ -203,3 +203,16 @@ size_t File::GetSize() const
 
     return size;
 }
+
+void File::CopyTo(const FilePath& new_path) const
+{
+    if (new_path.Exists()) {
+        new_path.Remove();
+    }
+
+    std::error_code ec;
+    filesystem::copy(m_path.m_path, new_path.m_path, ec);
+    if (ec) {
+        ThrowFile_F("Failed to copy {} to {}", m_path, new_path);
+    }
+}

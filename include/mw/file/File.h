@@ -28,6 +28,8 @@ public:
     void WriteBytes(const std::unordered_map<uint64_t, uint8_t>& bytes);
     size_t GetSize() const;
 
+    void CopyTo(const FilePath& new_path) const;
+
     const FilePath& GetPath() const noexcept { return m_path; }
     const filesystem::path& GetFSPath() const noexcept { return m_path.ToPath(); }
 
