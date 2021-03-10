@@ -57,7 +57,7 @@ END_NAMESPACE
 
 Node::~Node()
 {
-    LoggerAPI::Shutdown();
+
 }
 
 void Node::ValidateBlock(

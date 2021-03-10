@@ -32,7 +32,6 @@ MWEXPORT libmw::CoinsViewRef Initialize(
 
 MWEXPORT void Shutdown()
 {
-    LoggerAPI::Shutdown();
     NODE.reset();
 }
 
