@@ -2,7 +2,6 @@ set(TARGET_NAME Common)
 
 file(GLOB SOURCE_CODE
 	"Logger.cpp"
-	"ThreadManagerImpl.cpp"
 )
 
 add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})

@@ -1,9 +1,4 @@
-#include "ThreadManagerImpl.h"
-
 #include <mw/common/Logger.h>
-#include <mw/file/FilePath.h>
-#include <shared_mutex>
-#include <random>
 
 void null_logger(const std::string&) {}
 
@@ -39,11 +34,6 @@ namespace LoggerAPI
                 }
 
                 newlinePos = formatted.find("\n");
-            }
-
-            const std::string threadName = ThreadManager::GetInstance().GetCurrentThreadName();
-            if (!threadName.empty()) {
-                formatted = threadName + " " + formatted;
             }
 
             LOGGER_CALLBACK(formatted);
