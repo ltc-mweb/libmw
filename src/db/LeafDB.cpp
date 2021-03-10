@@ -9,13 +9,13 @@ LeafDB::LeafDB(const char prefix, libmw::IDBWrapper* pDBWrapper, libmw::IDBBatch
 
 LeafDB::~LeafDB() {}
 
-std::unique_ptr<mmr::Leaf> LeafDB::Get(const mmr::LeafIndex& idx, mw::Hash&& hash) const
+std::unique_ptr<mmr::Leaf> LeafDB::Get(const mmr::LeafIndex& idx) const
 {
-    auto pVec = m_pDatabase->Get<SerializableVec>(m_prefix, hash.ToHex());
+    auto pVec = m_pDatabase->Get<SerializableVec>(m_prefix, std::to_string(idx.GetLeafIndex()));
     if (pVec == nullptr) {
         return nullptr;
     }
-    return std::make_unique<mmr::Leaf>(idx, std::move(hash), std::vector<uint8_t>(pVec->item->Get()));
+    return std::make_unique<mmr::Leaf>(mmr::Leaf::Create(idx, pVec->item->Get()));
 }
 
 void LeafDB::Add(const std::vector<mmr::Leaf>& leaves)
@@ -28,16 +28,16 @@ void LeafDB::Add(const std::vector<mmr::Leaf>& leaves)
         leaves.cbegin(), leaves.cend(),
         std::back_inserter(entries),
         [](const mmr::Leaf& leaf) {
-            return DBEntry<SerializableVec>(leaf.GetHash().ToHex(), std::vector<uint8_t>(leaf.vec()));
+            return DBEntry<SerializableVec>(std::to_string(leaf.GetLeafIndex().GetLeafIndex()), leaf.vec());
         }
     );
     m_pDatabase->Put(m_prefix, entries);
 }
 
-void LeafDB::Remove(const std::vector<mw::Hash>& hashes)
+void LeafDB::Remove(const std::vector<mmr::LeafIndex>& indices)
 {
-    for (const mw::Hash& hash : hashes) {
-        m_pDatabase->Delete(m_prefix, hash.ToHex());
+    for (const mmr::LeafIndex& idx : indices) {
+        m_pDatabase->Delete(m_prefix, std::to_string(idx.GetLeafIndex()));
     }
 }
 

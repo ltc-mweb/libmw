@@ -46,7 +46,7 @@ private:
     FilePath m_dir;
     AppendOnlyFile::Ptr m_pHashFile;
     std::vector<Leaf> m_leaves;
-    std::map<mw::Hash, size_t> m_leafMap;
+    std::map<mw::Hash, size_t> m_leafMap; // TODO: Can probably just be map<LeafIndex, size_t>
     std::shared_ptr<libmw::IDBWrapper> m_pDatabase;
 };
 

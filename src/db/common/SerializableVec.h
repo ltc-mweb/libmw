@@ -3,7 +3,7 @@
 class SerializableVec : public Traits::ISerializable
 {
 public:
-    SerializableVec(std::vector<uint8_t>&& bytes) : m_bytes(std::move(bytes)) {}
+    SerializableVec(std::vector<uint8_t> bytes) : m_bytes(std::move(bytes)) {}
 
     const std::vector<uint8_t>& Get() const { return m_bytes; }
 

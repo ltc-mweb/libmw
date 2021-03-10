@@ -15,10 +15,10 @@ class Leaf
 {
 public:
     Leaf() noexcept = default;
-    Leaf(const LeafIndex& index, mw::Hash&& hash, std::vector<uint8_t>&& data)
+    Leaf(const LeafIndex& index, mw::Hash hash, std::vector<uint8_t> data)
         : m_index(index), m_hash(std::move(hash)), m_data(std::move(data)) { }
 
-    static Leaf Create(const LeafIndex& index, std::vector<uint8_t>&& data)
+    static Leaf Create(const LeafIndex& index, std::vector<uint8_t> data)
     {
         Serializer hashSerializer;
         hashSerializer.Append<uint64_t>(index.GetPosition());

@@ -76,7 +76,7 @@ mmr::Leaf mmr::FileBackend::GetLeaf(const LeafIndex& idx) const
     }
 
     LeafDB ldb(m_dbPrefix, m_pDatabase.get());
-    auto pLeaf = ldb.Get(idx, std::move(hash));
+    auto pLeaf = ldb.Get(idx);
     if (!pLeaf) {
         ThrowNotFound_F("Can't get leaf at position {} with hash {}", idx.GetPosition(), hash);
     }

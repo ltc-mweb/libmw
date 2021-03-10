@@ -15,35 +15,35 @@ TEST_CASE("LeafDB")
 
     ldb.Add({leaf1, leaf2, leaf3});
 
-    auto pLeaf = ldb.Get(mmr::LeafIndex::At(0), mw::Hash(leaf1.GetHash()));
+    auto pLeaf = ldb.Get(mmr::LeafIndex::At(0));
     REQUIRE(pLeaf->GetHash() == leaf1.GetHash());
     REQUIRE(pLeaf->vec() == leaf1.vec());
 
-    pLeaf = ldb.Get(mmr::LeafIndex::At(1), mw::Hash(leaf2.GetHash()));
+    pLeaf = ldb.Get(mmr::LeafIndex::At(1));
     REQUIRE(pLeaf->GetHash() == leaf2.GetHash());
     REQUIRE(pLeaf->vec() == leaf2.vec());
 
-    pLeaf = ldb.Get(mmr::LeafIndex::At(2), mw::Hash(leaf3.GetHash()));
+    pLeaf = ldb.Get(mmr::LeafIndex::At(2));
     REQUIRE(pLeaf->GetHash() == leaf3.GetHash());
     REQUIRE(pLeaf->vec() == leaf3.vec());
 
     std::vector<uint8_t> data;
-    REQUIRE(pDatabase->Read("L" + leaf1.GetHash().ToHex(), data));
+    REQUIRE(pDatabase->Read("L" + std::to_string(leaf1.GetLeafIndex().GetLeafIndex()), data));
     REQUIRE(data == leaf1.vec());
-    REQUIRE(pDatabase->Read("L" + leaf2.GetHash().ToHex(), data));
+    REQUIRE(pDatabase->Read("L" + std::to_string(leaf2.GetLeafIndex().GetLeafIndex()), data));
     REQUIRE(data == leaf2.vec());
-    REQUIRE(pDatabase->Read("L" + leaf3.GetHash().ToHex(), data));
+    REQUIRE(pDatabase->Read("L" + std::to_string(leaf3.GetLeafIndex().GetLeafIndex()), data));
     REQUIRE(data == leaf3.vec());
 
-    ldb.Remove({leaf2.GetHash()});
-    REQUIRE(ldb.Get(mmr::LeafIndex::At(1), mw::Hash(leaf2.GetHash())) == nullptr);
+    ldb.Remove({leaf2.GetLeafIndex()});
+    REQUIRE(ldb.Get(mmr::LeafIndex::At(1)) == nullptr);
 
     ldb.RemoveAll();
-    REQUIRE(ldb.Get(mmr::LeafIndex::At(0), mw::Hash(leaf1.GetHash())) == nullptr);
-    REQUIRE(ldb.Get(mmr::LeafIndex::At(2), mw::Hash(leaf3.GetHash())) == nullptr);
+    REQUIRE(ldb.Get(mmr::LeafIndex::At(0)) == nullptr);
+    REQUIRE(ldb.Get(mmr::LeafIndex::At(2)) == nullptr);
 
     ldb.Add({leaf2});
-    pLeaf = ldb.Get(mmr::LeafIndex::At(1), mw::Hash(leaf2.GetHash()));
+    pLeaf = ldb.Get(mmr::LeafIndex::At(1));
     REQUIRE(pLeaf->GetHash() == leaf2.GetHash());
     REQUIRE(pLeaf->vec() == leaf2.vec());
 }

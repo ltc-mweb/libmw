@@ -54,7 +54,6 @@ void CoinsViewDB::SpendUTXO(CoinDB& coinDB, const Commitment& commitment)
 		ThrowValidation(EConsensusError::UTXO_MISSING);
     }
 
-    utxos.pop_back();
     coinDB.RemoveUTXOs(std::vector<Commitment>{ commitment });
 }
 
