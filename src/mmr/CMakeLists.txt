@@ -8,6 +8,7 @@ file(GLOB SOURCE_CODE
 	"LeafSetCache.cpp"
 	"MMR.cpp"
 	"MMRCache.cpp"
+	"backends/FileBackend.cpp"
 )
 
 add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})

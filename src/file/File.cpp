@@ -9,7 +9,7 @@
 
 void File::Create()
 {
-    m_path.GetParent().CreateDirIfMissing();
+    m_path.GetParent().CreateDir();
 
     std::ifstream inFile(m_path.m_path, std::ios::in | std::ifstream::ate | std::ifstream::binary);
     if (inFile.is_open())

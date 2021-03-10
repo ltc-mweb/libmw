@@ -6,8 +6,8 @@
 class Node : public mw::INode
 {
 public:
-    Node(const NodeConfig::Ptr& pConfig, const mw::CoinsViewDB::Ptr& pDBView)
-        : m_pConfig(pConfig), m_pDBView(pDBView) { }
+    Node(const FilePath& datadir, const mw::CoinsViewDB::Ptr& pDBView)
+        : m_datadir(datadir), m_pDBView(pDBView) { }
     ~Node();
 
     mw::CoinsViewDB::Ptr GetDBView() final { return m_pDBView; }
@@ -32,6 +32,6 @@ public:
     ) final;
 
 private:
-    NodeConfig ::Ptr m_pConfig;
+    FilePath m_datadir;
     mw::CoinsViewDB::Ptr m_pDBView;
 };

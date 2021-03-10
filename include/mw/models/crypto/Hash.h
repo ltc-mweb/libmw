@@ -6,7 +6,6 @@
 
 #include <mw/common/Macros.h>
 #include <mw/models/crypto/BigInteger.h>
-#include <mw/util/BitUtil.h>
 #include <boost/container_hash/hash.hpp>
 
 MW_NAMESPACE

@@ -1,7 +1,7 @@
 #include <mw/wallet/Wallet.h>
 #include <mw/crypto/Keys.h>
 #include <mw/crypto/Random.h>
-#include <mw/config/ChainParams.h>
+#include <mw/consensus/ChainParams.h>
 #include <mw/exceptions/InsufficientFundsException.h>
 
 #include "Transact.h"

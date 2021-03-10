@@ -19,7 +19,7 @@ MWIMPORT libmw::CoinsViewRef Initialize(
     const libmw::HeaderRef& header,
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
     const std::function<void(const std::string&)>& log_callback
-); // TODO: Take in a BlockStore
+);
 
 /// <summary>
 /// Shuts down node and cleans up memory.

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mw/config/ChainParams.h>
+#include <mw/consensus/ChainParams.h>
 #include <mw/exceptions/DeserializationException.h>
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Jsonable.h>

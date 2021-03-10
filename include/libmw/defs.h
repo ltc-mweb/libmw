@@ -146,7 +146,7 @@ struct StateRef
 
 struct ChainParams
 {
-    std::string dataDirectory;
+    std::string dataDirectory; // TODO: Use fs::path
     std::string hrp;
 };
 

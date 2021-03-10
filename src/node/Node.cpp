@@ -1,7 +1,7 @@
 #include "Node.h"
 #include "CoinsViewFactory.h"
 
-#include <mw/config/ChainParams.h>
+#include <mw/consensus/ChainParams.h>
 #include <mw/db/MMRInfoDB.h>
 #include <mw/node/validation/BlockValidator.h>
 #include <mw/consensus/Aggregation.h>
@@ -10,33 +10,28 @@
 #include <mw/mmr/backends/FileBackend.h>
 #include <unordered_map>
 
-MW_NAMESPACE
-
-mw::INode::Ptr InitializeNode(
+mw::INode::Ptr mw::InitializeNode(
     const FilePath& datadir,
     const std::string& hrp,
     const mw::Header::CPtr& pBestHeader,
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
 {
-    auto pConfig = NodeConfig::Create(datadir, { });
-
     mw::ChainParams::Initialize(hrp, 20); // TODO: Pass in pegin-maturity
 
     auto current_mmr_info = MMRInfoDB(pDBWrapper.get(), nullptr).GetLatest();
     uint32_t file_index = current_mmr_info ? current_mmr_info->index : 0;
 
-    auto chain_dir = pConfig->GetChainDir();
-    auto pLeafSet = mmr::LeafSet::Open(chain_dir, file_index);
+    auto pLeafSet = mmr::LeafSet::Open(datadir, file_index);
 
-    auto kernels_path = chain_dir.GetChild("kernels").CreateDirIfMissing();
+    auto kernels_path = datadir.GetChild("kern").CreateDir();
     auto pKernelsBackend = mmr::FileBackend::Open('K', kernels_path, file_index, pDBWrapper);
     mmr::MMR::Ptr pKernelsMMR = std::make_shared<mmr::MMR>(pKernelsBackend);
 
-    auto outputs_path = chain_dir.GetChild("outputs").CreateDirIfMissing();
+    auto outputs_path = datadir.GetChild("out").CreateDir();
     auto pOutputBackend = mmr::FileBackend::Open('O', outputs_path, file_index, pDBWrapper);
     mmr::MMR::Ptr pOutputMMR = std::make_shared<mmr::MMR>(pOutputBackend);
 
-    auto rangeproof_path = chain_dir.GetChild("proofs").CreateDirIfMissing();
+    auto rangeproof_path = datadir.GetChild("proof").CreateDir();
     auto pRangeProofBackend = mmr::FileBackend::Open('R', rangeproof_path, file_index, pDBWrapper);
     mmr::MMR::Ptr pRangeProofMMR = std::make_shared<mmr::MMR>(pRangeProofBackend);
 
@@ -50,10 +45,8 @@ mw::INode::Ptr InitializeNode(
         pRangeProofMMR
     );
 
-    return std::shared_ptr<mw::INode>(new Node(pConfig, pDBView));
+    return std::shared_ptr<mw::INode>(new Node(datadir, pDBView));
 }
-
-END_NAMESPACE
 
 Node::~Node()
 {
@@ -114,7 +107,7 @@ mw::ICoinsView::Ptr Node::ApplyState(
     return CoinsViewFactory::CreateDBView(
         pDBWrapper,
         blockStore,
-        m_pConfig->GetChainDir(),
+        m_datadir,
         firstMWHeaderHash,
         stateHeaderHash,
         utxos,

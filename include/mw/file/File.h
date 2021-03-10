@@ -31,12 +31,11 @@ public:
     void CopyTo(const FilePath& new_path) const;
 
     const FilePath& GetPath() const noexcept { return m_path; }
-    const filesystem::path& GetFSPath() const noexcept { return m_path.ToPath(); }
 
     //
     // Traits
     //
-    std::string Format() const final { return m_path.ToPath().u8string(); }
+    std::string Format() const final { return m_path.u8string(); }
 
 private:
     FilePath m_path;

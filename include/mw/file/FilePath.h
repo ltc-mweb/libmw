@@ -10,10 +10,11 @@
 
 #pragma warning(push)
 #pragma warning(disable: 4100 4127 4244)
-#include <ghc/filesystem.hpp>
+#include <ghc/filesystem.hpp> // TODO: Switch to boost::filesystem
 #pragma warning(pop)
 
 namespace filesystem = ghc::filesystem;
+using error_code = std::error_code;
 
 #include <mw/exceptions/FileException.h>
 #include <mw/traits/Printable.h>
@@ -61,8 +62,7 @@ public:
 
     FilePath GetParent() const
     {
-        if (!m_path.has_parent_path())
-        {
+        if (!m_path.has_parent_path()) {
             ThrowFile_F("Can't find parent path for {}", *this);
         }
 
@@ -71,10 +71,9 @@ public:
 
     bool Exists() const
     {
-        std::error_code ec;
+        error_code ec;
         const bool exists = filesystem::exists(m_path, ec);
-        if (ec)
-        {
+        if (ec) {
             ThrowFile_F("Error ({}) while checking if {} exists", ec.message(), *this);
         }
 
@@ -83,16 +82,15 @@ public:
 
     bool Exists_Safe() const noexcept
     {
-        std::error_code ec;
+        error_code ec;
         return filesystem::exists(m_path, ec);
     }
 
     bool IsDirectory() const
     {
-        std::error_code ec;
+        error_code ec;
         const bool isDirectory = filesystem::is_directory(m_path, ec);
-        if (ec)
-        {
+        if (ec) {
             ThrowFile_F("Error ({}) while checking if {} is a directory", ec.message(), *this);
         }
 
@@ -101,16 +99,15 @@ public:
 
     bool IsDirectory_Safe() const noexcept
     {
-        std::error_code ec;
+        error_code ec;
         return filesystem::is_directory(m_path, ec);
     }
 
-    FilePath CreateDirIfMissing() const
+    FilePath CreateDir() const
     {
-        std::error_code ec;
+        error_code ec;
         filesystem::create_directories(m_path, ec);
-        if (ec && (!Exists_Safe() || !IsDirectory_Safe()))
-        {
+        if (ec && (!Exists_Safe() || !IsDirectory_Safe())) {
             ThrowFile_F("Error ({}) while trying to create directory {}", ec.message(), *this);
         }
 
@@ -119,15 +116,12 @@ public:
 
     void Remove() const
     {
-        std::error_code ec;
+        error_code ec;
         filesystem::remove_all(m_path, ec);
-        if (ec && Exists_Safe())
-        {
+        if (ec && Exists_Safe()) {
             ThrowFile_F("Error ({}) while trying to remove {}", ec.message(), *this);
         }
     }
-
-    const filesystem::path& ToPath() const noexcept { return m_path; }
 
 #ifdef MW_ENABLE_WSTRING
     std::wstring ToString() const { return m_path.wstring(); }
