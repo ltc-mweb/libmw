@@ -52,5 +52,4 @@ TEST_CASE("CheckTxInputs")
     REQUIRE_THROWS(libmw::node::CheckTxInputs(pCachedView, transaction, height));
 
     pNode.reset();
-    LoggerAPI::Shutdown();
 }

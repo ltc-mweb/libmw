@@ -29,7 +29,5 @@ TEST_CASE("BlockValidator")
         REQUIRE_FALSE(block_10.GetBlock()->WasValidated());
         pNode->ValidateBlock(block_10.GetBlock(), block_10.GetHash(), pegInCoins, pegOutCoins);
         REQUIRE(block_10.GetBlock()->WasValidated());
-
-        LoggerAPI::Shutdown();
     }
 }
