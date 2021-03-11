@@ -47,14 +47,15 @@ class MMRUtil
 public:
     static void BuildCompactBitSet(
         const uint64_t num_leaves,
-        const boost::dynamic_bitset<uint64_t>& unspent_leaf_indices,
-        boost::dynamic_bitset<uint64_t>& compactable_node_indices)
+        const boost::dynamic_bitset<>& unspent_leaf_indices,
+        boost::dynamic_bitset<>& compactable_node_indices)
     {
-        boost::dynamic_bitset<uint64_t> prunable_nodes;
+        compactable_node_indices = boost::dynamic_bitset<>(num_leaves * 2);
+        boost::dynamic_bitset<> prunable_nodes(num_leaves * 2);
 
         mmr::LeafIndex leaf_idx = mmr::LeafIndex::At(0);
         while (leaf_idx.GetLeafIndex() <= num_leaves) {
-            if (!unspent_leaf_indices.test(leaf_idx.GetLeafIndex())) {
+            if (unspent_leaf_indices.size() > leaf_idx.GetLeafIndex() && !unspent_leaf_indices.test(leaf_idx.GetLeafIndex())) {
                 prunable_nodes.set(leaf_idx.GetPosition());
             }
 
@@ -83,9 +84,9 @@ public:
     }
 
     static void DiffCompactBitSet(
-        const boost::dynamic_bitset<uint64_t>& prev_compact,
-        const boost::dynamic_bitset<uint64_t>& new_compact,
-        boost::dynamic_bitset<uint64_t>& diff)
+        const boost::dynamic_bitset<>& prev_compact,
+        const boost::dynamic_bitset<>& new_compact,
+        boost::dynamic_bitset<>& diff)
     {
         size_t diff_index = 0;
         for (size_t i = 0; i < new_compact.size(); i++) {

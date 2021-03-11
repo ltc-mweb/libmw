@@ -96,3 +96,28 @@ TEST_CASE("mmr::SiblingIter")
         }
     }
 }
+
+TEST_CASE("mmr::MMRUtil::BuildCompactBitSet")
+{
+    size_t num_leaves = 50;
+    boost::dynamic_bitset<> unspent_leaf_indices(num_leaves);
+    unspent_leaf_indices.set(2);
+    unspent_leaf_indices.set(9);
+    unspent_leaf_indices.set(26);
+    unspent_leaf_indices.set(27);
+    for (size_t i = 30; i < num_leaves; i++) {
+        unspent_leaf_indices.set(i);
+    }
+
+    boost::dynamic_bitset<> compactable_node_indices;
+    mmr::MMRUtil::BuildCompactBitSet(num_leaves, unspent_leaf_indices, compactable_node_indices);
+
+    REQUIRE(compactable_node_indices.test(0));
+
+    std::string actual;
+    boost::to_string(compactable_node_indices, actual);
+
+    // to_string prints in descending order. We reverse it for readability.
+    std::string actual_reversed(actual.crbegin(), actual.crend());
+    REQUIRE(actual_reversed == "1100000111111000001100111111000111111111111110110000011000000000000000000000000000000000000000000000");
+}
