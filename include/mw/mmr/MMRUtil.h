@@ -83,20 +83,22 @@ public:
         }
     }
 
-    static void DiffCompactBitSet(
+    static boost::dynamic_bitset<> DiffCompactBitSet(
         const boost::dynamic_bitset<>& prev_compact,
-        const boost::dynamic_bitset<>& new_compact,
-        boost::dynamic_bitset<>& diff)
+        const boost::dynamic_bitset<>& new_compact)
     {
-        size_t diff_index = 0;
+        boost::dynamic_bitset<> diff;
+
         for (size_t i = 0; i < new_compact.size(); i++) {
             if (prev_compact.size() > i && prev_compact.test(i)) {
                 assert(new_compact.test(i));
                 continue;
             }
 
-            diff.set(diff_index++, new_compact.test(i));
+            diff.push_back(new_compact.test(i));
         }
+
+        return diff;
     }
 };
 

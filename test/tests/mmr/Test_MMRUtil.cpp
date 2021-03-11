@@ -114,10 +114,28 @@ TEST_CASE("mmr::MMRUtil::BuildCompactBitSet")
 
     REQUIRE(compactable_node_indices.test(0));
 
-    std::string actual;
-    boost::to_string(compactable_node_indices, actual);
+    std::string compact_str;
+    boost::to_string(compactable_node_indices, compact_str);
+    compact_str = std::string(compact_str.crbegin(), compact_str.crend()); // Reverse for readability
 
-    // to_string prints in descending order. We reverse it for readability.
-    std::string actual_reversed(actual.crbegin(), actual.crend());
-    REQUIRE(actual_reversed == "1100000111111000001100111111000111111111111110110000011000000000000000000000000000000000000000000000");
+    REQUIRE(compact_str == "1100000111111000001100111111000111111111111110110000011000000000000000000000000000000000000000000000");
+}
+
+TEST_CASE("mmr::MMRUtil::DiffCompactBitSet")
+{
+    boost::dynamic_bitset<> prev_compact(10);
+    prev_compact.set(0, 5, true);
+
+    boost::dynamic_bitset<> new_compact(20);
+    new_compact.set(0, 5, true);
+    new_compact.set(8, 10, true);
+
+    boost::dynamic_bitset<> diff = mmr::MMRUtil::DiffCompactBitSet(prev_compact, new_compact);
+
+    std::string diff_str;
+    boost::to_string(diff, diff_str);
+    diff_str = std::string(diff_str.crbegin(), diff_str.crend()); // Reverse for readability
+
+    REQUIRE(diff.size() == 15);
+    REQUIRE(diff_str == "000111111111100");
 }
