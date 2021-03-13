@@ -168,7 +168,7 @@ bool CoinsViewCache::HasCoinInCache(const Commitment& commitment) const noexcept
 
 void CoinsViewCache::AddUTXO(const uint64_t header_height, const Output& output)
 {
-    mmr::LeafIndex leafIdx = m_pOutputPMMR->Add(OutputId{ output.GetFeatures(), output.GetCommitment() }); // TODO: Should be everything on Output except rangeproof and signature?
+    mmr::LeafIndex leafIdx = m_pOutputPMMR->Add(output.ToIdentifier()); // TODO: Should be everything on Output except rangeproof and signature?
     mmr::LeafIndex leafIdx2 = m_pRangeProofPMMR->Add(*output.GetRangeProof());
     assert(leafIdx == leafIdx2);
 

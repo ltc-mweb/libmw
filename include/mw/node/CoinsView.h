@@ -71,7 +71,6 @@ private:
         }
     }
 
-    // TODO: Handle sorting of kernels & UTXOs per block... Just use a vector of TxBody's?
     std::unordered_map<Commitment, std::vector<CoinAction>> m_actions;
 };
 

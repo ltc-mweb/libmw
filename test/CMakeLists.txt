@@ -31,7 +31,7 @@ add_subdirectory(tests/serialization)
 add_subdirectory(tests/wallet)
 
 add_executable(Tests ${test_sources})
-add_dependencies(Tests fmt::fmt MW_TEST::Framework MW::Node MW::Wallet)
+add_dependencies(Tests MW_TEST::Framework MW::Node MW::Wallet)
 target_link_libraries(Tests MW_TEST::Framework MW::Node MW::Wallet Catch2::Catch2 libmw)
 
 include(CTest)

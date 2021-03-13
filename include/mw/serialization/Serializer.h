@@ -71,7 +71,6 @@ public:
         return *this;
     }
 
-    // TODO: Should we care about unicode, where chars are larger than 1 byte?
     Serializer& Append(const std::string& varString)
     {
         Append<uint64_t>(varString.length());

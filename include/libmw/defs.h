@@ -56,6 +56,7 @@ typedef std::array<uint8_t, 32> KernelHash;
 typedef std::array<uint8_t, 32> Offset;
 typedef std::array<uint8_t, 32> BlindingFactor;
 typedef std::array<uint8_t, 33> Commitment;
+typedef std::array<uint8_t, 33> PubKey;
 typedef std::string MWEBAddress;
 
 static const uint8_t NORMAL_OUTPUT = 0;
@@ -65,11 +66,22 @@ static constexpr size_t MAX_BLOCK_WEIGHT = 21'000;
 static constexpr size_t KERNEL_WEIGHT = 2;
 static constexpr size_t OWNER_SIG_WEIGHT = 1;
 static constexpr size_t OUTPUT_WEIGHT = 18;
+static constexpr uint16_t PEGIN_MATURITY = 20;
 
 struct PegIn
 {
     uint64_t amount;
     std::array<uint8_t, 33> commitment;
+
+    bool operator==(const PegIn& rhs) const
+    {
+        return amount == rhs.amount && commitment == rhs.commitment;
+    }
+
+    bool operator!=(const PegIn& rhs) const
+    {
+        return !(*this == rhs);
+    }
 };
 
 struct PegOut

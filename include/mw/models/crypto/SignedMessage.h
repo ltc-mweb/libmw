@@ -6,6 +6,7 @@
 #include <mw/models/crypto/Signature.h>
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
+#include <boost/container_hash/hash.hpp>
 
 /// <summary>
 /// Contains a hashed message, a signature of that message, and the public key it was signed for.
@@ -69,3 +70,15 @@ private:
     PublicKey m_publicKey;
     Signature m_signature;
 };
+
+namespace std
+{
+    template<>
+    struct hash<SignedMessage>
+    {
+        size_t operator()(const SignedMessage& hash) const
+        {
+            return boost::hash_value(hash.Serialized());
+        }
+    };
+}

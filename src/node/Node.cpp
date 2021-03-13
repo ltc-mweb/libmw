@@ -16,7 +16,7 @@ mw::INode::Ptr mw::InitializeNode(
     const mw::Header::CPtr& pBestHeader,
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
 {
-    mw::ChainParams::Initialize(hrp, 20); // TODO: Pass in pegin-maturity
+    mw::ChainParams::Initialize(hrp, libmw::PEGIN_MATURITY);
 
     auto current_mmr_info = MMRInfoDB(pDBWrapper.get(), nullptr).GetLatest();
     uint32_t file_index = current_mmr_info ? current_mmr_info->index : 0;
