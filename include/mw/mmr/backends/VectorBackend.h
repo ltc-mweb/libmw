@@ -42,6 +42,8 @@ public:
         m_nodes.resize(nextLeafIndex.GetPosition());
     }
 
+    void Compact(const uint32_t, const boost::dynamic_bitset<uint64_t>&) final { }
+
     uint64_t GetNumLeaves() const noexcept final { return m_leaves.size(); }
 
     mw::Hash GetHash(const Index& idx) const final { return m_nodes[idx.GetPosition()]; }

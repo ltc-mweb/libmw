@@ -36,7 +36,9 @@ if (WIN32)
     target_link_libraries(${TARGET_NAME} PUBLIC ws2_32)
 endif()
 
-target_link_libraries(${TARGET_NAME} PUBLIC ${Boost_LIBRARIES} OpenSSL::SSL OpenSSL::Crypto)
+
+target_include_directories(${TARGET_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
+target_link_libraries(${TARGET_NAME} PUBLIC ${Boost_LIBRARIES})
 
 target_compile_definitions(${TARGET_NAME} PUBLIC
     CLIENT_VERSION_MAJOR=1

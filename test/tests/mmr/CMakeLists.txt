@@ -6,6 +6,7 @@ set(MMR_Tests
 	"Test_LeafSetCache.cpp"
     "Test_MMR.cpp"
     "Test_MMRUtil.cpp"
+    "Test_PruneList.cpp"
 )
 
 list_prepend(MMR_Tests ${CMAKE_CURRENT_LIST_DIR}/)

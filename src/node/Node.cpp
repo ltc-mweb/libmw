@@ -20,19 +20,21 @@ mw::INode::Ptr mw::InitializeNode(
 
     auto current_mmr_info = MMRInfoDB(pDBWrapper.get(), nullptr).GetLatest();
     uint32_t file_index = current_mmr_info ? current_mmr_info->index : 0;
+    uint32_t compact_index = current_mmr_info ? current_mmr_info->compact_index : 0;
 
     auto pLeafSet = mmr::LeafSet::Open(datadir, file_index);
+    auto pPruneList = mmr::PruneList::Open(datadir, compact_index);
 
     auto kernels_path = datadir.GetChild("kern").CreateDir();
-    auto pKernelsBackend = mmr::FileBackend::Open('K', kernels_path, file_index, pDBWrapper);
+    auto pKernelsBackend = mmr::FileBackend::Open('K', kernels_path, file_index, pDBWrapper, nullptr);
     mmr::MMR::Ptr pKernelsMMR = std::make_shared<mmr::MMR>(pKernelsBackend);
 
     auto outputs_path = datadir.GetChild("out").CreateDir();
-    auto pOutputBackend = mmr::FileBackend::Open('O', outputs_path, file_index, pDBWrapper);
+    auto pOutputBackend = mmr::FileBackend::Open('O', outputs_path, file_index, pDBWrapper, pPruneList);
     mmr::MMR::Ptr pOutputMMR = std::make_shared<mmr::MMR>(pOutputBackend);
 
     auto rangeproof_path = datadir.GetChild("proof").CreateDir();
-    auto pRangeProofBackend = mmr::FileBackend::Open('R', rangeproof_path, file_index, pDBWrapper);
+    auto pRangeProofBackend = mmr::FileBackend::Open('R', rangeproof_path, file_index, pDBWrapper, pPruneList);
     mmr::MMR::Ptr pRangeProofMMR = std::make_shared<mmr::MMR>(pRangeProofBackend);
 
     // TODO: Validate Current State

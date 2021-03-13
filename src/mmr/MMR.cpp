@@ -39,7 +39,6 @@ void MMR::BatchWrite(
 {
     LOG_TRACE_F("MMR: Writing batch {} with first leaf {}", file_index, firstLeafIdx.GetLeafIndex());
 
-    // TODO: Copy existing file to new index
     m_pBackend->Rewind(firstLeafIdx);
     for (const Leaf& leaf : leaves)
     {

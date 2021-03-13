@@ -6,6 +6,8 @@
 
 #include <mw/common/Macros.h>
 #include <mw/mmr/Backend.h>
+#include <mw/mmr/LeafSet.h>
+#include <mw/mmr/PruneList.h>
 #include <mw/file/FilePath.h>
 #include <mw/file/AppendOnlyFile.h>
 #include <libmw/interfaces/db_interface.h>
@@ -19,19 +21,23 @@ public:
         const char dbPrefix,
         const FilePath& mmr_dir,
         const uint32_t file_index,
-        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper
+        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+        const mmr::PruneList::CPtr& pPruneList
     );
 
     FileBackend(
         const char dbPrefix,
         const FilePath& mmr_dir,
         const AppendOnlyFile::Ptr& pHashFile,
-        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper
+        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+        const mmr::PruneList::CPtr& pPruneList
     );
 
     void AddLeaf(const Leaf& leaf) final;
     void AddHash(const mw::Hash& hash) final;
     void Rewind(const LeafIndex& nextLeafIndex) final;
+
+    void Compact(const uint32_t file_index, const boost::dynamic_bitset<uint64_t>& hashes_to_remove) final;
 
     uint64_t GetNumLeaves() const noexcept final;
     mw::Hash GetHash(const Index& idx) const final;
@@ -48,6 +54,7 @@ private:
     std::vector<Leaf> m_leaves;
     std::map<mw::Hash, size_t> m_leafMap; // TODO: Can probably just be map<LeafIndex, size_t>
     std::shared_ptr<libmw::IDBWrapper> m_pDatabase;
+    PruneList::CPtr m_pPruneList;
 };
 
 END_NAMESPACE

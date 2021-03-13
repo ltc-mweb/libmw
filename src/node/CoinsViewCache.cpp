@@ -228,7 +228,6 @@ void CoinsViewCache::Flush(const std::unique_ptr<libmw::IDBBatch>& pBatch)
     }
 
     m_pLeafSet->Flush(mmr_info.index);
-    // TODO: Flush PruneList
     m_pKernelMMR->Flush(mmr_info.index, pBatch);
     m_pOutputPMMR->Flush(mmr_info.index, pBatch);
     m_pRangeProofPMMR->Flush(mmr_info.index, pBatch);

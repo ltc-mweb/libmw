@@ -8,6 +8,7 @@ file(GLOB SOURCE_CODE
 	"LeafSetCache.cpp"
 	"MMR.cpp"
 	"MMRCache.cpp"
+	"PruneList.cpp"
 	"backends/FileBackend.cpp"
 )
 

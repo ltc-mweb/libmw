@@ -144,6 +144,10 @@ std::vector<uint8_t> File::ReadBytes(const size_t startIndex, const size_t numBy
 
 void File::Write(const std::vector<uint8_t>& bytes)
 {
+    if (!Exists()) {
+        Create();
+    }
+
     std::ofstream file(m_path.m_path, std::ios::out | std::ios::binary | std::ios::app);
     if (!file.is_open())
     {

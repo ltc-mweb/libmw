@@ -3,20 +3,20 @@
 #include <mw/db/LeafDB.h>
 #include <mw/exceptions/NotFoundException.h>
 
-// TODO: Add pruning support
-
 std::shared_ptr<mmr::FileBackend> mmr::FileBackend::Open(
     const char dbPrefix,
     const FilePath& mmr_dir,
     const uint32_t file_index,
-    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
+    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+    const mmr::PruneList::CPtr& pPruneList)
 {
     const FilePath path = GetPath(mmr_dir, dbPrefix, file_index);
     return std::make_shared<FileBackend>(
         dbPrefix,
         mmr_dir,
         AppendOnlyFile::Load(path),
-        pDBWrapper
+        pDBWrapper,
+        pPruneList
     );
 }
 
@@ -24,8 +24,9 @@ mmr::FileBackend::FileBackend(
     const char dbPrefix,
     const FilePath& mmr_dir,
     const AppendOnlyFile::Ptr& pHashFile,
-    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
-    : m_dbPrefix(dbPrefix), m_dir(mmr_dir), m_pHashFile(pHashFile), m_pDatabase(pDBWrapper)
+    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+    const mmr::PruneList::CPtr& pPruneList)
+    : m_dbPrefix(dbPrefix), m_dir(mmr_dir), m_pHashFile(pHashFile), m_pDatabase(pDBWrapper), m_pPruneList(pPruneList)
 {
 }
 
@@ -57,14 +58,44 @@ void mmr::FileBackend::Rewind(const LeafIndex& nextLeafIndex)
     m_pHashFile->Rewind(nextLeafIndex.GetPosition() * 32);
 }
 
+void mmr::FileBackend::Compact(const uint32_t file_index, const boost::dynamic_bitset<uint64_t>& hashes_to_remove)
+{
+    uint64_t num_hashes = m_pHashFile->GetSize() / mw::Hash::size();
+    assert(num_hashes = hashes_to_remove.size());
+
+    const FilePath path = GetPath(filesystem::temp_directory_path(), m_dbPrefix, file_index);
+    AppendOnlyFile::Ptr pFile = AppendOnlyFile::Load(path);
+
+    for (uint64_t pos = 0; pos < hashes_to_remove.size(); pos++) {
+        if (hashes_to_remove.test(pos)) {
+            continue;
+        }
+
+        pFile->Append(m_pHashFile->Read(pos * mw::Hash::size(), mw::Hash::size()));
+    }
+
+    pFile->Commit(GetPath(m_dir, m_dbPrefix, file_index));
+    m_pHashFile = pFile;
+}
+
 uint64_t mmr::FileBackend::GetNumLeaves() const noexcept
 {
-    return Index::At(m_pHashFile->GetSize() / mw::Hash::size()).GetLeafIndex();
+    uint64_t num_hashes = (m_pHashFile->GetSize() / mw::Hash::size());
+    if (m_pPruneList) {
+        num_hashes += m_pPruneList->GetTotalShift();
+    }
+
+    return Index::At(num_hashes).GetLeafIndex();
 }
 
 mw::Hash mmr::FileBackend::GetHash(const Index& idx) const
 {
-    return mw::Hash(m_pHashFile->Read(idx.GetPosition() * mw::Hash::size(), mw::Hash::size()));
+    uint64_t pos = idx.GetPosition();
+    if (m_pPruneList) {
+        pos -= m_pPruneList->GetShift(idx);
+    }
+
+    return mw::Hash(m_pHashFile->Read(pos * mw::Hash::size(), mw::Hash::size()));
 }
 
 mmr::Leaf mmr::FileBackend::GetLeaf(const LeafIndex& idx) const

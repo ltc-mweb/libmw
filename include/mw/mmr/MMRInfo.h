@@ -9,15 +9,18 @@
 struct MMRInfo : public Traits::ISerializable
 {
     MMRInfo()
-        : index(0), pruned(mw::Hash()), compacted(boost::none) { }
-    MMRInfo(uint32_t index_in, mw::Hash pruned_in, boost::optional<mw::Hash> compacted_in)
-        : index(index_in), pruned(std::move(pruned_in)), compacted(std::move(compacted_in)) { }
+        : index(0), pruned(mw::Hash()), compact_index(0), compacted(boost::none) { }
+    MMRInfo(uint32_t index_in, mw::Hash pruned_in, uint32_t compact_index_in, boost::optional<mw::Hash> compacted_in)
+        : index(index_in), pruned(std::move(pruned_in)), compact_index(compact_index_in), compacted(std::move(compacted_in)) { }
 
-    // Index of the MMR
+    // File number of the MMR files.
     uint32_t index;
 
     // Hash of latest header this MMR represents.
     mw::Hash pruned;
+
+    // File number of the PruneList bitset.
+    uint32_t compact_index;
 
     // Hash of the header this MMR was compacted for.
     // You cannot rewind beyond this point.
@@ -35,11 +38,13 @@ struct MMRInfo : public Traits::ISerializable
     {
         uint32_t index = deserializer.Read<uint32_t>();
         mw::Hash pruned = deserializer.Read<mw::Hash>();
+        uint32_t compact_index = deserializer.Read<uint32_t>();
         mw::Hash compacted = deserializer.Read<mw::Hash>();
 
         return MMRInfo{
             index,
             pruned,
+            compact_index,
             compacted == mw::Hash() ? boost::none : boost::make_optional<mw::Hash>(std::move(compacted))
         };
     }

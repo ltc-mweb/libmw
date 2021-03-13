@@ -4,6 +4,7 @@
 #include "BlockStoreWrapper.h"
 
 #include <mw/node/BlockBuilder.h>
+#include <mw/common/Logger.h>
 
 LIBMW_NAMESPACE
 MINER_NAMESPACE
@@ -23,9 +24,8 @@ MWEXPORT bool AddTransaction(
 
     try {
         return builder.pBuilder->AddTransaction(transaction.pTransaction, TransformPegIns(pegins));
-    }
-    catch (std::exception& e) {
-        std::cout << "Failed to add transaction. " << e.what() << std::endl;
+    } catch (std::exception& e) {
+        LOG_DEBUG_F("Failed to add transaction {}. Error: {}", transaction.pTransaction, e.what());
     }
 
     return false;

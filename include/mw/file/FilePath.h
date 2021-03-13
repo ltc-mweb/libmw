@@ -123,6 +123,8 @@ public:
         }
     }
 
+    const filesystem::path& GetFSPath() const noexcept { return m_path; }
+
 #ifdef MW_ENABLE_WSTRING
     std::wstring ToString() const { return m_path.wstring(); }
 #else
