@@ -79,7 +79,6 @@ public:
         }
     }
 
-    // TODO: Support DBTransactions
     void DeleteAll(const DBTable& table)
     {
         auto pBatch = m_pDB->CreateBatch();

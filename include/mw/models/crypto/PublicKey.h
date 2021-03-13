@@ -2,7 +2,6 @@
 
 #include <mw/models/crypto/BigInteger.h>
 #include <mw/models/crypto/SecretKey.h>
-#include <mw/traits/Jsonable.h>
 #include <mw/traits/Printable.h>
 #include <mw/traits/Serializable.h>
 

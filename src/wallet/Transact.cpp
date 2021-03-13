@@ -5,6 +5,7 @@
 #include <mw/crypto/Blinds.h>
 #include <mw/exceptions/InsufficientFundsException.h>
 #include <mw/wallet/Wallet.h>
+#include <numeric>
 
 mw::Transaction::CPtr Transact::CreateTx(
     const std::vector<Commitment>& input_commits,

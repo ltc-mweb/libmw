@@ -14,7 +14,6 @@
 #include <mw/models/crypto/Hash.h>
 #include <mw/models/crypto/PublicKey.h>
 #include <mw/models/crypto/SecretKey.h>
-#include <mw/models/crypto/ScryptParameters.h>
 #include <support/allocators/secure.h>
 
 #define CRYPTO_API

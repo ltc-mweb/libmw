@@ -3,6 +3,7 @@
 #include <mw/consensus/Weight.h>
 
 #include <unordered_set>
+#include <numeric>
 
 std::vector<PegInCoin> TxBody::GetPegIns() const noexcept
 {

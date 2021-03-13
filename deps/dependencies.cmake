@@ -1,3 +1,16 @@
+######################
+# VCPKG Dependencies #
+######################
+#set(VCPKG_CRT_LINKAGE dynamic)
+#set(VCPKG_LIBRARY_LINKAGE static)
+find_package(mio CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(Catch2 CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem thread)
+
+#########################
+# Vendored Dependencies #
+#########################
 if(MSVC)
     set(CMAKE_CXX_FLAGS_ORIG "${CMAKE_CXX_FLAGS}")
     if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
@@ -29,7 +42,7 @@ else()
 endif()
 
 add_library(secp256k1-zkp STATIC ${CMAKE_CURRENT_LIST_DIR}/secp256k1-zkp/src/secp256k1.c)
-target_compile_definitions(secp256k1-zkp PRIVATE HAVE_CONFIG_H)# SECP256K1_BUILD)
+target_compile_definitions(secp256k1-zkp PRIVATE HAVE_CONFIG_H)
 target_include_directories(secp256k1-zkp PRIVATE ${CMAKE_CURRENT_LIST_DIR}/secp256k1-zkp ${CMAKE_CURRENT_LIST_DIR}/secp256k1-zkp/src)
 
 if(MSVC)

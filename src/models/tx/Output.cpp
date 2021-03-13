@@ -67,7 +67,7 @@ Output Output::Create(
     uint64_t mv = hash64.Read<uint64_t>() ^ value;
     BigInt<16> mn = n.GetBigInt() ^ hash64.ReadVector(16);
 
-    // Commitment 'C' = r*G + v*H // TODO: Document switch commit
+    // Commitment 'C' = r*G + v*H
     blind_out = Crypto::BlindSwitch(r, value);
     Commitment output_commit = Crypto::CommitBlinded(value, blind_out);
 

@@ -14,7 +14,7 @@ mmr::PruneList::Ptr mmr::PruneList::Open(const FilePath& parent_dir, const uint3
     return std::shared_ptr<PruneList>(new PruneList(parent_dir, std::move(bitset), total_shift));
 }
 
-// TODO: This is an inefficient algorithm.
+// NOTE: This is an inefficient algorithm.
 // A shift cache with an efficient "nearest-neighbor" searching algorithm would be better.
 uint64_t mmr::PruneList::GetShift(const mmr::Index& index) const noexcept
 {

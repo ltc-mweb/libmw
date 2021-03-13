@@ -42,7 +42,9 @@ TEST_CASE("Serializer")
         REQUIRE(std::vector<uint8_t>({ 0, 0, 0, 0, 0, 0, 0, 4, 84, 69, 83, 84, }) == Serializer().Append("TEST").vec());
     }
 
-    // TODO: Append(const Serializable&), Append(const std::shared_ptr<const Serializable>)
-
-    // TODO: uint8_t& operator[], const uint8_t& operator[]
+    // TODO: Finish this
+    // Append(const Serializable&)
+    // Append(const std::shared_ptr<const Serializable>)
+    // uint8_t& operator[]
+    // const uint8_t& operator[]
 }

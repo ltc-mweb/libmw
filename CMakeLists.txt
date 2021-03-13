@@ -25,7 +25,6 @@ include_directories(
 )
 
 # Dependencies
-include(${CMAKE_CURRENT_SOURCE_DIR}/deps/vcpkg_deps.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/deps/dependencies.cmake)
 
 if (WIN32)

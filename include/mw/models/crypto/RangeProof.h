@@ -6,7 +6,6 @@
 
 #include <mw/traits/Printable.h>
 #include <mw/traits/Serializable.h>
-#include <mw/traits/Jsonable.h>
 #include <mw/util/HexUtil.h>
 
 #include <cassert>
@@ -15,8 +14,7 @@
 
 class RangeProof :
     public Traits::IPrintable,
-    public Traits::ISerializable,
-    public Traits::IJsonable
+    public Traits::ISerializable
 {
 public:
     using CPtr = std::shared_ptr<const RangeProof>;
@@ -68,16 +66,6 @@ public:
         }
 
         return RangeProof(deserializer.ReadVector(proofSize));
-    }
-
-    json ToJSON() const noexcept final
-    {
-        return json(ToHex());
-    }
-
-    static RangeProof FromJSON(const Json& json)
-    {
-        return RangeProof::FromHex(json.Get<std::string>());
     }
 
     std::string ToHex() const { return HexUtil::ToHex(m_bytes); }

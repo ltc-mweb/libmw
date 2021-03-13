@@ -101,9 +101,6 @@ mw::Block::Ptr CoinsViewCache::BuildNextBlock(const uint64_t height, const std::
 {
     LOG_TRACE_F("Building block with {} transactions", transactions.size());
 
-    // TODO: Make sure all inputs are available before aggregating a transaction.
-    // TODO: Make sure no duplicate outputs already on chain.
-
     auto pTransaction = Aggregation::Aggregate(transactions);
 
     std::for_each(
@@ -171,7 +168,7 @@ bool CoinsViewCache::HasCoinInCache(const Commitment& commitment) const noexcept
 
 void CoinsViewCache::AddUTXO(const uint64_t header_height, const Output& output)
 {
-    mmr::LeafIndex leafIdx = m_pOutputPMMR->Add(OutputId{ output.GetFeatures(), output.GetCommitment() });
+    mmr::LeafIndex leafIdx = m_pOutputPMMR->Add(OutputId{ output.GetFeatures(), output.GetCommitment() }); // TODO: Should be everything on Output except rangeproof and signature?
     mmr::LeafIndex leafIdx2 = m_pRangeProofPMMR->Add(*output.GetRangeProof());
     assert(leafIdx == leafIdx2);
 

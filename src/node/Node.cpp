@@ -37,7 +37,6 @@ mw::INode::Ptr mw::InitializeNode(
     auto pRangeProofBackend = mmr::FileBackend::Open('R', rangeproof_path, file_index, pDBWrapper, pPruneList);
     mmr::MMR::Ptr pRangeProofMMR = std::make_shared<mmr::MMR>(pRangeProofBackend);
 
-    // TODO: Validate Current State
     mw::CoinsViewDB::Ptr pDBView = std::make_shared<mw::CoinsViewDB>(
         pBestHeader,
         pDBWrapper,

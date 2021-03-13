@@ -1,7 +1,6 @@
 set(Serialization_Tests
     "Test_Deserializer.cpp"
     "Test_Serializer.cpp"
-    "Test_Json.cpp"
 )
 
 list_prepend(Serialization_Tests ${CMAKE_CURRENT_LIST_DIR}/)
