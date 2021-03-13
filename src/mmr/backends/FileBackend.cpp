@@ -32,7 +32,7 @@ mmr::FileBackend::FileBackend(
 
 void mmr::FileBackend::AddLeaf(const Leaf& leaf)
 {
-    m_leafMap[leaf.GetHash()] = m_leaves.size();
+    m_leafMap[leaf.GetLeafIndex()] = m_leaves.size();
     m_leaves.push_back(leaf);
     AddHash(leaf.GetHash());
 
@@ -100,8 +100,7 @@ mw::Hash mmr::FileBackend::GetHash(const Index& idx) const
 
 mmr::Leaf mmr::FileBackend::GetLeaf(const LeafIndex& idx) const
 {
-    mw::Hash hash = GetHash(idx.GetNodeIndex());
-    auto it = m_leafMap.find(hash);
+    auto it = m_leafMap.find(idx);
     if (it != m_leafMap.end()) {
         return m_leaves[it->second];
     }
@@ -109,7 +108,7 @@ mmr::Leaf mmr::FileBackend::GetLeaf(const LeafIndex& idx) const
     LeafDB ldb(m_dbPrefix, m_pDatabase.get());
     auto pLeaf = ldb.Get(idx);
     if (!pLeaf) {
-        ThrowNotFound_F("Can't get leaf at position {} with hash {}", idx.GetPosition(), hash);
+        ThrowNotFound_F("Can't get leaf at position {}", idx.GetPosition());
     }
 
     return std::move(*pLeaf);

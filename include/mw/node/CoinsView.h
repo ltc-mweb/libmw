@@ -212,6 +212,4 @@ private:
     mmr::MMR::Ptr m_pRangeProofPMMR;
 };
 
-// TODO: CoinsViewMempool
-
 END_NAMESPACE

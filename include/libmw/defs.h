@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <unordered_map>
 
+#include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 
 #if defined(_WIN32)
@@ -146,7 +147,7 @@ struct StateRef
 
 struct ChainParams
 {
-    std::string dataDirectory; // TODO: Use fs::path
+    boost::filesystem::path dataDirectory;
     std::string hrp;
 };
 

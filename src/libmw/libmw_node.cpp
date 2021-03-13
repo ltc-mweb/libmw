@@ -25,7 +25,7 @@ MWEXPORT libmw::CoinsViewRef Initialize(
     const std::function<void(const std::string&)>& log_callback)
 {
     LoggerAPI::Initialize(log_callback);
-    NODE = mw::InitializeNode(FilePath{ chainParams.dataDirectory }, chainParams.hrp, header.pHeader, pDBWrapper);
+    NODE = mw::InitializeNode(FilePath{ chainParams.dataDirectory.native() }, chainParams.hrp, header.pHeader, pDBWrapper);
 
     return libmw::CoinsViewRef{ NODE->GetDBView() };
 }

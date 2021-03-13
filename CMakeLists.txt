@@ -29,7 +29,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/deps/vcpkg_deps.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/deps/dependencies.cmake)
 
 if (WIN32)
-    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN) # -DMW_ENABLE_WSTRING -DUNICODE 
+    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN)
 endif()
 
 add_subdirectory(src)

@@ -10,7 +10,7 @@
 
 #pragma warning(push)
 #pragma warning(disable: 4100 4127 4244)
-#include <ghc/filesystem.hpp> // TODO: Switch to boost::filesystem
+#include <ghc/filesystem.hpp>
 #pragma warning(pop)
 
 namespace filesystem = ghc::filesystem;
@@ -34,10 +34,6 @@ public:
     FilePath(const char* path) : m_path(path) {}
     FilePath(const std::string& u8str) : m_path(u8str) {}
     FilePath(const std::u16string& u16str) : m_path(u16str) {}
-#ifdef MW_ENABLE_WSTRING
-    FilePath(const wchar_t* wpath) : m_path(wpath) {}
-    FilePath(const std::wstring& wstr) : m_path(wstr.c_str()) {}
-#endif
 
     //
     // Destructor
@@ -55,10 +51,6 @@ public:
     FilePath GetChild(const char* filename) const { return FilePath(m_path / filesystem::path(filename)); }
     FilePath GetChild(const std::string& filename) const { return FilePath(m_path / filesystem::path(filename)); }
     FilePath GetChild(const std::u16string& filename) const { return FilePath(m_path / filesystem::path(filename)); }
-#ifdef MW_ENABLE_WSTRING
-    FilePath GetChild(const wchar_t* filename) const { return FilePath(m_path / filesystem::path(filename)); }
-    FilePath GetChild(const std::wstring& filename) const { return FilePath(m_path / filesystem::path(filename.c_str())); }
-#endif
 
     FilePath GetParent() const
     {
@@ -125,12 +117,7 @@ public:
 
     const filesystem::path& GetFSPath() const noexcept { return m_path; }
 
-#ifdef MW_ENABLE_WSTRING
-    std::wstring ToString() const { return m_path.wstring(); }
-#else
     std::string ToString() const { return m_path.u8string(); }
-#endif
-
     std::string u8string() const { return m_path.u8string(); }
 
     //
