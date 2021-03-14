@@ -5,17 +5,17 @@
 #include <mw/crypto/Schnorr.h>
 
 Output::Output(
-        Commitment&& commitment,
-        Features features,
-        PublicKey&& receiver_pubkey,
-        PublicKey&& key_exchange_pubkey,
-        uint8_t view_tag,
-        uint64_t masked_value,
-        BigInt<16>&& masked_nonce,
-        PublicKey&& sender_pubkey,
-        Signature&& signature,
-        const RangeProof::CPtr& pProof
-    )
+    Commitment&& commitment,
+    Features features,
+    PublicKey&& receiver_pubkey,
+    PublicKey&& key_exchange_pubkey,
+    uint8_t view_tag,
+    uint64_t masked_value,
+    BigInt<16>&& masked_nonce,
+    PublicKey&& sender_pubkey,
+    Signature&& signature,
+    const RangeProof::CPtr& pProof
+)
     : m_commitment(std::move(commitment)),
     m_features(features),
     m_receiverPubKey(std::move(receiver_pubkey)),

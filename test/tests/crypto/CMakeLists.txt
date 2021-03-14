@@ -1,10 +1,7 @@
-set(Crypto_Tests
+list_append_parent(
+    test_sources
+    ${CMAKE_CURRENT_LIST_DIR}
     "Test_AddCommitments.cpp"
     "Test_AggSig.cpp"
     "Test_RangeProofs.cpp"
 )
-
-list_prepend(Crypto_Tests ${CMAKE_CURRENT_LIST_DIR}/)
-
-list(APPEND test_sources ${Crypto_Tests})
-set(test_sources ${test_sources} PARENT_SCOPE)

@@ -1,4 +1,6 @@
-set(Node_Tests
+list_append_parent(
+    test_sources
+    ${CMAKE_CURRENT_LIST_DIR}
     "Test_BlockBuilder.cpp"
     "Test_CheckTxInputs.cpp"
     "Test_MineChain.cpp"
@@ -6,8 +8,3 @@ set(Node_Tests
     "validation/Test_BlockValidator.cpp"
     "validation/Test_StateValidator.cpp"
 )
-
-list_prepend(Node_Tests ${CMAKE_CURRENT_LIST_DIR}/)
-
-list(APPEND test_sources ${Node_Tests})
-set(test_sources ${test_sources} PARENT_SCOPE)

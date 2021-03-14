@@ -1,9 +1,6 @@
-set(Database_Tests
+list_append_parent(
+    test_sources
+    ${CMAKE_CURRENT_LIST_DIR}
 #   "Test_Database.cpp"
     "Test_LeafDB.cpp"
 )
-
-list_prepend(Database_Tests ${CMAKE_CURRENT_LIST_DIR}/)
-
-list(APPEND test_sources ${Database_Tests})
-set(test_sources ${test_sources} PARENT_SCOPE)

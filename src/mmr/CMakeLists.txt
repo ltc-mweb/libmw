@@ -1,6 +1,6 @@
-set(TARGET_NAME MMR)
-
-file(GLOB SOURCE_CODE
+list_append_parent(
+	mw_sources
+	${CMAKE_CURRENT_LIST_DIR}
 	"ILeafSet.cpp"
 	"IMMR.cpp"
 	"Index.cpp"
@@ -11,9 +11,3 @@ file(GLOB SOURCE_CODE
 	"PruneList.cpp"
 	"backends/FileBackend.cpp"
 )
-
-add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})
-add_library(MW::${TARGET_NAME} ALIAS ${TARGET_NAME})
-
-add_dependencies(${TARGET_NAME} MW::Common MW::Traits)
-target_link_libraries(${TARGET_NAME} PUBLIC MW::Common MW::Traits)

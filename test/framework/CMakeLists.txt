@@ -1,14 +1,7 @@
-set(TARGET_NAME Framework)
-
-file(GLOB SOURCE_CODE
+list_append_parent(
+    test_sources
+    ${CMAKE_CURRENT_LIST_DIR}
 	"src/TestFramework.cpp"
 	"src/TxBuilder.cpp"
 	"src/models/Tx.cpp"
 )
-
-add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})
-add_library(MW_TEST::${TARGET_NAME} ALIAS ${TARGET_NAME})
-
-add_dependencies(${TARGET_NAME} MW::Node)
-target_link_libraries(${TARGET_NAME} PUBLIC MW::Node)
-target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)

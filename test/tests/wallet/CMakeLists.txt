@@ -1,8 +1,5 @@
-set(Wallet_Tests
+list_append_parent(
+    test_sources
+    ${CMAKE_CURRENT_LIST_DIR}
     "Test_GetStealthAddress.cpp"
 )
-
-list_prepend(Wallet_Tests ${CMAKE_CURRENT_LIST_DIR}/)
-
-list(APPEND test_sources ${Wallet_Tests})
-set(test_sources ${test_sources} PARENT_SCOPE)

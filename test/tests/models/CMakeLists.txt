@@ -1,4 +1,6 @@
-set(Models_Tests
+list_append_parent(
+    test_sources
+    ${CMAKE_CURRENT_LIST_DIR}
 	"block/Test_Block.cpp"
 	"block/Test_Header.cpp"
 	"crypto/Test_BigInteger.cpp"
@@ -12,8 +14,3 @@ set(Models_Tests
 	"tx/Test_TxBody.cpp"
 	"tx/Test_UTXO.cpp"
 )
-
-list_prepend(Models_Tests ${CMAKE_CURRENT_LIST_DIR}/)
-
-list(APPEND test_sources ${Models_Tests})
-set(test_sources ${test_sources} PARENT_SCOPE)

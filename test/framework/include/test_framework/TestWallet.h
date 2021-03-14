@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libmw/interfaces/wallet_interface.h>
+#include <libmw/libmw.h>
 #include <mw/models/crypto/BlindingFactor.h>
 #include <mw/models/wallet/KeyChainPath.h>
 #include <mw/crypto/Hasher.h>
