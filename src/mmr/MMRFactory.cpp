@@ -38,7 +38,7 @@ MMR::Ptr MMRFactory::Build(
     LeafDB(prefix, pDBWrapper.get(), pBatch.get())
         .Add(unspent_leaves);
 
-    return std::make_shared<mmr::MMR>(
+    return std::make_shared<MMR>(
         FileBackend::Open(prefix, data_dir, mmr_info.index, pDBWrapper, pPruneList)
     );
 }
@@ -48,19 +48,20 @@ std::vector<mw::Hash> MMRFactory::CalcHashes(
     const std::vector<Leaf>& unspent_leaves,
     const std::vector<mw::Hash>& pruned_parent_hashes)
 {
-    assert(unspent_leaf_hashes.size() == unspent_leaf_indices.count());
+    assert(unspent_leaves.size() == unspent_leaf_indices.count());
 
-    BitSet pruned_parent_indices = MMRUtil::CalcPrunedParentHashes(unspent_leaf_indices);
+    BitSet pruned_parent_indices = MMRUtil::CalcPrunedParents(unspent_leaf_indices);
 
     uint64_t num_nodes = unspent_leaf_indices.size() * 2;
-    mmr::Index index = mmr::Index::At(0);
+    Index index = Index::At(0);
 
     BitSet hash_bitset(unspent_leaf_indices.size() * 2);
     std::vector<mw::Hash> ret;
     while (index.GetPosition() < num_nodes) {
         const uint64_t pos = index.GetPosition();
-        if (unspent_leaf_indices.test(pos)) {
-            size_t idx = unspent_leaf_indices.rank(pos);
+        if (index.IsLeaf() && unspent_leaf_indices.test(index.GetLeafIndex())) {
+            size_t idx = unspent_leaf_indices.rank(index.GetLeafIndex());
+            assert(unspent_leaves[idx].GetLeafIndex().Get() == index.GetLeafIndex());
             ret.push_back(unspent_leaves[idx].GetHash());
             hash_bitset.set(pos);
         } else if (pruned_parent_indices.test(pos)) {
@@ -80,7 +81,7 @@ std::vector<mw::Hash> MMRFactory::CalcHashes(
             const mw::Hash& right_hash = ret[right_idx];
 
             // Calculate and add hash
-            ret.push_back(mmr::Node::CalcParentHash(index, left_hash, right_hash));
+            ret.push_back(Node::CalcParentHash(index, left_hash, right_hash));
             hash_bitset.set(pos);
         }
 

@@ -46,9 +46,7 @@ private:
 class MMRUtil
 {
 public:
-    static BitSet BuildCompactBitSet(
-        const uint64_t num_leaves,
-        const boost::dynamic_bitset<>& unspent_leaf_indices)
+    static BitSet BuildCompactBitSet(const uint64_t num_leaves, const BitSet& unspent_leaf_indices)
     {
         BitSet compactable_node_indices(num_leaves * 2);
 
@@ -86,11 +84,9 @@ public:
         return compactable_node_indices;
     }
 
-    static boost::dynamic_bitset<> DiffCompactBitSet(
-        const boost::dynamic_bitset<>& prev_compact,
-        const boost::dynamic_bitset<>& new_compact)
+    static BitSet DiffCompactBitSet(const BitSet& prev_compact, const BitSet& new_compact)
     {
-        boost::dynamic_bitset<> diff;
+        BitSet diff;
 
         for (size_t i = 0; i < new_compact.size(); i++) {
             if (prev_compact.size() > i && prev_compact.test(i)) {
@@ -98,7 +94,7 @@ public:
                 continue;
             }
 
-            diff.push_back(new_compact.test(i));
+            diff.bitset.push_back(new_compact.test(i));
         }
 
         return diff;
@@ -110,7 +106,7 @@ public:
     /// </summary>
     /// <param name="unspent_leaf_indices">The unspent leaf indices.</param>
     /// <returns>The pruned parent positions.</returns>
-    static BitSet CalcPrunedParentHashes(const BitSet& unspent_leaf_indices)
+    static BitSet CalcPrunedParents(const BitSet& unspent_leaf_indices)
     {
         BitSet ret(unspent_leaf_indices.size() * 2);
 

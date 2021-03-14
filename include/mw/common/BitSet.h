@@ -43,6 +43,15 @@ struct BitSet : public Traits::ISerializable
         return bytes;
     }
 
+    std::string str() const noexcept
+    {
+        std::string val;
+        boost::to_string(bitset, val);
+
+        // Reverse for ascending order
+        return std::string(val.crbegin(), val.crend());
+    }
+
     bool test(uint64_t idx) const noexcept { return bitset.size() > idx && bitset.test(idx); }
     uint64_t count() const noexcept { return bitset.count(); }
     uint64_t size() const noexcept { return bitset.size(); }
@@ -68,7 +77,9 @@ struct BitSet : public Traits::ISerializable
         return rank;
     }
 
-    void set(uint64_t idx, bool val = true) noexcept { bitset.set(idx, val); }
+    void set(size_t idx, bool val = true) noexcept { bitset.set(idx, val); }
+    void set(size_t idx, size_t len, bool val) noexcept { bitset.set(idx, len, val); }
+    void push_back(bool val) noexcept { bitset.push_back(val); }
 
     Serializer& Serialize(Serializer& serializer) const noexcept final
     {

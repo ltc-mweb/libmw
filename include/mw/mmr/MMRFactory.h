@@ -25,7 +25,6 @@ public:
         const std::vector<mw::Hash>& pruned_parent_hashes
     );
 
-private:
     static std::vector<mw::Hash> CalcHashes(
         const BitSet& unspent_leaf_indices,
         const std::vector<Leaf>& unspent_leaves,

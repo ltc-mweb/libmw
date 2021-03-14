@@ -58,7 +58,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	/**
 	 * Build PruneList
 	 */
-	BitSet compact_bitset = mmr::MMRUtil::BuildCompactBitSet(pStateHeader->GetNumTXOs(), leafset.bitset);
+	BitSet compact_bitset = mmr::MMRUtil::BuildCompactBitSet(pStateHeader->GetNumTXOs(), leafset);
 	File(mmr::PruneList::GetPath(chainDir, mmr_info.compact_index))
 		.Write(compact_bitset.bytes());
 	auto pPruneList = mmr::PruneList::Open(chainDir, mmr_info.compact_index);

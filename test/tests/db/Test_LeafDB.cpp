@@ -28,11 +28,11 @@ TEST_CASE("LeafDB")
     REQUIRE(pLeaf->vec() == leaf3.vec());
 
     std::vector<uint8_t> data;
-    REQUIRE(pDatabase->Read("L" + std::to_string(leaf1.GetLeafIndex().GetLeafIndex()), data));
+    REQUIRE(pDatabase->Read("L" + std::to_string(leaf1.GetLeafIndex().Get()), data));
     REQUIRE(data == leaf1.vec());
-    REQUIRE(pDatabase->Read("L" + std::to_string(leaf2.GetLeafIndex().GetLeafIndex()), data));
+    REQUIRE(pDatabase->Read("L" + std::to_string(leaf2.GetLeafIndex().Get()), data));
     REQUIRE(data == leaf2.vec());
-    REQUIRE(pDatabase->Read("L" + std::to_string(leaf3.GetLeafIndex().GetLeafIndex()), data));
+    REQUIRE(pDatabase->Read("L" + std::to_string(leaf3.GetLeafIndex().Get()), data));
     REQUIRE(data == leaf3.vec());
 
     ldb.Remove({leaf2.GetLeafIndex()});
