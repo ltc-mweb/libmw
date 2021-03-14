@@ -24,6 +24,11 @@ public:
 
     }
 
+    bool IsMine(const libmw::PubKey& spend_pubkey, uint32_t& index_out) const final
+    {
+        return true; // TODO: Implement
+    }
+
     libmw::PrivateKey GetHDKey(const std::string& bip32Path) const final
     {
         return libmw::PrivateKey{ bip32Path, ToBlind(bip32Path).array() };
