@@ -8,7 +8,7 @@
 
 MW_NAMESPACE
 
-std::vector<UTXO::CPtr> CoinsViewCache::GetUTXOs(const Commitment& commitment) const
+std::vector<UTXO::CPtr> CoinsViewCache::GetUTXOs(const Commitment& commitment) const noexcept
 {
     std::vector<UTXO::CPtr> utxos = m_pBase->GetUTXOs(commitment);
 

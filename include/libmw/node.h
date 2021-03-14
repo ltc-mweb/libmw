@@ -52,8 +52,8 @@ MWIMPORT libmw::CoinsViewRef ApplyState(
 /// <param name="hash">The expected MWEB header hash.</param>
 /// <param name="pegInCoins">The peg-in coins that are expected to be part of the MWEB.</param>
 /// <param name="pegOutCoins">The peg-out coins that are expected to be part of the MWEB.</param>
-/// <throws>ValidationException if consensus rules are not met.</throws>
-MWIMPORT void CheckBlock(
+/// <returns>True if the inputs are unspent.</returns>
+MWIMPORT bool CheckBlock(
     const libmw::BlockRef& block,
     const libmw::BlockHash& hash,
     const std::vector<libmw::PegIn>& pegInCoins,
@@ -99,8 +99,8 @@ MWIMPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view);
 /// This validates that the transaction is valid without checking for double-spends.
 /// </summary>
 /// <param name="transaction">The MWEB transaction to validate. Must not be null.</param>
-/// <throws>ValidationException if consensus rules are not met.</throws>
-MWIMPORT void CheckTransaction(const libmw::TxRef& transaction);
+/// <returns>True if transaction is valid.</returns>
+MWIMPORT bool CheckTransaction(const libmw::TxRef& transaction);
 
 /// <summary>
 /// Validation of the MWEB transaction inputs against the given CoinsView.
@@ -109,8 +109,8 @@ MWIMPORT void CheckTransaction(const libmw::TxRef& transaction);
 /// <param name="view">The CoinsView to validate against. Must not be null.</param>
 /// <param name="transaction">The MWEB transaction to validate. Must not be null.</param>
 /// <param name="nSpendHeight">The height at which the transaction is included.</param>
-/// <throws>ValidationException if consensus rules are not met.</throws>
-MWIMPORT void CheckTxInputs(const libmw::CoinsViewRef& view, const libmw::TxRef& transaction, uint64_t nSpendHeight);
+/// <returns>True if the inputs are unspent.</returns>
+MWIMPORT bool CheckTxInputs(const libmw::CoinsViewRef& view, const libmw::TxRef& transaction, uint64_t nSpendHeight);
 
 MWIMPORT bool HasCoin(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment);
 

@@ -42,7 +42,7 @@ public:
 
     const std::unordered_map<Commitment, std::vector<CoinAction>>& GetActions() const noexcept { return m_actions; }
 
-    std::vector<CoinAction> GetActions(const Commitment& commitment) const
+    std::vector<CoinAction> GetActions(const Commitment& commitment) const noexcept
     {
         auto iter = m_actions.find(commitment);
         if (iter != m_actions.cend()) {
@@ -134,7 +134,7 @@ public:
 
     bool IsCache() const noexcept final { return true; }
 
-    std::vector<UTXO::CPtr> GetUTXOs(const Commitment& commitment) const final;
+    std::vector<UTXO::CPtr> GetUTXOs(const Commitment& commitment) const noexcept final;
     mw::BlockUndo::CPtr ApplyBlock(const mw::Block::Ptr& pBlock);
     void UndoBlock(const mw::BlockUndo::CPtr& pUndo);
     void WriteBatch(

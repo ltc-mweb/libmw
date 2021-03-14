@@ -55,16 +55,25 @@ MWEXPORT libmw::CoinsViewRef ApplyState(
     return libmw::CoinsViewRef{ pCoinsViewDB };
 }
 
-MWEXPORT void CheckBlock(
+MWEXPORT bool CheckBlock(
     const libmw::BlockRef& block,
     const libmw::BlockHash& hash,
     const std::vector<libmw::PegIn>& pegInCoins,
     const std::vector<libmw::PegOut>& pegOutCoins)
 {
-    auto mweb_hash = TransformHash(hash);
-    auto pegins = TransformPegIns(pegInCoins);
-    auto pegouts = TransformPegOuts(pegOutCoins);
-    NODE->ValidateBlock(block.pBlock, mweb_hash, pegins, pegouts);
+    assert(block.pBlock != nullptr);
+
+    try {
+        auto mweb_hash = TransformHash(hash);
+        auto pegins = TransformPegIns(pegInCoins);
+        auto pegouts = TransformPegOuts(pegOutCoins);
+        NODE->ValidateBlock(block.pBlock, mweb_hash, pegins, pegouts);
+        return true;
+    } catch (const std::exception& e) {
+        LOG_ERROR_F("Validation error: {}", e.what());
+    }
+
+    return false;
 }
 
 MWEXPORT libmw::BlockUndoRef ConnectBlock(const libmw::BlockRef& block, const CoinsViewRef& view)
@@ -92,28 +101,43 @@ MWEXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef&)
     return { nullptr }; // TODO: Implement
 }
 
-MWEXPORT void CheckTransaction(const libmw::TxRef& transaction)
+MWEXPORT bool CheckTransaction(const libmw::TxRef& transaction)
 {
     assert(transaction.pTransaction != nullptr);
 
-    transaction.pTransaction->Validate();
+    try {
+        transaction.pTransaction->Validate();
+        return true;
+    } catch (const std::exception& e) {
+        LOG_ERROR_F("Validation error: {}", e.what());
+    }
+
+    return false;
 }
 
-MWEXPORT void CheckTxInputs(const libmw::CoinsViewRef& view, const libmw::TxRef& transaction, uint64_t nSpendHeight)
+MWEXPORT bool CheckTxInputs(const libmw::CoinsViewRef& view, const libmw::TxRef& transaction, uint64_t nSpendHeight)
 {
     assert(view.pCoinsView != nullptr);
     assert(transaction.pTransaction != nullptr);
 
-    for (const Input& input : transaction.pTransaction->GetInputs()) {
-        auto utxos = view.pCoinsView->GetUTXOs(input.GetCommitment());
-        if (utxos.empty()) {
-            ThrowValidation(EConsensusError::UTXO_MISSING);
+    try {
+        for (const Input& input : transaction.pTransaction->GetInputs()) {
+            auto utxos = view.pCoinsView->GetUTXOs(input.GetCommitment());
+            if (utxos.empty()) {
+                ThrowValidation(EConsensusError::UTXO_MISSING);
+            }
+
+            if (utxos.back()->IsPeggedIn() && nSpendHeight < utxos.back()->GetBlockHeight() + mw::ChainParams::GetPegInMaturity()) {
+                ThrowValidation(EConsensusError::PEGIN_MATURITY);
+            }
         }
 
-        if (utxos.back()->IsPeggedIn() && nSpendHeight < utxos.back()->GetBlockHeight() + mw::ChainParams::GetPegInMaturity()) {
-            ThrowValidation(EConsensusError::PEGIN_MATURITY);
-        }
+        return true;
+    } catch (const std::exception& e) {
+        LOG_ERROR_F("Validation error: {}", e.what());
     }
+
+    return false;
 }
 
 MWEXPORT bool HasCoin(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment)

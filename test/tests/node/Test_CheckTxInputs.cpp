@@ -38,18 +38,18 @@ TEST_CASE("CheckTxInputs")
     const auto& output1 = tx1.GetOutputs().front();
     test::Tx tx2 = test::TxBuilder().AddInput(output1).AddPlainKernel(0).AddOutput(1000).Build();
     auto transaction = libmw::TxRef{ tx2.GetTransaction() };
-    REQUIRE_NOTHROW(libmw::node::CheckTransaction(transaction));
-    REQUIRE_THROWS(libmw::node::CheckTxInputs(pCachedView, transaction, height - 1));
-    REQUIRE_NOTHROW(libmw::node::CheckTxInputs(pCachedView, transaction, height));
+    REQUIRE(libmw::node::CheckTransaction(transaction));
+    REQUIRE_FALSE(libmw::node::CheckTxInputs(pCachedView, transaction, height - 1));
+    REQUIRE(libmw::node::CheckTxInputs(pCachedView, transaction, height));
 
     // Try to spend an unknown pegin output
     test::Tx tx3 = test::Tx::CreatePegIn(1000);
     const auto& output2 = tx3.GetOutputs().front();
     test::Tx tx4 = test::TxBuilder().AddInput(output2).AddPlainKernel(0).AddOutput(1000).Build();
     transaction = libmw::TxRef{ tx4.GetTransaction() };
-    REQUIRE_NOTHROW(libmw::node::CheckTransaction(transaction));
-    REQUIRE_THROWS(libmw::node::CheckTxInputs(pCachedView, transaction, height - 1));
-    REQUIRE_THROWS(libmw::node::CheckTxInputs(pCachedView, transaction, height));
+    REQUIRE(libmw::node::CheckTransaction(transaction));
+    REQUIRE_FALSE(libmw::node::CheckTxInputs(pCachedView, transaction, height - 1));
+    REQUIRE_FALSE(libmw::node::CheckTxInputs(pCachedView, transaction, height));
 
     pNode.reset();
 }
