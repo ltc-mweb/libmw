@@ -4,6 +4,7 @@
 #include <mw/models/crypto/BlindingFactor.h>
 #include <mw/crypto/Crypto.h>
 #include <mw/crypto/Hasher.h>
+#include <numeric>
 
 class WalletUtil
 {

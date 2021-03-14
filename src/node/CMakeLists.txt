@@ -1,6 +1,6 @@
-set(TARGET_NAME Node)
-
-file(GLOB SOURCE_CODE
+list_append_parent(
+	mw_sources
+	${CMAKE_CURRENT_LIST_DIR}
 	"Node.cpp"
 	"BlockBuilder.cpp"
 	"CoinsViewCache.cpp"
@@ -10,9 +10,3 @@ file(GLOB SOURCE_CODE
 	"validation/BlockValidator.cpp"
 	"validation/StateValidator.cpp"
 )
-
-add_library(${TARGET_NAME} STATIC ${SOURCE_CODE})
-add_library(MW::${TARGET_NAME} ALIAS ${TARGET_NAME})
-
-add_dependencies(${TARGET_NAME} MW::Common MW::Crypto MW::Database MW::File MW::Models MW::MMR MW::Traits)
-target_link_libraries(${TARGET_NAME} PUBLIC MW::Common MW::Crypto MW::Database MW::Models MW::File MW::MMR MW::Traits)

@@ -25,14 +25,13 @@ MWEXPORT libmw::CoinsViewRef Initialize(
     const std::function<void(const std::string&)>& log_callback)
 {
     LoggerAPI::Initialize(log_callback);
-    NODE = mw::InitializeNode(FilePath{ chainParams.dataDirectory }, chainParams.hrp, header.pHeader, pDBWrapper);
+    NODE = mw::InitializeNode(FilePath{ chainParams.dataDirectory.native() }, chainParams.hrp, header.pHeader, pDBWrapper);
 
     return libmw::CoinsViewRef{ NODE->GetDBView() };
 }
 
 MWEXPORT void Shutdown()
 {
-    LoggerAPI::Shutdown();
     NODE.reset();
 }
 
@@ -121,7 +120,7 @@ MWEXPORT bool HasCoin(const libmw::CoinsViewRef& view, const libmw::Commitment& 
 {
     assert(view.pCoinsView != nullptr);
 
-    return !view.pCoinsView->GetUTXOs(BigInt<33>(commitment)).empty();
+    return !view.pCoinsView->GetUTXOs(commitment).empty();
 }
 
 MWEXPORT bool HasCoinInCache(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment)
@@ -131,7 +130,7 @@ MWEXPORT bool HasCoinInCache(const libmw::CoinsViewRef& view, const libmw::Commi
     auto pCoinsView = std::dynamic_pointer_cast<mw::CoinsViewCache>(view.pCoinsView);
     assert(pCoinsView != nullptr);
 
-    return pCoinsView->HasCoinInCache(BigInt<33>(commitment));
+    return pCoinsView->HasCoinInCache(commitment);
 }
 
 END_NAMESPACE // node

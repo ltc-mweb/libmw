@@ -4,9 +4,8 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/vcpkg/scripts/buildsy
 
 project(LIBMW-LTC)
 
-option(MW_TESTS "Build tests" true)
-
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetWarningLevel4.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ListAppendParent.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetWarningLevel.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetOutputDir.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetOptimizations.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SetCpp17.cmake)
@@ -20,26 +19,21 @@ set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(WITH_GFLAGS OFF)
 
-include_directories(
-	${PROJECT_SOURCE_DIR}/include
-)
+# vcpkg deps
+find_package(mio CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem thread)
 
-# Dependencies
-include(${CMAKE_CURRENT_SOURCE_DIR}/deps/vcpkg_deps.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/deps/dependencies.cmake)
+# vendored deps
+set_warning_level(2)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/litecoin)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/secp256k1-zkp)
 
-if (WIN32)
-    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN) # -DMW_ENABLE_WSTRING -DUNICODE 
-endif()
-
+# src
 add_subdirectory(src)
 
-# Install includes
-install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/libmw/
-    DESTINATION include/libmw
-)
-
+# tests
+option(MW_TESTS "Build tests" true)
 if (MW_TESTS)
 	add_subdirectory(test)
 endif()

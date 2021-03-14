@@ -62,6 +62,5 @@ TEST_CASE("Mine Chain")
         REQUIRE(pCachedView->GetUTXOs(block2_tx1_output1.GetCommitment()).size() == 1);
 
         pNode.reset();
-        LoggerAPI::Shutdown();
     }
 }

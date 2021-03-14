@@ -9,7 +9,7 @@
 
 void File::Create()
 {
-    m_path.GetParent().CreateDirIfMissing();
+    m_path.GetParent().CreateDir();
 
     std::ifstream inFile(m_path.m_path, std::ios::in | std::ifstream::ate | std::ifstream::binary);
     if (inFile.is_open())
@@ -144,6 +144,10 @@ std::vector<uint8_t> File::ReadBytes(const size_t startIndex, const size_t numBy
 
 void File::Write(const std::vector<uint8_t>& bytes)
 {
+    if (!Exists()) {
+        Create();
+    }
+
     std::ofstream file(m_path.m_path, std::ios::out | std::ios::binary | std::ios::app);
     if (!file.is_open())
     {
@@ -202,4 +206,17 @@ size_t File::GetSize() const
     }
 
     return size;
+}
+
+void File::CopyTo(const FilePath& new_path) const
+{
+    if (new_path.Exists()) {
+        new_path.Remove();
+    }
+
+    std::error_code ec;
+    filesystem::copy(m_path.m_path, new_path.m_path, ec);
+    if (ec) {
+        ThrowFile_F("Failed to copy {} to {}", m_path, new_path);
+    }
 }

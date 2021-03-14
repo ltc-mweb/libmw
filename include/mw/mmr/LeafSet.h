@@ -5,7 +5,6 @@
 #include <mw/file/MemMap.h>
 #include <mw/models/crypto/Hash.h>
 #include <mw/mmr/LeafIndex.h>
-#include <mw/traits/Batchable.h>
 #include <unordered_map>
 
 class ILeafSetBackend;
@@ -30,7 +29,11 @@ public:
 	void Rewind(const uint64_t numLeaves, const std::vector<LeafIndex>& leavesToAdd);
 	const mmr::LeafIndex& GetNextLeafIdx() const noexcept { return m_nextLeafIdx; }
 
-	virtual void ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unordered_map<uint64_t, uint8_t>& modifiedBytes) = 0;
+	virtual void ApplyUpdates(
+		const uint32_t file_index,
+		const mmr::LeafIndex& nextLeafIdx,
+		const std::unordered_map<uint64_t, uint8_t>& modifiedBytes
+	) = 0;
 
 protected:
 	uint8_t BitToByte(const uint8_t bit) const;
@@ -46,19 +49,24 @@ class LeafSet : public ILeafSet
 public:
 	using Ptr = std::shared_ptr<LeafSet>;
 
-	static LeafSet::Ptr Open(const FilePath& leafset_dir);
+	static LeafSet::Ptr Open(const FilePath& leafset_dir, const uint32_t file_index);
 
     //uint64_t GetSize() const;
 	uint8_t GetByte(const uint64_t byteIdx) const final;
 	void SetByte(const uint64_t byteIdx, const uint8_t value) final;
 
-	void ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unordered_map<uint64_t, uint8_t>& modifiedBytes) final;
-	void Flush();
+	void ApplyUpdates(
+		const uint32_t file_index,
+		const mmr::LeafIndex& nextLeafIdx,
+		const std::unordered_map<uint64_t, uint8_t>& modifiedBytes
+	) final;
+	void Flush(const uint32_t file_index);
 
 private:
-	LeafSet(MemMap&& mmap, const mmr::LeafIndex& nextLeafIdx)
-		: m_mmap(std::move(mmap)), ILeafSet(nextLeafIdx) { }
+	LeafSet(FilePath dir, MemMap&& mmap, const mmr::LeafIndex& nextLeafIdx)
+		: m_dir(std::move(dir)), m_mmap(std::move(mmap)), ILeafSet(nextLeafIdx) { }
 
+	FilePath m_dir;
 	MemMap m_mmap;
 	std::unordered_map<uint64_t, uint8_t> m_modifiedBytes;
 };
@@ -77,8 +85,12 @@ public:
 	void SetByte(const uint64_t byteIdx, const uint8_t value) final;
 	//void Snapshot(const File& snapshotFile) const;
 
-	void ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unordered_map<uint64_t, uint8_t>& modifiedBytes) final;
-	void Flush();
+	void ApplyUpdates(
+		const uint32_t file_index,
+		const mmr::LeafIndex& nextLeafIdx,
+		const std::unordered_map<uint64_t, uint8_t>& modifiedBytes
+	) final;
+	void Flush(const uint32_t file_index);
 
 private:
 	ILeafSet::Ptr m_pBacked;

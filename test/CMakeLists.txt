@@ -1,26 +1,10 @@
+find_package(Catch2 CONFIG REQUIRED)
+
 string(REGEX REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-if (MSVC)
-	if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-		string(REGEX REPLACE "/W[0-4]" "/W2" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-	else()
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W2")
-	 endif()
-endif (MSVC)
-
-# Serves the same purpose as list(TRANSFORM ... PREPEND ...),
-# which isn't available in 3.10.
-function(list_prepend LIST_NAME PREFIX)
-    set(NEW_LIST "")
-    foreach(element ${${LIST_NAME}})
-        list(APPEND NEW_LIST "${PREFIX}${element}")
-    endforeach(element)
-    set(${LIST_NAME} "${NEW_LIST}" PARENT_SCOPE)
-endfunction()
-
-add_subdirectory(framework)
+set_warning_level(2)
 
 set(test_sources "TestMain.cpp")
+add_subdirectory(framework)
 add_subdirectory(tests/consensus)
 add_subdirectory(tests/crypto)
 add_subdirectory(tests/db)
@@ -31,8 +15,8 @@ add_subdirectory(tests/serialization)
 add_subdirectory(tests/wallet)
 
 add_executable(Tests ${test_sources})
-add_dependencies(Tests fmt::fmt MW_TEST::Framework MW::Node MW::Wallet)
-target_link_libraries(Tests MW_TEST::Framework MW::Node MW::Wallet Catch2::Catch2 libmw)
+target_link_libraries(Tests MW Catch2::Catch2 libmw)
+target_include_directories(Tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/framework/include)
 
 include(CTest)
 include(Catch)

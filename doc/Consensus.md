@@ -16,6 +16,11 @@
   * To better support payment proofs, the outputs shall still be added to the TXO MMR, but shall be marked as spent.
 ---
 
+#### Kernel Uniqueness
+
+* A block shall not contain 2 kernels with the same commitment.
+---
+
 #### Ordering
 
 * Inputs in a block shall be in ascending order by their raw commitment value.

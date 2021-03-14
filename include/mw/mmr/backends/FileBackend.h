@@ -6,112 +6,55 @@
 
 #include <mw/common/Macros.h>
 #include <mw/mmr/Backend.h>
-#include <mw/mmr/Node.h>
+#include <mw/mmr/LeafSet.h>
+#include <mw/mmr/PruneList.h>
 #include <mw/file/FilePath.h>
 #include <mw/file/AppendOnlyFile.h>
-#include <mw/db/LeafDB.h>
-#include <mw/exceptions/NotFoundException.h>
 #include <libmw/interfaces/db_interface.h>
 
 MMR_NAMESPACE
 
-// TODO: Add pruning support
 class FileBackend : public IBackend
 {
 public:
     static std::shared_ptr<FileBackend> Open(
         const char dbPrefix,
-        const FilePath& path,
-        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
-    {
-        return std::make_shared<FileBackend>(
-            dbPrefix,
-            AppendOnlyFile::Load(path.GetChild("pmmr_hash.bin")),
-            pDBWrapper
-        );
-    }
+        const FilePath& mmr_dir,
+        const uint32_t file_index,
+        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+        const mmr::PruneList::CPtr& pPruneList
+    );
 
     FileBackend(
         const char dbPrefix,
+        const FilePath& mmr_dir,
         const AppendOnlyFile::Ptr& pHashFile,
-        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper)
-        : m_dbPrefix(dbPrefix), m_pHashFile(pHashFile), m_pDatabase(pDBWrapper) {}
+        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+        const mmr::PruneList::CPtr& pPruneList
+    );
 
-    void AddLeaf(const Leaf& leaf) final
-    {
-        m_leafMap[leaf.GetHash()] = m_leaves.size();
-        m_leaves.push_back(leaf);
-        AddHash(leaf.GetHash());
+    void AddLeaf(const Leaf& leaf) final;
+    void AddHash(const mw::Hash& hash) final;
+    void Rewind(const LeafIndex& nextLeafIndex) final;
 
-        auto rightHash = leaf.GetHash();
-        auto nextIdx = leaf.GetNodeIndex().GetNext();
-        while (!nextIdx.IsLeaf())
-        {
-            const mw::Hash leftHash = GetHash(nextIdx.GetLeftChild());
-            const Node node = Node::CreateParent(nextIdx, leftHash, rightHash);
+    void Compact(const uint32_t file_index, const boost::dynamic_bitset<uint64_t>& hashes_to_remove) final;
 
-            AddHash(node.GetHash());
-            rightHash = node.GetHash();
-            nextIdx = nextIdx.GetNext();
-        }
-    }
+    uint64_t GetNumLeaves() const noexcept final;
+    mw::Hash GetHash(const Index& idx) const final;
+    Leaf GetLeaf(const LeafIndex& idx) const final;
 
-    void AddHash(const mw::Hash& hash) final { m_pHashFile->Append(hash.vec()); }
-
-    void Rewind(const LeafIndex& nextLeafIndex) final
-    {
-        m_pHashFile->Rewind(nextLeafIndex.GetPosition() * 32);
-    }
-
-    uint64_t GetNumLeaves() const noexcept final
-    {
-        return Index::At(m_pHashFile->GetSize() / mw::Hash::size()).GetLeafIndex();
-    }
-
-    mw::Hash GetHash(const Index& idx) const final
-    {
-        return mw::Hash(m_pHashFile->Read(idx.GetPosition() * mw::Hash::size(), mw::Hash::size()));
-    }
-
-    Leaf GetLeaf(const LeafIndex& idx) const final
-    {
-        mw::Hash hash = GetHash(idx.GetNodeIndex());
-        auto it = m_leafMap.find(hash);
-        if (it != m_leafMap.end()) {
-            return m_leaves[it->second];
-        }
-
-        LeafDB ldb(m_dbPrefix, m_pDatabase.get());
-        auto pLeaf = ldb.Get(idx, std::move(hash));
-        if (!pLeaf) {
-            ThrowNotFound_F("Can't get leaf at position {} with hash {}", idx.GetPosition(), hash);
-        }
-
-        return std::move(*pLeaf);
-    }
-
-    void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr) final
-    {
-        m_pHashFile->Commit();
-        LeafDB ldb(m_dbPrefix, m_pDatabase.get(), pBatch.get());
-        ldb.Add(m_leaves);
-        m_leaves.clear();
-        m_leafMap.clear();
-    }
-
-    void Rollback() noexcept final
-    {
-        m_pHashFile->Rollback();
-        m_leaves.clear();
-        m_leafMap.clear();
-    }
+    void Commit(const uint32_t file_index, const std::unique_ptr<libmw::IDBBatch>& pBatch) final;
 
 private:
+    static FilePath GetPath(const FilePath& dir, const char prefix, const uint32_t file_index);
+
     char m_dbPrefix;
+    FilePath m_dir;
     AppendOnlyFile::Ptr m_pHashFile;
     std::vector<Leaf> m_leaves;
-    std::map<mw::Hash, size_t> m_leafMap;
+    std::map<mmr::LeafIndex, size_t> m_leafMap;
     std::shared_ptr<libmw::IDBWrapper> m_pDatabase;
+    PruneList::CPtr m_pPruneList;
 };
 
 END_NAMESPACE

@@ -37,6 +37,19 @@ public:
         return count;
     }
 
+    static uint8_t CountRightmostZeros(const uint64_t input) noexcept
+    {
+        uint8_t count = 0;
+
+        uint64_t n = input;
+        while ((n & 1) == 0) {
+            ++count;
+            n >>= 1;
+        }
+
+        return count;
+    }
+
     //
     // Creates uint16_t from given bytes. Bytes should be passed in order from MSB to LSB.
     //

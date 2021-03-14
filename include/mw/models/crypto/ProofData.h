@@ -8,14 +8,14 @@ struct ProofData
 {
     Commitment commitment;
     RangeProof::CPtr pRangeProof;
-    std::vector<uint8_t> extraData; // TODO: Use hash?
+    std::vector<uint8_t> extraData;
 
     inline bool operator==(const ProofData& rhs) const noexcept
     {
         assert(rhs.pRangeProof != nullptr);
 
         return commitment == rhs.commitment
-            && pRangeProof->vec() == rhs.pRangeProof->vec()
+            && *pRangeProof == *rhs.pRangeProof
             && extraData == rhs.extraData;
     }
 };

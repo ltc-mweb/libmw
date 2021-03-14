@@ -56,8 +56,7 @@ public:
             owner_offsets.push_back(pTransaction->GetOwnerOffset());
         }
 
-        // TODO: Prevent spending output that's created in the same transaction
-        // TODO: Prevent duplicate inputs or outputs.
+        // TODO: Prevent duplicate inputs, outputs, or kernels.
 
         // Sum the offsets up to give us an aggregate offsets for the transaction.
         BlindingFactor kernel_offset = Crypto::AddBlindingFactors(kernel_offsets);

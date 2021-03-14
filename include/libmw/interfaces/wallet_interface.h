@@ -21,10 +21,12 @@ public:
     virtual ~IWallet() = default;
 
     /// <summary>
-    /// Retrieves the highest known subaddress key index used by the wallet.
+    /// Lookup whether pubkey belongs to the wallet.
     /// </summary>
-    /// <returns>The highest index of a subaddress known to be generated for the wallet.</returns>
-    //virtual uint32_t GetHighestIndex() = 0;
+    /// <param name="spend_pubkey">The spend pubkey to check.</param>
+    /// <param name="index_out">The key index of the pubkey.</param>
+    /// <returns>True if the pubkey belongs to the wallet.</returns>
+    virtual bool IsMine(const libmw::PubKey& spend_pubkey, uint32_t& index_out) const = 0;
 
     /// <summary>
     /// Calculates the private key at the given bip32 path.

@@ -10,7 +10,7 @@ MW_NAMESPACE
 
 std::vector<UTXO::CPtr> CoinsViewDB::GetUTXOs(const Commitment& commitment) const
 {
-    CoinDB coinDB(m_pDatabase.get(), nullptr);
+    CoinDB coinDB(GetDatabase().get(), nullptr);
     return GetUTXOs(coinDB, commitment);
 }
 
@@ -54,7 +54,6 @@ void CoinsViewDB::SpendUTXO(CoinDB& coinDB, const Commitment& commitment)
 		ThrowValidation(EConsensusError::UTXO_MISSING);
     }
 
-    utxos.pop_back();
     coinDB.RemoveUTXOs(std::vector<Commitment>{ commitment });
 }
 
@@ -63,7 +62,7 @@ void CoinsViewDB::WriteBatch(const std::unique_ptr<libmw::IDBBatch>& pBatch, con
     assert(pBatch != nullptr);
     SetBestHeader(pHeader);
 
-    CoinDB coinDB(m_pDatabase.get(), pBatch.get());
+    CoinDB coinDB(GetDatabase().get(), pBatch.get());
     for (const auto& actions : updates.GetActions()) {
         const Commitment& commitment = actions.first;
         for (const auto& action : actions.second) {

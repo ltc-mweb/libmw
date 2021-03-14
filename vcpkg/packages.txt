@@ -1,4 +1,3 @@
-nlohmann-json
 mio
 fmt
 Catch2
@@ -7,4 +6,4 @@ boost-optional
 boost-container-hash
 boost-thread
 boost-variant
-openssl
+boost-dynamic-bitset

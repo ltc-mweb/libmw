@@ -14,13 +14,6 @@
 #include <mw/models/tx/KernelType.h>
 #include <boost/optional.hpp>
 
-// TODO: Rather than having Kernel "Types", all kernels should have optional:
-// * Pegins (amount)
-// * Pegouts (amount + LTC Address)
-// * Lock Heights
-//
-// Supporting combinations of these simplifies the logic and allows someone to pegin and pegout at the same time
-// (needed when sending to LTC address but you only have enough funds if using both LTC inputs & MWEB inputs)
 class Kernel :
     public Traits::ICommitted,
     public Traits::IHashable,

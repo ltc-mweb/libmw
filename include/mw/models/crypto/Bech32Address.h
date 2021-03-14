@@ -1,15 +1,14 @@
 #pragma once
 
-#include <mw/config/ChainParams.h>
+#include <mw/consensus/ChainParams.h>
 #include <mw/exceptions/DeserializationException.h>
 #include <mw/traits/Serializable.h>
-#include <mw/traits/Jsonable.h>
 #include <boost/container_hash/hash.hpp>
 #include <bech32.h>
 #include <cstdint>
 #include <vector>
 
-class Bech32Address : public Traits::ISerializable, public Traits::IJsonable
+class Bech32Address : public Traits::ISerializable
 {
 public:
     Bech32Address() = default;
@@ -63,18 +62,6 @@ public:
         std::vector<uint8_t> address = deserializer.ReadVector(numBytes);
 
         return Bech32Address(hrp, std::move(address));
-    }
-
-    json ToJSON() const noexcept final
-    {
-        std::string address = ToString();
-        return json(address);
-    }
-
-    static Bech32Address FromJSON(const Json& json)
-    {
-        std::string addressStr = json.Get<std::string>();
-        return FromString(addressStr);
     }
 
 private:

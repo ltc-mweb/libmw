@@ -14,6 +14,7 @@
 #pragma warning(pop)
 
 namespace filesystem = ghc::filesystem;
+using error_code = std::error_code;
 
 #include <mw/exceptions/FileException.h>
 #include <mw/traits/Printable.h>
@@ -33,10 +34,6 @@ public:
     FilePath(const char* path) : m_path(path) {}
     FilePath(const std::string& u8str) : m_path(u8str) {}
     FilePath(const std::u16string& u16str) : m_path(u16str) {}
-#ifdef MW_ENABLE_WSTRING
-    FilePath(const wchar_t* wpath) : m_path(wpath) {}
-    FilePath(const std::wstring& wstr) : m_path(wstr.c_str()) {}
-#endif
 
     //
     // Destructor
@@ -54,15 +51,10 @@ public:
     FilePath GetChild(const char* filename) const { return FilePath(m_path / filesystem::path(filename)); }
     FilePath GetChild(const std::string& filename) const { return FilePath(m_path / filesystem::path(filename)); }
     FilePath GetChild(const std::u16string& filename) const { return FilePath(m_path / filesystem::path(filename)); }
-#ifdef MW_ENABLE_WSTRING
-    FilePath GetChild(const wchar_t* filename) const { return FilePath(m_path / filesystem::path(filename)); }
-    FilePath GetChild(const std::wstring& filename) const { return FilePath(m_path / filesystem::path(filename.c_str())); }
-#endif
 
     FilePath GetParent() const
     {
-        if (!m_path.has_parent_path())
-        {
+        if (!m_path.has_parent_path()) {
             ThrowFile_F("Can't find parent path for {}", *this);
         }
 
@@ -71,10 +63,9 @@ public:
 
     bool Exists() const
     {
-        std::error_code ec;
+        error_code ec;
         const bool exists = filesystem::exists(m_path, ec);
-        if (ec)
-        {
+        if (ec) {
             ThrowFile_F("Error ({}) while checking if {} exists", ec.message(), *this);
         }
 
@@ -83,16 +74,15 @@ public:
 
     bool Exists_Safe() const noexcept
     {
-        std::error_code ec;
+        error_code ec;
         return filesystem::exists(m_path, ec);
     }
 
     bool IsDirectory() const
     {
-        std::error_code ec;
+        error_code ec;
         const bool isDirectory = filesystem::is_directory(m_path, ec);
-        if (ec)
-        {
+        if (ec) {
             ThrowFile_F("Error ({}) while checking if {} is a directory", ec.message(), *this);
         }
 
@@ -101,16 +91,15 @@ public:
 
     bool IsDirectory_Safe() const noexcept
     {
-        std::error_code ec;
+        error_code ec;
         return filesystem::is_directory(m_path, ec);
     }
 
-    FilePath CreateDirIfMissing() const
+    FilePath CreateDir() const
     {
-        std::error_code ec;
+        error_code ec;
         filesystem::create_directories(m_path, ec);
-        if (ec && (!Exists_Safe() || !IsDirectory_Safe()))
-        {
+        if (ec && (!Exists_Safe() || !IsDirectory_Safe())) {
             ThrowFile_F("Error ({}) while trying to create directory {}", ec.message(), *this);
         }
 
@@ -119,22 +108,16 @@ public:
 
     void Remove() const
     {
-        std::error_code ec;
+        error_code ec;
         filesystem::remove_all(m_path, ec);
-        if (ec && Exists_Safe())
-        {
+        if (ec && Exists_Safe()) {
             ThrowFile_F("Error ({}) while trying to remove {}", ec.message(), *this);
         }
     }
 
-    const filesystem::path& ToPath() const noexcept { return m_path; }
+    const filesystem::path& GetFSPath() const noexcept { return m_path; }
 
-#ifdef MW_ENABLE_WSTRING
-    std::wstring ToString() const { return m_path.wstring(); }
-#else
     std::string ToString() const { return m_path.u8string(); }
-#endif
-
     std::string u8string() const { return m_path.u8string(); }
 
     //

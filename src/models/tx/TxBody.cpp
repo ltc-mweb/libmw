@@ -3,6 +3,7 @@
 #include <mw/consensus/Weight.h>
 
 #include <unordered_set>
+#include <numeric>
 
 std::vector<PegInCoin> TxBody::GetPegIns() const noexcept
 {
@@ -168,6 +169,18 @@ void TxBody::Validate() const
     );
 
     if (output_commits.size() != m_outputs.size()) {
+        ThrowValidation(EConsensusError::DUPLICATE_COMMITS);
+    }
+
+    // Verify no duplicate kernels
+    std::unordered_set<Commitment> kernel_commits;
+    std::transform(
+        m_kernels.cbegin(), m_kernels.cend(),
+        std::inserter(kernel_commits, kernel_commits.end()),
+        [](const Kernel& kernel) { return kernel.GetCommitment(); }
+    );
+
+    if (kernel_commits.size() != m_kernels.size()) {
         ThrowValidation(EConsensusError::DUPLICATE_COMMITS);
     }
 

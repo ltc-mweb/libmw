@@ -56,6 +56,5 @@ TEST_CASE("ValidateState")
         pCachedView->ValidateState();
 
         pNode.reset();
-        LoggerAPI::Shutdown();
     }
 }

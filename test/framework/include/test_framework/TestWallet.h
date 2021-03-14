@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libmw/interfaces/wallet_interface.h>
+#include <libmw/libmw.h>
 #include <mw/models/crypto/BlindingFactor.h>
 #include <mw/models/wallet/KeyChainPath.h>
 #include <mw/crypto/Hasher.h>
@@ -22,6 +22,11 @@ public:
         : libmw::IWallet(), m_seed(std::move(seed)), m_nextPath({ 1, 1, 0 }), m_coins{}
     {
 
+    }
+
+    bool IsMine(const libmw::PubKey& spend_pubkey, uint32_t& index_out) const final
+    {
+        return true; // TODO: Implement
     }
 
     libmw::PrivateKey GetHDKey(const std::string& bip32Path) const final

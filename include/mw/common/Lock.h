@@ -4,7 +4,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
-#include <mw/traits/Batchable.h>
 #include <mw/exceptions/UnimplementedException.h>
 #include <memory>
 #include <shared_mutex>
@@ -104,101 +103,29 @@ class Writer : virtual public Reader<T>
     class InnerWriter
     {
     public:
-        InnerWriter(const bool batched, std::shared_ptr<U> pObject, std::shared_ptr<std::shared_mutex> pMutex, const bool lock)
-            : m_batched(batched), m_pObject(pObject), m_pMutex(pMutex)
+        InnerWriter(std::shared_ptr<U> pObject, std::shared_ptr<std::shared_mutex> pMutex, const bool lock)
+            : m_pObject(pObject), m_pMutex(pMutex)
         {
             if (lock)
             {
                 m_pMutex->lock();
             }
-
-            OnInitWrite();
         }
 
         virtual ~InnerWriter()
         {
             // Using MutexUnlocker in case exception is thrown.
             MutexUnlocker unlocker(m_pMutex);
-
-            if (m_batched)
-            {
-                Rollback();
-            }
-            else
-            {
-                Commit();
-            }
-
-            OnEndWrite();
         }
 
-        void Commit()
-        {
-            Traits::IBatchable* pBatchable = GetBatchable(m_pObject);
-            if (pBatchable != nullptr)
-            {
-                if (pBatchable->IsDirty())
-                {
-                    pBatchable->Commit();
-                    pBatchable->SetDirty(false);
-                }
-            }
-        }
-
-        void Rollback()
-        {
-            Traits::IBatchable* pBatchable = GetBatchable(m_pObject);
-            if (pBatchable != nullptr)
-            {
-                if (pBatchable->IsDirty())
-                {
-                    pBatchable->Rollback();
-                    pBatchable->SetDirty(false);
-                }
-            }
-        }
-
-        void OnInitWrite()
-        {
-            Traits::IBatchable* pBatchable = GetBatchable(m_pObject);
-            if (pBatchable != nullptr)
-            {
-                pBatchable->SetDirty(true);
-                pBatchable->OnInitWrite();
-            }
-        }
-
-        void OnEndWrite()
-        {
-            Traits::IBatchable* pBatchable = GetBatchable(m_pObject);
-            if (pBatchable != nullptr)
-            {
-                pBatchable->OnEndWrite();
-            }
-        }
-
-        bool m_batched;
         std::shared_ptr<U> m_pObject;
         std::shared_ptr<std::shared_mutex> m_pMutex;
-
-    private:
-        template<typename V = void, typename std::enable_if_t<std::is_polymorphic_v<U>, V>* = nullptr>
-        Traits::IBatchable* GetBatchable(const std::shared_ptr<U>& pObject) const
-        {
-            return dynamic_cast<Traits::IBatchable*>(pObject.get());
-        }
-
-        template<typename V = void, typename std::enable_if_t<!std::is_polymorphic_v<U>, V>* = nullptr>
-        Traits::IBatchable* GetBatchable(const std::shared_ptr<U>&) const
-        {
-            return nullptr;
-        }
     };
 
 public:
-    static Writer Create(const bool batched, std::shared_ptr<T> pObject, std::shared_ptr<std::shared_mutex> pMutex, const bool lock)
+    static Writer Create(std::shared_ptr<T> pObject, std::shared_ptr<std::shared_mutex> pMutex, const bool lock)
     {
-        return Writer(std::shared_ptr<InnerWriter<T>>(new InnerWriter<T>(batched, pObject, pMutex, lock)));
+        return Writer(std::shared_ptr<InnerWriter<T>>(new InnerWriter<T>(pObject, pMutex, lock)));
     }
 
     Writer() = default;
@@ -280,120 +207,15 @@ public:
 
     Writer<T> Write()
     {
-        return Writer<T>::Create(false, m_pObject, m_pMutex, true);
+        return Writer<T>::Create(m_pObject, m_pMutex, true);
     }
 
     Writer<T> Write(std::adopt_lock_t)
     {
-        return Writer<T>::Create(false, m_pObject, m_pMutex, false);
-    }
-
-    Writer<T> BatchWrite()
-    {
-        Traits::IBatchable* pBatchable = dynamic_cast<Traits::IBatchable*>(m_pObject.get());
-        if (pBatchable == nullptr)
-        {
-            ThrowUnimplemented("BatchWrite only implemented for batchable objects");
-        }
-
-        return Writer<T>::Create(true, m_pObject, m_pMutex, true);
-    }
-
-    Writer<T> BatchWrite(std::adopt_lock_t)
-    {
-        Traits::IBatchable* pBatchable = dynamic_cast<Traits::IBatchable*>(m_pObject.get());
-        if (pBatchable == nullptr)
-        {
-            ThrowUnimplemented("BatchWrite only implemented for batchable objects");
-        }
-
-        return Writer<T>::Create(true, m_pObject, m_pMutex, false);
+        return Writer<T>::Create(m_pObject, m_pMutex, false);
     }
 
 private:
     std::shared_ptr<T> m_pObject;
     std::shared_ptr<std::shared_mutex> m_pMutex;
-};
-
-
-//
-// Safely obtains the lock for multiple Locked<> objects at once.
-//
-class MultiLocker
-{
-public:
-    // Wrapper around shared_mutex which redirects lock/unlock/try_lock to the _shared variant.
-    class SharedOnlyMutex
-    {
-    public:
-        SharedOnlyMutex(std::shared_mutex& mutex) : m_mutex(mutex) {}
-
-        void lock() noexcept { m_mutex.lock_shared(); }
-        void unlock() { m_mutex.unlock_shared(); }
-        bool try_lock() noexcept { return m_mutex.try_lock_shared(); }
-
-    private:
-        std::shared_mutex& m_mutex;
-    };
-
-    //
-    // Obtains a lock for all of the Locked<> objects, and returns a tuple containing a Writer<> for each.
-    //
-    template <class T1, class T2, class... TN>
-    std::tuple<Writer<T1>, Writer<T2>, Writer<TN> ...> Lock(const Locked<T1>& lock1, const Locked<T2>& lock2, const Locked<TN>&... lockN)
-    {
-        std::lock(*lock1.m_pMutex, *lock2.m_pMutex, ConvertArg(lockN) ...);
-        return std::make_tuple(GetWriter(lock1), GetWriter(lock2), GetWriter(lockN) ...);
-    }
-
-    //
-    // Obtains a lock for all of the Locked<> objects, and returns a tuple containing a batched Writer<> for each.
-    //
-    template <class T1, class T2, class... TN>
-    std::tuple<Writer<T1>, Writer<T2>, Writer<TN> ...> BatchLock(const Locked<T1>& lock1, const Locked<T2>& lock2, const Locked<TN>&... lockN)
-    {
-        std::lock(*lock1.m_pMutex, *lock2.m_pMutex, ConvertArg(lockN) ...);
-        return std::make_tuple(GetBatchWriter(lock1), GetBatchWriter(lock2), GetBatchWriter(lockN) ...);
-    }
-
-    //
-    // Obtains a shared lock for all of the Locked<> objects, and returns a tuple containing a Reader<> for each.
-    //
-    template <class T1, class T2, class... TN>
-    std::tuple<Reader<T1>, Reader<T2>, Reader<TN> ...> LockShared(const Locked<T1>& lock1, const Locked<T2>& lock2, const Locked<TN>&... lockN)
-    {
-        LockShared_(ConvertArgShared(lock1), ConvertArgShared(lock2), ConvertArgShared(lockN) ...);
-        return std::make_tuple(GetReader(lock1), GetReader(lock2), GetReader(lockN) ...);
-    }
-
-private:
-    template<class... T>
-    void LockShared_(SharedOnlyMutex lock1, SharedOnlyMutex lock2, T... lockN)
-    {
-        std::lock(lock1, lock2, lockN ...);
-    }
-
-    template<class T>
-    static std::shared_mutex& ConvertArg(Locked<T> lock)
-    {
-        return *lock.m_pMutex;
-    }
-
-    template<class T>
-    static SharedOnlyMutex ConvertArgShared(Locked<T> lock)
-    {
-        return SharedOnlyMutex(*lock.m_pMutex);
-    }
-
-    template<class T>
-    static Writer<T> GetWriter(Locked<T> lock)
-    {
-        return lock.BatchWrite(std::adopt_lock);
-    }
-
-    template<class T>
-    static Reader<T> GetReader(Locked<T> lock)
-    {
-        return lock.Read(std::adopt_lock);
-    }
 };

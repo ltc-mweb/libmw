@@ -12,7 +12,7 @@ TEST_CASE("mmr::LeafSetCache")
 	ScopedFileRemover remover(temp_dir); // Removes the directory when this goes out of scope.
 
 	{
-		mmr::LeafSet::Ptr pLeafset = mmr::LeafSet::Open(temp_dir);
+		mmr::LeafSet::Ptr pLeafset = mmr::LeafSet::Open(temp_dir, 0);
 
 		pLeafset->Add(mmr::LeafIndex::At(0));
 		pLeafset->Add(mmr::LeafIndex::At(1));
@@ -20,12 +20,12 @@ TEST_CASE("mmr::LeafSetCache")
 		pLeafset->Add(mmr::LeafIndex::At(4));
 
 		// Flush to disk
-		pLeafset->Flush();
+		pLeafset->Flush(1);
 	}
 
 	{
 		// Reload from disk
-		mmr::LeafSet::Ptr pLeafset = mmr::LeafSet::Open(temp_dir);
+		mmr::LeafSet::Ptr pLeafset = mmr::LeafSet::Open(temp_dir, 1);
 
 		// Create cache and validate
 		mmr::LeafSetCache::Ptr pCache = std::make_shared<mmr::LeafSetCache>(pLeafset);
@@ -46,7 +46,7 @@ TEST_CASE("mmr::LeafSetCache")
 		REQUIRE(pCache2->Root() == Hashed({ 0b11001100 }));
 		
 		// Flush pCache2 to pCache. pCache should be updated, but pLeafset should remain unchanged.
-		pCache2->Flush();
+		pCache2->Flush(0);
 		REQUIRE(pLeafset->GetNextLeafIdx().Get() == 5);
 		REQUIRE(pLeafset->Root() == Hashed({ 0b11101000 }));
 		REQUIRE(pCache->GetNextLeafIdx().Get() == 6);

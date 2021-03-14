@@ -6,6 +6,7 @@
 
 #include <mw/common/Macros.h>
 #include <mw/mmr/Index.h>
+#include <mw/util/BitUtil.h>
 
 MMR_NAMESPACE
 

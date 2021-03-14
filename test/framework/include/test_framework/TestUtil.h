@@ -12,7 +12,7 @@ public:
     static FilePath GetTempDir()
     {
         return FilePath(
-            filesystem::temp_directory_path() / ".mimblewimble" / Random::CSPRNG<8>().GetBigInt().ToHex()
+            filesystem::temp_directory_path() / ".mweb" / Random::CSPRNG<8>().GetBigInt().ToHex()
         );
     }
 };

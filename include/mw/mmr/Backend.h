@@ -10,6 +10,7 @@
 #include <mw/mmr/LeafIndex.h>
 #include <mw/mmr/Leaf.h>
 #include <libmw/interfaces/db_interface.h>
+#include <boost/dynamic_bitset.hpp>
 #include <memory>
 
 MMR_NAMESPACE
@@ -26,14 +27,23 @@ public:
     virtual void AddHash(const mw::Hash& hash) = 0;
     virtual void Rewind(const LeafIndex& nextLeafIndex) = 0;
 
+    /// <summary>
+    /// Takes in a bitset of all positions we want to keep.
+    /// All other positions in the leafset will be removed,
+    /// leaving just enough parents to rebuild & verify the MMR root.
+    /// The resulting MMR will be immediately flushed to disk. No need to call Commit().
+    /// </summary>
+    /// <param name="file_index">The file number to save the compacted MMR hash file.</param>
+    /// <param name="hashes_to_remove">The positions to remove.</param>
+    virtual void Compact(const uint32_t file_index, const boost::dynamic_bitset<uint64_t>& hashes_to_remove) = 0;
+
     virtual uint64_t GetNumLeaves() const noexcept = 0;
     virtual mw::Hash GetHash(const Index& idx) const = 0;
     virtual Leaf GetLeaf(const LeafIndex& idx) const = 0;
 
     virtual LeafIndex GetNextLeaf() const noexcept { return LeafIndex::At(GetNumLeaves()); }
 
-    virtual void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr) = 0;
-    virtual void Rollback() noexcept = 0;
+    virtual void Commit(const uint32_t file_index, const std::unique_ptr<libmw::IDBBatch>& pBatch) = 0;
 };
 
 END_NAMESPACE

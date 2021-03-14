@@ -3,20 +3,10 @@
 
 MMR_NAMESPACE
 
-//uint64_t LeafSetCache::GetSize() const
-//{
-//	size_t size = m_pBacked->GetSize();
-//	for (auto iter = m_modifiedBytes.cbegin(); iter != m_modifiedBytes.cend(); iter++)
-//	{
-//		if (iter->first >= size) {
-//			size = iter->first + 1;
-//		}
-//	}
-//
-//	return size * 8;
-//}
-
-void LeafSetCache::ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::unordered_map<uint64_t, uint8_t>& modifiedBytes)
+void LeafSetCache::ApplyUpdates(
+	const uint32_t /*file_index*/,
+	const mmr::LeafIndex& nextLeafIdx,
+	const std::unordered_map<uint64_t, uint8_t>& modifiedBytes)
 {
 	m_nextLeafIdx = nextLeafIdx;
 
@@ -25,9 +15,9 @@ void LeafSetCache::ApplyUpdates(const mmr::LeafIndex& nextLeafIdx, const std::un
 	}
 }
 
-void LeafSetCache::Flush()
+void LeafSetCache::Flush(const uint32_t file_index)
 {
-	m_pBacked->ApplyUpdates(m_nextLeafIdx, m_modifiedBytes);
+	m_pBacked->ApplyUpdates(file_index, m_nextLeafIdx, m_modifiedBytes);
 	m_modifiedBytes.clear();
 }
 

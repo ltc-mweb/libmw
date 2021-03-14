@@ -7,12 +7,10 @@
 #include <mw/models/crypto/BigInteger.h>
 #include <mw/traits/Printable.h>
 #include <mw/traits/Serializable.h>
-#include <mw/traits/Jsonable.h>
 
 class Signature :
     public Traits::IPrintable,
-    public Traits::ISerializable,
-    public Traits::IJsonable
+    public Traits::ISerializable
 {
 public:
     using UPtr = std::unique_ptr<const Signature>;
@@ -61,16 +59,6 @@ public:
     static Signature Deserialize(Deserializer& deserializer)
     {
         return Signature(BigInt<SIZE>::Deserialize(deserializer));
-    }
-
-    json ToJSON() const noexcept final
-    {
-        return json(m_bytes.ToHex());
-    }
-
-    static Signature FromJSON(const Json& json)
-    {
-        return Signature::FromHex(json.Get<std::string>());
     }
 
     std::string ToHex() const { return m_bytes.ToHex(); }

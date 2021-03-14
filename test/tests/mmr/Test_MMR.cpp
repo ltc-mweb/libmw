@@ -76,6 +76,5 @@ TEST_CASE("mmr::MMRCache")
     REQUIRE(cache.GetNumLeaves() == 4);
     REQUIRE(cache.Root() == mw::Hash::FromHex("675996c8bbfce6319dd00588ebd289d555eedfa60aa17a9a83cc7da80888a97e"));
 
-    cache.Flush();
-    cache.Flush();
+    cache.Flush(0, nullptr);
 }

@@ -19,7 +19,7 @@ public:
     static TestLeafSet::Ptr Create(const std::vector<BlockInfo>& blocks)
     {
         FilePath path = test::TestUtil::GetTempDir();
-        auto pLeafSet = mmr::LeafSet::Open(path);
+        auto pLeafSet = mmr::LeafSet::Open(path, 0);
 
         auto pTestLeafSet = std::shared_ptr<TestLeafSet>(new TestLeafSet(path, pLeafSet));
 

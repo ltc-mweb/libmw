@@ -5,7 +5,6 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
 #include <mw/common/Macros.h>
-#include <mw/util/BitUtil.h>
 #include <cstdint>
 #include <cassert>
 #include <memory>

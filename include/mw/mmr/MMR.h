@@ -7,7 +7,6 @@
 #include <mw/common/Macros.h>
 #include <mw/common/Logger.h>
 #include <mw/models/crypto/Hash.h>
-#include <mw/traits/Batchable.h>
 #include <mw/traits/Serializable.h>
 #include <mw/mmr/Backend.h>
 #include <mw/mmr/LeafIndex.h>
@@ -87,17 +86,19 @@ public:
     /// This also updates the database and MMR files when the MMR is not a cache.
     /// Typically, this is called from a derived MMRCache when its changes are being flushed/committed.
     /// </summary>
+    /// <param name="file_index">The index of the MMR files. This should be incremented with each write.</param>
     /// <param name="firstLeafIdx">The LeafIndex of the first leaf being added.</param>
     /// <param name="leaves">The leaves being added to the MMR.</param>
     /// <param name="pBatch">A wrapper around a DB Batch. Required when called for an MMR (ie, non-cache).</param>
     virtual void BatchWrite(
+        const uint32_t file_index,
         const LeafIndex& firstLeafIdx,
         const std::vector<Leaf>& leaves,
         const std::unique_ptr<libmw::IDBBatch>& pBatch
     ) = 0;
 };
 
-class MMR : public Traits::IBatchable, public IMMR
+class MMR : public IMMR
 {
 public:
     using Ptr = std::shared_ptr<MMR>;
@@ -114,10 +115,8 @@ public:
     uint64_t GetNumNodes() const noexcept;
     void Rewind(const uint64_t numLeaves) final;
 
-    void Commit() final { m_pBackend->Commit(); }
-    void Rollback() noexcept final { m_pBackend->Rollback(); }
-
     void BatchWrite(
+        const uint32_t file_index,
         const LeafIndex& firstLeafIdx,
         const std::vector<Leaf>& leaves,
         const std::unique_ptr<libmw::IDBBatch>& pBatch
@@ -144,12 +143,13 @@ public:
     void Rewind(const uint64_t numLeaves) final;
 
     void BatchWrite(
+        const uint32_t file_index,
         const LeafIndex& firstLeafIdx,
         const std::vector<Leaf>& leaves,
         const std::unique_ptr<libmw::IDBBatch>& pBatch
     ) final;
 
-    void Flush(const std::unique_ptr<libmw::IDBBatch>& pBatch = nullptr);
+    void Flush(const uint32_t index, const std::unique_ptr<libmw::IDBBatch>& pBatch);
 
 private:
     IMMR::Ptr m_pBase;

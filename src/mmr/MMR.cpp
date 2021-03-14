@@ -1,5 +1,4 @@
 #include <mw/mmr/MMR.h>
-#include <mw/mmr/backends/FileBackend.h>
 
 using namespace mmr;
 
@@ -33,16 +32,18 @@ void MMR::Rewind(const uint64_t numLeaves)
 }
 
 void MMR::BatchWrite(
+    const uint32_t file_index,
     const LeafIndex& firstLeafIdx,
     const std::vector<Leaf>& leaves,
     const std::unique_ptr<libmw::IDBBatch>& pBatch)
 {
-    LOG_TRACE_F("MMR: Writing batch {}", firstLeafIdx.GetLeafIndex());
+    LOG_TRACE_F("MMR: Writing batch {} with first leaf {}", file_index, firstLeafIdx.GetLeafIndex());
+
     m_pBackend->Rewind(firstLeafIdx);
     for (const Leaf& leaf : leaves)
     {
         m_pBackend->AddLeaf(leaf);
     }
 
-    m_pBackend->Commit(pBatch);
+    m_pBackend->Commit(file_index, pBatch);
 }

@@ -42,14 +42,15 @@ public:
         m_nodes.resize(nextLeafIndex.GetPosition());
     }
 
+    void Compact(const uint32_t, const boost::dynamic_bitset<uint64_t>&) final { }
+
     uint64_t GetNumLeaves() const noexcept final { return m_leaves.size(); }
 
     mw::Hash GetHash(const Index& idx) const final { return m_nodes[idx.GetPosition()]; }
     Leaf GetLeaf(const LeafIndex& idx) const final { return m_leaves[idx.GetLeafIndex()]; }
 
     // Not supported yet
-    void Commit(const std::unique_ptr<libmw::IDBBatch>& pBatch) final { }
-    void Rollback() noexcept final { }
+    void Commit(const uint32_t index, const std::unique_ptr<libmw::IDBBatch>& pBatch) final { }
 
 private:
     std::vector<Leaf> m_leaves;

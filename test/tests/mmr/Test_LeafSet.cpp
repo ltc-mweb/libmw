@@ -12,7 +12,7 @@ TEST_CASE("mmr::LeafSet")
 	ScopedFileRemover remover(temp_dir); // Removes the directory when this goes out of scope.
 
 	{
-		mmr::LeafSet::Ptr pLeafset = mmr::LeafSet::Open(temp_dir);
+		mmr::LeafSet::Ptr pLeafset = mmr::LeafSet::Open(temp_dir, 0);
 
 		REQUIRE(pLeafset->GetNextLeafIdx().GetLeafIndex() == 0);
 		REQUIRE_FALSE(pLeafset->Contains(mmr::LeafIndex::At(0)));
@@ -45,14 +45,14 @@ TEST_CASE("mmr::LeafSet")
 		REQUIRE(pLeafset->Root() == Hashed({ 0b11000000 }));
 
 		// Flush to disk and validate
-		pLeafset->Flush();
+		pLeafset->Flush(1);
 		REQUIRE(pLeafset->GetNextLeafIdx().GetLeafIndex() == 2);
 		REQUIRE(pLeafset->Root() == Hashed({ 0b11000000 }));
 	}
 
 	{
 		// Reload from disk and validate
-		mmr::LeafSet::Ptr pLeafset = mmr::LeafSet::Open(temp_dir);
+		mmr::LeafSet::Ptr pLeafset = mmr::LeafSet::Open(temp_dir, 1);
 		REQUIRE(pLeafset->GetNextLeafIdx().GetLeafIndex() == 2);
 		REQUIRE(pLeafset->Root() == Hashed({ 0b11000000 }));
 	}

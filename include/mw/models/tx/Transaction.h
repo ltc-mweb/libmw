@@ -13,7 +13,6 @@
 #include <mw/traits/Printable.h>
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Hashable.h>
-#include <mw/traits/Jsonable.h>
 
 #include <memory>
 #include <vector>

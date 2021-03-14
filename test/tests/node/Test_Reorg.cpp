@@ -84,6 +84,5 @@ TEST_CASE("Reorg Chain")
         REQUIRE(pCachedView->GetUTXOs(block3_tx1_output1.GetCommitment()).size() == 1);
 
         pNode.reset();
-        LoggerAPI::Shutdown();
     }
 }
