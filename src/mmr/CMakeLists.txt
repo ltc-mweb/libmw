@@ -8,6 +8,7 @@ list_append_parent(
 	"LeafSetCache.cpp"
 	"MMR.cpp"
 	"MMRCache.cpp"
+	"MMRFactory.cpp"
 	"PruneList.cpp"
 	"backends/FileBackend.cpp"
 )

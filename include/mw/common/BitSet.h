@@ -1,11 +1,17 @@
 #pragma once
 
+#include <mw/traits/Serializable.h>
+#include <mw/serialization/Serializer.h>
 #include <boost/dynamic_bitset.hpp>
 #include <vector>
 
-struct BitSet
+struct BitSet : public Traits::ISerializable
 {
     boost::dynamic_bitset<> bitset;
+
+    BitSet() = default;
+    BitSet(const size_t size)
+        : bitset(size) { }
 
     static BitSet From(const std::vector<uint8_t>& bytes)
     {
@@ -41,5 +47,40 @@ struct BitSet
     uint64_t count() const noexcept { return bitset.count(); }
     uint64_t size() const noexcept { return bitset.size(); }
 
+    /// <summary>
+    /// Calculates the number of set bits that are smaller or equal to idx.
+    /// </summary>
+    /// <param name="idx">The index to calculate the rank for.</param>
+    /// <returns>The calculated rank.</returns>
+    uint64_t rank(uint64_t idx) const noexcept
+    {
+        uint64_t rank = 0;
+        for (uint64_t i = 0; i < idx; i++) {
+            if (i >= size()) {
+                break;
+            }
+
+            if (test(i)) {
+                ++rank;
+            }
+        }
+
+        return rank;
+    }
+
     void set(uint64_t idx, bool val = true) noexcept { bitset.set(idx, val); }
+
+    Serializer& Serialize(Serializer& serializer) const noexcept final
+    {
+        std::vector<uint8_t> vec = bytes();
+        return serializer
+            .Append<uint64_t>(vec.size())
+            .Append(vec);
+    }
+
+    static BitSet Deserialize(Deserializer& deserializer)
+    {
+        uint64_t num_bytes = deserializer.Read<uint64_t>();
+        return BitSet::From(deserializer.ReadVector(num_bytes));
+    }
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mw/common/Macros.h>
+#include <mw/common/BitSet.h>
 #include <mw/db/IBlockStore.h>
 #include <mw/node/CoinsView.h>
 #include <mw/models/block/Header.h>
@@ -52,7 +53,9 @@ public:
         const mw::Hash& firstMWHeaderHash,
         const mw::Hash& stateHeaderHash,
         const std::vector<UTXO::CPtr>& utxos,
-        const std::vector<Kernel>& kernels
+        const std::vector<Kernel>& kernels,
+        const BitSet& leafset,
+        const std::vector<mw::Hash>& pruned_parent_hashes
     ) = 0;
 };
 

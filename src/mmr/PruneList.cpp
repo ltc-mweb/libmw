@@ -1,9 +1,11 @@
 #include <mw/mmr/PruneList.h>
 #include <mw/file/File.h>
 
-mmr::PruneList::Ptr mmr::PruneList::Open(const FilePath& parent_dir, const uint32_t file_index)
+using namespace mmr;
+
+PruneList::Ptr PruneList::Open(const FilePath& parent_dir, const uint32_t file_index)
 {
-    File file(parent_dir.GetChild(StringUtil::Format("prun{:0>6}.dat", file_index)));
+    File file = GetPath(parent_dir, file_index);
 
     BitSet bitset;
     if (file.Exists()) {
@@ -14,33 +16,27 @@ mmr::PruneList::Ptr mmr::PruneList::Open(const FilePath& parent_dir, const uint3
     return std::shared_ptr<PruneList>(new PruneList(parent_dir, std::move(bitset), total_shift));
 }
 
-// NOTE: This is an inefficient algorithm.
-// A shift cache with an efficient "nearest-neighbor" searching algorithm would be better.
-uint64_t mmr::PruneList::GetShift(const mmr::Index& index) const noexcept
+FilePath PruneList::GetPath(const FilePath& dir, const uint32_t file_index)
 {
-    uint64_t shift = 0;
-    for (uint64_t idx = 0; idx < index.GetPosition(); idx++) {
-        if (idx >= m_compacted.size()) {
-            break;
-        }
-
-        if (m_compacted.test(idx)) {
-            ++shift;
-        }
-    }
-
-    return shift;
+    return dir.GetChild(StringUtil::Format("prun{:0>6}.dat", file_index));
 }
 
-uint64_t mmr::PruneList::GetShift(const mmr::LeafIndex& index) const noexcept
+uint64_t PruneList::GetShift(const Index& index) const noexcept
+{
+    // NOTE: rank() uses an inefficient algorithm.
+    // A shift cache with an efficient "nearest-neighbor" searching algorithm would be better.
+    return m_compacted.rank(index.GetPosition());
+}
+
+uint64_t PruneList::GetShift(const LeafIndex& index) const noexcept
 {
     return GetShift(index.GetNodeIndex());
 }
 
-void mmr::PruneList::Commit(const uint32_t file_index, const BitSet& compacted)
+void PruneList::Commit(const uint32_t file_index, const BitSet& compacted)
 {
-    File file(m_dir.GetChild(StringUtil::Format("prun{:0>6}.dat", file_index)));
-    file.Write(compacted.bytes());
+    File(GetPath(m_dir, file_index))
+        .Write(compacted.bytes());
 
     m_compacted = compacted;
     m_totalShift = compacted.count();

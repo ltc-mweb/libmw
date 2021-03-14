@@ -33,6 +33,11 @@ public:
     bool operator>(const uint64_t position) const noexcept { return m_position > position; }
     bool operator>=(const uint64_t position) const noexcept { return m_position >= position; }
 
+    mmr::Index& operator++() {
+        *this = this->GetNext();
+        return *this;
+    }
+
     bool IsLeaf() const noexcept { return m_height == 0; }
     uint64_t GetPosition() const noexcept { return m_position; }
     uint64_t GetLeafIndex() const noexcept;
@@ -56,8 +61,12 @@ public:
 
     Index GetParent() const noexcept;
     Index GetSibling() const noexcept;
+
+    uint64_t left_child_pos() const noexcept { return GetLeftChild().GetPosition(); }
     Index GetLeftChild() const noexcept;
+
     Index GetRightChild() const noexcept;
+    uint64_t right_child_pos() const noexcept { return GetRightChild().GetPosition(); }
 
 protected:
     static uint64_t CalculateHeight(const uint64_t position) noexcept;

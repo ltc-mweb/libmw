@@ -1,12 +1,15 @@
 #include "CoinsViewFactory.h"
 
-#include <mw/mmr/backends/FileBackend.h>
-#include <mw/exceptions/ValidationException.h>
 #include <mw/crypto/Bulletproofs.h>
 #include <mw/crypto/Schnorr.h>
 #include <mw/consensus/KernelSumValidator.h>
 #include <mw/db/CoinDB.h>
+#include <mw/db/LeafDB.h>
 #include <mw/db/MMRInfoDB.h>
+#include <mw/exceptions/ValidationException.h>
+#include <mw/mmr/backends/FileBackend.h>
+#include <mw/mmr/MMRFactory.h>
+#include <mw/mmr/MMRUtil.h>
 
 static const size_t KERNEL_BATCH_SIZE = 512;
 static const size_t PROOF_BATCH_SIZE = 512;
@@ -19,7 +22,9 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	const mw::Hash& firstMWHeaderHash,
 	const mw::Hash& stateHeaderHash,
     const std::vector<UTXO::CPtr>& utxos,
-    const std::vector<Kernel>& kernels)
+    const std::vector<Kernel>& kernels,
+	const BitSet& leafset,
+	const std::vector<mw::Hash>& pruned_parent_hashes)
 {
 	auto pStateHeader = blockStore.GetHeader(stateHeaderHash);
 	assert(pStateHeader != nullptr);
@@ -28,30 +33,43 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
         ThrowValidation(EConsensusError::MMR_MISMATCH);
     }
 
-	auto pBatch = pDBWrapper->CreateBatch();
-
-	MMRInfo mmr_info;
-
-	MMRInfoDB mmr_db(pDBWrapper.get(), pBatch.get());
-	auto pMMRInfo = mmr_db.GetLatest();
-	if (pMMRInfo) {
-		mmr_info = *pMMRInfo;
-	}
-
+	/**
+	 * Update MMRInfo
+	 */
+	auto pMMRInfo = MMRInfoDB(pDBWrapper.get()).GetLatest();
+	MMRInfo mmr_info = pMMRInfo ? *pMMRInfo : MMRInfo{};
 	mmr_info.index++;
 	mmr_info.pruned = stateHeaderHash;
 	mmr_info.compact_index++;
-	mmr_info.compacted = boost::none; // TODO: Should we just always compact to stateHeaderHash?
+	mmr_info.compacted = stateHeaderHash;
+	MMRInfoDB(pDBWrapper.get()).Save(mmr_info);
 
-	auto pLeafSet = BuildAndValidateLeafSet(
-		mmr_info,
-		chainDir,
-		pStateHeader,
-		utxos
-	);
 
+	/**
+	 * Build LeafSet
+	 */
+	File(mmr::LeafSet::GetPath(chainDir, mmr_info.index))
+		.Write(leafset.bytes());
+	auto pLeafSet = mmr::LeafSet::Open(chainDir, mmr_info.index);
+	if (pLeafSet->Root() != pStateHeader->GetLeafsetRoot()) {
+		ThrowValidation(EConsensusError::MMR_MISMATCH);
+	}
+
+	/**
+	 * Build PruneList
+	 */
+	BitSet compact_bitset = mmr::MMRUtil::BuildCompactBitSet(pStateHeader->GetNumTXOs(), leafset.bitset);
+	File(mmr::PruneList::GetPath(chainDir, mmr_info.compact_index))
+		.Write(compact_bitset.bytes());
+	auto pPruneList = mmr::PruneList::Open(chainDir, mmr_info.compact_index);
+
+	/**
+	 * Build KernelMMR
+	 */
+	auto pBatch = pDBWrapper->CreateBatch();
     auto pKernelMMR = BuildAndValidateKernelMMR(
         pDBWrapper,
+		pBatch,
 		mmr_info,
         blockStore,
         chainDir,
@@ -59,21 +77,35 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
         pStateHeader,
         kernels
     );
-
-	auto pOutputMMR = BuildAndValidateOutputMMR(
-        pDBWrapper,
+	
+	/**
+	 * Build Output PMMR
+	 */
+	auto pOutputPMMR = BuildAndValidateOutputMMR(
+		pDBWrapper,
+		pBatch,
 		mmr_info,
 		chainDir,
 		pStateHeader,
-		utxos
+		utxos,
+		leafset,
+		pPruneList,
+		pruned_parent_hashes
 	);
 
+	/**
+	 * Build RangeProof PMMR
+	 */
 	auto pRangeProofMMR = BuildAndValidateRangeProofMMR(
         pDBWrapper,
+		pBatch,
 		mmr_info,
 		chainDir,
 		pStateHeader,
-		utxos
+		utxos,
+		leafset,
+		pPruneList,
+		pruned_parent_hashes
 	);
 
     std::vector<Commitment> utxo_commitments;
@@ -100,7 +132,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 		pDBWrapper,
 		pLeafSet,
 		pKernelMMR,
-		pOutputMMR,
+		pOutputPMMR,
 		pRangeProofMMR
 	);
 }
@@ -108,6 +140,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 // TODO: Also validate peg-in/peg-out transactions
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+	const std::unique_ptr<libmw::IDBBatch>& pBatch,
 	const MMRInfo& mmr_info,
 	const mw::IBlockStore& blockStore,
     const FilePath& chainDir,
@@ -115,16 +148,22 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
     const mw::Header::CPtr& pStateHeader,
     const std::vector<Kernel>& kernels)
 {
-    auto mmrPath = chainDir.GetChild("kernels");
-    mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(mmr::FileBackend::Open('K', mmrPath, mmr_info.index, pDBWrapper, nullptr));
+    mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(
+		mmr::FileBackend::Open('K', chainDir, mmr_info.index, pDBWrapper, nullptr)
+	);
 
     auto pNextHeader = blockStore.GetHeader(firstMWHeaderHash);
 	assert(pNextHeader != nullptr);
 
+	std::vector<mmr::Leaf> leaves;
+	leaves.reserve(kernels.size());
+
 	uint64_t kernels_added = 0;
     for (const Kernel& kernel : kernels)
     {
-        pMMR->Add(kernel);
+        mmr::LeafIndex leaf_idx = pMMR->Add(kernel);
+		leaves.push_back(mmr::Leaf::Create(leaf_idx, kernel.Serialized()));
+
 		++kernels_added;
 
         // We have to loop here because some blocks may not have any new kernels.
@@ -141,6 +180,9 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
 			pNextHeader = blockStore.GetHeader(pNextHeader->GetHeight() + 1);
         }
     }
+
+	LeafDB('K', pDBWrapper.get(), pBatch.get())
+		.Add(leaves);
 
 	// Verify kernel signatures
 	std::vector<SignedMessage> signatures;
@@ -167,69 +209,76 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
     return pMMR;
 }
 
-mmr::LeafSet::Ptr CoinsViewFactory::BuildAndValidateLeafSet(
-	const MMRInfo& mmr_info,
-	const FilePath& chainDir,
-	const mw::Header::CPtr& pStateHeader,
-	const std::vector<UTXO::CPtr>& utxos)
-{
-	auto pLeafSet = mmr::LeafSet::Open(chainDir, mmr_info.index);
-	for (const UTXO::CPtr& pUTXO : utxos)
-	{
-		pLeafSet->Add(pUTXO->GetLeafIndex());
-	}
-
-	if (pLeafSet->Root() != pStateHeader->GetLeafsetRoot()) {
-		ThrowValidation(EConsensusError::MMR_MISMATCH);
-	}
-
-	return pLeafSet;
-}
-
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateOutputMMR(
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+	const std::unique_ptr<libmw::IDBBatch>& pBatch,
 	const MMRInfo& mmr_info,
     const FilePath& chainDir,
     const mw::Header::CPtr& pStateHeader,
-    const std::vector<UTXO::CPtr>& utxos)
+    const std::vector<UTXO::CPtr>& utxos,
+	const BitSet& leafset,
+	const mmr::PruneList::Ptr& pPruneList,
+	const std::vector<mw::Hash>& pruned_parent_hashes)
 {
-    auto mmrPath = chainDir.GetChild("outputs");
-    auto pBackend = mmr::FileBackend::Open('O', mmrPath, mmr_info.index, pDBWrapper, nullptr); // TODO: Add prune file
-    mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
-
-	// TODO: Need parent hashes
-    for (const UTXO::CPtr& pUTXO : utxos)
-    {
-        pBackend->AddLeaf(mmr::Leaf::Create(pUTXO->GetLeafIndex(), pUTXO->GetOutput().Serialized()));
-    }
-
-	if (pMMR->Root() != pStateHeader->GetOutputRoot()) {
+	if (leafset.count() != utxos.size()) {
 		ThrowValidation(EConsensusError::MMR_MISMATCH);
 	}
 
-	return pMMR;
+	std::vector<mmr::Leaf> output_leaves;
+	size_t utxo_idx = 0;
+	for (uint64_t i = 0; i < leafset.size(); i++) {
+		if (leafset.test(i)) {
+			const UTXO::CPtr& pUTXO = utxos[utxo_idx++];
+			output_leaves.push_back(
+				mmr::Leaf::Create(mmr::LeafIndex::At(i), pUTXO->ToOutputId().Serialized())
+			);
+		}
+	}
+
+	mmr::MMR::Ptr pOutputPMMR = mmr::MMRFactory::Build(
+		'O',
+		pDBWrapper,
+		pBatch,
+		pPruneList,
+		mmr_info,
+		chainDir,
+		leafset,
+		output_leaves,
+		pruned_parent_hashes
+	);
+
+	if (pOutputPMMR->Root() != pStateHeader->GetOutputRoot()
+		|| pOutputPMMR->GetNumLeaves() != pStateHeader->GetNumTXOs()) {
+		ThrowValidation(EConsensusError::MMR_MISMATCH);
+	}
+
+	return pOutputPMMR;
 }
 
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
+	const std::unique_ptr<libmw::IDBBatch>& pBatch,
 	const MMRInfo& mmr_info,
 	const FilePath& chainDir,
 	const mw::Header::CPtr& pStateHeader,
-	const std::vector<UTXO::CPtr>& utxos)
+	const std::vector<UTXO::CPtr>& utxos,
+	const BitSet& leafset,
+	const mmr::PruneList::Ptr& pPruneList,
+	const std::vector<mw::Hash>& pruned_parent_hashes)
 {
-    auto mmrPath = chainDir.GetChild("rangeproofs");
-    auto pBackend = mmr::FileBackend::Open('R', mmrPath, mmr_info.index, pDBWrapper, nullptr); // TODO: Add prune file
-	mmr::MMR::Ptr pMMR = std::make_shared<mmr::MMR>(pBackend);
-
 	std::vector<ProofData> proofs;
+	proofs.reserve(PROOF_BATCH_SIZE);
 
-	// TODO: Need parent hashes
-	for (const UTXO::CPtr& pUTXO : utxos)
-	{
-		pBackend->AddLeaf(mmr::Leaf::Create(pUTXO->GetLeafIndex(), pUTXO->GetRangeProof()->Serialized()));
+	std::vector<mmr::Leaf> leaves;
+	leaves.reserve(utxos.size());
+
+	for (const UTXO::CPtr& pUTXO : utxos) {
+		leaves.push_back(
+			mmr::Leaf::Create(pUTXO->GetLeafIndex(), pUTXO->GetRangeProof()->Serialized())
+		);
 
 		proofs.push_back(pUTXO->BuildProofData());
-		if (proofs.size() >= PROOF_BATCH_SIZE) {
+		if (proofs.size() == PROOF_BATCH_SIZE) {
 			if (!Bulletproofs::BatchVerify(proofs)) {
 				ThrowValidation(EConsensusError::BULLETPROOF);
 			}
@@ -244,9 +293,26 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
 		}
 	}
 
-	if (pMMR->Root() != pStateHeader->GetRangeProofRoot()) {
+	mmr::MMR::Ptr pRangeProofPMMR = mmr::MMRFactory::Build(
+		'R',
+		pDBWrapper,
+		pBatch,
+		pPruneList,
+		mmr_info,
+		chainDir,
+		leafset,
+		leaves,
+		pruned_parent_hashes
+	);
+
+	if (pRangeProofPMMR->Root() != pStateHeader->GetRangeProofRoot()
+		|| pRangeProofPMMR->GetNumLeaves() != pStateHeader->GetNumTXOs()) {
 		ThrowValidation(EConsensusError::MMR_MISMATCH);
 	}
 
-	return pMMR;
+	if (pRangeProofPMMR->Root() != pStateHeader->GetRangeProofRoot()) {
+		ThrowValidation(EConsensusError::MMR_MISMATCH);
+	}
+
+	return pRangeProofPMMR;
 }

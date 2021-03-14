@@ -15,6 +15,7 @@ public:
     using CPtr = std::shared_ptr<const PruneList>;
 
     static PruneList::Ptr Open(const FilePath& parent_dir, const uint32_t file_index);
+    static FilePath GetPath(const FilePath& dir, const uint32_t file_index);
 
     uint64_t GetShift(const mmr::Index& index) const noexcept;
     uint64_t GetShift(const mmr::LeafIndex& index) const noexcept;

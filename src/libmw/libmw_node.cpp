@@ -49,7 +49,9 @@ MWEXPORT libmw::CoinsViewRef ApplyState(
         mw::Hash{ firstMWHeaderHash },
         mw::Hash{ stateHeaderHash },
         state.pState->utxos,
-        state.pState->kernels
+        state.pState->kernels,
+        state.pState->leafset,
+        state.pState->pruned_parent_hashes
     );
 
     return libmw::CoinsViewRef{ pCoinsViewDB };

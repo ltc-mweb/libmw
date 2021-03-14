@@ -28,7 +28,9 @@ public:
         const mw::Hash& firstMWHeaderHash,
         const mw::Hash& stateHeaderHash,
         const std::vector<UTXO::CPtr>& utxos,
-        const std::vector<Kernel>& kernels
+        const std::vector<Kernel>& kernels,
+        const BitSet& leafset,
+        const std::vector<mw::Hash>& pruned_parent_hashes
     ) final;
 
 private:

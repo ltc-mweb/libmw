@@ -14,15 +14,18 @@ MMR_NAMESPACE
 class Node
 {
 public:
-    static Node CreateParent(const Index& index, const mw::Hash& leftHash, const mw::Hash& rightHash)
+    static Node CreateParent(const Index& index, const mw::Hash& left_hash, const mw::Hash& right_hash)
     {
-        Serializer hashSerializer;
-        hashSerializer.Append<uint64_t>(index.GetPosition());
-        hashSerializer.Append(leftHash);
-        hashSerializer.Append(rightHash);
-        mw::Hash hash = Hashed(hashSerializer.vec());
+        return Node(index, CalcParentHash(index, left_hash, right_hash));
+    }
 
-        return Node(index, std::move(hash));
+    static mw::Hash CalcParentHash(const Index& index, const mw::Hash& left_hash, const mw::Hash& right_hash)
+    {
+        return Hasher()
+            .Append<uint64_t>(index.GetPosition())
+            .Append(left_hash)
+            .Append(right_hash)
+            .hash();
     }
 
     const Index& GetIndex() const noexcept { return m_index; }

@@ -109,13 +109,10 @@ TEST_CASE("mmr::MMRUtil::BuildCompactBitSet")
         unspent_leaf_indices.set(i);
     }
 
-    boost::dynamic_bitset<> compactable_node_indices;
-    mmr::MMRUtil::BuildCompactBitSet(num_leaves, unspent_leaf_indices, compactable_node_indices);
-
-    REQUIRE(compactable_node_indices.test(0));
+    BitSet compactable_node_indices = mmr::MMRUtil::BuildCompactBitSet(num_leaves, unspent_leaf_indices);
 
     std::string compact_str;
-    boost::to_string(compactable_node_indices, compact_str);
+    boost::to_string(compactable_node_indices.bitset, compact_str);
     compact_str = std::string(compact_str.crbegin(), compact_str.crend()); // Reverse for readability
 
     REQUIRE(compact_str == "1100000111111000001100111111000111111111111110110000011000000000000000000000000000000000000000000000");
@@ -138,4 +135,25 @@ TEST_CASE("mmr::MMRUtil::DiffCompactBitSet")
 
     REQUIRE(diff.size() == 15);
     REQUIRE(diff_str == "000111111111100");
+}
+
+TEST_CASE("mmr::MMRUtil::CalcPrunedParentHashes")
+{
+    size_t num_leaves = 50;
+    BitSet unspent_leaf_indices(num_leaves);
+    unspent_leaf_indices.set(2);
+    unspent_leaf_indices.set(9);
+    unspent_leaf_indices.set(26);
+    unspent_leaf_indices.set(27);
+    for (size_t i = 30; i < num_leaves; i++) {
+        unspent_leaf_indices.set(i);
+    }
+
+    BitSet pruned_parent_hashes = mmr::MMRUtil::CalcPrunedParentHashes(unspent_leaf_indices);
+
+    std::string compact_str;
+    boost::to_string(pruned_parent_hashes.bitset, compact_str);
+    compact_str = std::string(compact_str.crbegin(), compact_str.crend()); // Reverse for readability
+
+    REQUIRE(compact_str == "0010100000000101000010000000100000000000000001001000000100000000000000000000000000000000000000000000");
 }

@@ -50,6 +50,7 @@ public:
 	using Ptr = std::shared_ptr<LeafSet>;
 
 	static LeafSet::Ptr Open(const FilePath& leafset_dir, const uint32_t file_index);
+	static FilePath GetPath(const FilePath& leafset_dir, const uint32_t file_index);
 
     //uint64_t GetSize() const;
 	uint8_t GetByte(const uint64_t byteIdx) const final;
