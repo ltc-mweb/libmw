@@ -26,8 +26,6 @@ public:
     ) const;
 
     StealthAddress GetStealthAddress(const uint32_t index) const;
-    StealthAddress GetChangeAddress() const { return GetStealthAddress(libmw::CHANGE_INDEX); }
-    StealthAddress GetPegInAddress() const { return GetStealthAddress(libmw::PEGIN_INDEX); }
 
     void ScanForOutputs(const libmw::IChain::Ptr& pChain);
 

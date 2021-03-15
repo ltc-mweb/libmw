@@ -24,7 +24,7 @@ public:
 
     }
 
-    bool IsMine(const libmw::PubKey& spend_pubkey, uint32_t& index_out) const final
+    bool IsMine(const libmw::PubKey& spend_pubkey, uint32_t& index_out) final
     {
         return true; // TODO: Implement
     }

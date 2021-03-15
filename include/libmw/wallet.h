@@ -56,14 +56,6 @@ MWIMPORT void ScanForOutputs(
 /// <returns>The MWEB wallet's bech32 address.</returns>
 MWIMPORT MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet, const uint32_t index);
 
-/// <summary>
-/// Determines if the MWEB wallet address belongs to the given wallet.
-/// </summary>
-/// <param name="pWallet">The wallet to check. Must not be null.</param>
-/// <param name="address">The bech32 address to check ownership of.</param>
-/// <returns>True if the address belongs to the wallet.</returns>
-MWIMPORT bool IsOwnAddress(const libmw::IWallet::Ptr& pWallet, const MWEBAddress& address);
-
 MWIMPORT bool RewindOutput(
     const libmw::IWallet::Ptr& pWallet,
     const boost::variant<libmw::TxRef, libmw::BlockRef>& parent,

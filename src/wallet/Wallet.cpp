@@ -44,29 +44,6 @@ SecretKey Wallet::GetSpendKey(const uint32_t index) const
     return Crypto::AddPrivateKeys(m_spendSecret, mi);
 }
 
-bool Wallet::IsSpendPubKey(const PublicKey& spend_pubkey, uint32_t& index_out) const
-{
-    if (GetChangeAddress().B() == spend_pubkey) {
-        index_out = libmw::CHANGE_INDEX;
-        return true;
-    }
-
-    if (GetPegInAddress().B() == spend_pubkey) {
-        index_out = libmw::PEGIN_INDEX;
-        return true;
-    }
-
-    // TODO: Check all receive addresses (Need to use a key cache for performance)
-    for (uint32_t i = 0; i < 100; i++) {
-        if (GetStealthAddress(i).B() == spend_pubkey) {
-            index_out = i;
-            return true;
-        }
-    }
-
-    return false;
-}
-
 void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
 {
     // TODO: Just return outputs
@@ -114,7 +91,7 @@ bool Wallet::RewindOutput(const Output& output, libmw::Coin& coin) const
 
         // Check if B belongs to wallet
         uint32_t index = 0;
-        if (IsSpendPubKey(B, index)) {
+        if (m_pWalletInterface->IsMine(B.array(), index)) {
             StealthAddress wallet_addr = GetStealthAddress(index);
             Deserializer hash64(Hash512(t).vec());
             SecretKey r = hash64.Read<SecretKey>();

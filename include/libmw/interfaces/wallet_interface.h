@@ -26,7 +26,7 @@ public:
     /// <param name="spend_pubkey">The spend pubkey to check.</param>
     /// <param name="index_out">The key index of the pubkey.</param>
     /// <returns>True if the pubkey belongs to the wallet.</returns>
-    virtual bool IsMine(const libmw::PubKey& spend_pubkey, uint32_t& index_out) const = 0;
+    virtual bool IsMine(const libmw::PubKey& spend_pubkey, uint32_t& index_out) = 0;
 
     /// <summary>
     /// Calculates the private key at the given bip32 path.

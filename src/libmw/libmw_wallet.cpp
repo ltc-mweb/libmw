@@ -51,21 +51,6 @@ MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet, const
     return Wallet::Open(pWallet).GetStealthAddress(index).Encode();
 }
 
-MWEXPORT bool IsOwnAddress(const libmw::IWallet::Ptr& pWallet, const libmw::MWEBAddress& address)
-{
-    for (uint32_t i = 0; i < 100; i++) {
-        if (GetAddress(pWallet, i) == address) {
-            return true;
-        }
-    }
-
-    if (GetAddress(pWallet, libmw::CHANGE_INDEX) == address || GetAddress(pWallet, libmw::PEGIN_INDEX) == address) {
-        return true;
-    }
-
-    return false;
-}
-
 MWEXPORT bool RewindOutput(
     const libmw::IWallet::Ptr& pWallet,
     const boost::variant<libmw::TxRef, libmw::BlockRef>& parent,
