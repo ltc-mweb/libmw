@@ -12,8 +12,6 @@ void ICoinsView::ValidateMMRs(const mw::Header::CPtr& pHeader) const
         || pHeader->GetNumKernels() != GetKernelMMR()->GetNumLeaves()
         || pHeader->GetOutputRoot() != GetOutputPMMR()->Root()
         || pHeader->GetNumTXOs() != GetOutputPMMR()->GetNumLeaves()
-        || pHeader->GetRangeProofRoot() != GetRangeProofPMMR()->Root()
-        || pHeader->GetNumTXOs() != GetRangeProofPMMR()->GetNumLeaves()
         || pHeader->GetLeafsetRoot() != GetLeafSet()->Root()) {
 
         LOG_DEBUG_F("Kernel root: {}", GetKernelMMR()->Root());

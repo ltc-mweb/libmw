@@ -107,7 +107,6 @@ public:
     virtual mmr::ILeafSet::Ptr GetLeafSet() const noexcept = 0;
     virtual mmr::IMMR::Ptr GetKernelMMR() const noexcept = 0;
     virtual mmr::IMMR::Ptr GetOutputPMMR() const noexcept = 0;
-    virtual mmr::IMMR::Ptr GetRangeProofPMMR() const noexcept = 0;
     
 protected:
     void ValidateMMRs(const mw::Header::CPtr& pHeader) const;
@@ -129,7 +128,6 @@ public:
         m_pLeafSet(std::make_unique<mmr::LeafSetCache>(pBase->GetLeafSet())),
         m_pKernelMMR(std::make_unique<mmr::MMRCache>(pBase->GetKernelMMR())),
         m_pOutputPMMR(std::make_unique<mmr::MMRCache>(pBase->GetOutputPMMR())),
-        m_pRangeProofPMMR(std::make_unique<mmr::MMRCache>(pBase->GetRangeProofPMMR())),
         m_pUpdates(std::make_shared<CoinsViewUpdates>()) { }
 
     bool IsCache() const noexcept final { return true; }
@@ -152,7 +150,6 @@ public:
     mmr::ILeafSet::Ptr GetLeafSet() const noexcept final { return m_pLeafSet; }
     mmr::IMMR::Ptr GetKernelMMR() const noexcept final { return m_pKernelMMR; }
     mmr::IMMR::Ptr GetOutputPMMR() const noexcept final { return m_pOutputPMMR; }
-    mmr::IMMR::Ptr GetRangeProofPMMR() const noexcept final { return m_pRangeProofPMMR; }
 
 private:
     void AddUTXO(const uint64_t header_height, const Output& output);
@@ -163,10 +160,8 @@ private:
     mmr::LeafSetCache::Ptr m_pLeafSet;
     mmr::MMRCache::Ptr m_pKernelMMR;
     mmr::MMRCache::Ptr m_pOutputPMMR;
-    mmr::MMRCache::Ptr m_pRangeProofPMMR;
 
     CoinsViewUpdates::Ptr m_pUpdates;
-    //std::unordered_map<Commitment, std::vector<Action>> m_actions;
 };
 
 class CoinsViewDB : public mw::ICoinsView
@@ -177,13 +172,11 @@ public:
         const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
         const mmr::LeafSet::Ptr& pLeafSet,
         const mmr::MMR::Ptr& pKernelMMR,
-        const mmr::MMR::Ptr& pOutputPMMR,
-        const mmr::MMR::Ptr& pRangeProofPMMR
+        const mmr::MMR::Ptr& pOutputPMMR
     ) : ICoinsView(pBestHeader, pDBWrapper),
         m_pLeafSet(pLeafSet),
         m_pKernelMMR(pKernelMMR),
-        m_pOutputPMMR(pOutputPMMR),
-        m_pRangeProofPMMR(pRangeProofPMMR) { }
+        m_pOutputPMMR(pOutputPMMR) { }
 
     bool IsCache() const noexcept final { return false; }
 
@@ -197,7 +190,6 @@ public:
     mmr::ILeafSet::Ptr GetLeafSet() const noexcept final { return m_pLeafSet; }
     mmr::IMMR::Ptr GetKernelMMR() const noexcept final { return m_pKernelMMR; }
     mmr::IMMR::Ptr GetOutputPMMR() const noexcept final { return m_pOutputPMMR; }
-    mmr::IMMR::Ptr GetRangeProofPMMR() const noexcept final { return m_pRangeProofPMMR; }
 
 private:
     void AddUTXO(CoinDB& coinDB, const Output& output);
@@ -208,7 +200,6 @@ private:
     mmr::LeafSet::Ptr m_pLeafSet;
     mmr::MMR::Ptr m_pKernelMMR;
     mmr::MMR::Ptr m_pOutputPMMR;
-    mmr::MMR::Ptr m_pRangeProofPMMR;
 };
 
 END_NAMESPACE

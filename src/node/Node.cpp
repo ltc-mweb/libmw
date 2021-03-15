@@ -31,16 +31,12 @@ mw::INode::Ptr mw::InitializeNode(
     auto pOutputBackend = mmr::FileBackend::Open('O', datadir, file_index, pDBWrapper, pPruneList);
     mmr::MMR::Ptr pOutputMMR = std::make_shared<mmr::MMR>(pOutputBackend);
 
-    auto pRangeProofBackend = mmr::FileBackend::Open('R', datadir, file_index, pDBWrapper, pPruneList);
-    mmr::MMR::Ptr pRangeProofMMR = std::make_shared<mmr::MMR>(pRangeProofBackend);
-
     mw::CoinsViewDB::Ptr pDBView = std::make_shared<mw::CoinsViewDB>(
         pBestHeader,
         pDBWrapper,
         pLeafSet,
         pKernelsMMR,
-        pOutputMMR,
-        pRangeProofMMR
+        pOutputMMR
     );
 
     return std::shared_ptr<mw::INode>(new Node(datadir, pDBView));

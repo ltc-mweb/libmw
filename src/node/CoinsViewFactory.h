@@ -48,16 +48,4 @@ private:
         const mmr::PruneList::Ptr& pPruneList,
         const std::vector<mw::Hash>& pruned_parent_hashes
     );
-
-	static mmr::MMR::Ptr BuildAndValidateRangeProofMMR(
-        const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
-        const std::unique_ptr<libmw::IDBBatch>& pBatch,
-        const MMRInfo& mmr_info,
-		const FilePath& chainDir,
-		const mw::Header::CPtr& pStateHeader,
-		const std::vector<UTXO::CPtr>& utxos,
-        const BitSet& leafset,
-        const mmr::PruneList::Ptr& pPruneList,
-        const std::vector<mw::Hash>& pruned_parent_hashes
-	);
 };

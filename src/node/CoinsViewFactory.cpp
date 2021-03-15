@@ -89,20 +89,8 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	);
 
 	/**
-	 * Build RangeProof PMMR
+	 * Validate block sums
 	 */
-	auto pRangeProofMMR = BuildAndValidateRangeProofMMR(
-        pDBWrapper,
-		pBatch,
-		mmr_info,
-		chainDir,
-		pStateHeader,
-		utxos,
-		leafset,
-		pPruneList,
-		pruned_parent_hashes
-	);
-
     std::vector<Commitment> utxo_commitments;
     std::transform(
         utxos.cbegin(), utxos.cend(),
@@ -110,7 +98,6 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
         [](const UTXO::CPtr& pUTXO) { return pUTXO->GetCommitment(); }
     );
 
-	// Block sum validation
 	KernelSumValidator::ValidateState(
 		utxo_commitments,
 		kernels,
@@ -127,8 +114,7 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 		pDBWrapper,
 		pLeafSet,
 		pKernelMMR,
-		pOutputPMMR,
-		pRangeProofMMR
+		pOutputPMMR
 	);
 }
 
@@ -251,66 +237,4 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateOutputMMR(
 	}
 
 	return pOutputPMMR;
-}
-
-mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateRangeProofMMR(
-    const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
-	const std::unique_ptr<libmw::IDBBatch>& pBatch,
-	const MMRInfo& mmr_info,
-	const FilePath& chainDir,
-	const mw::Header::CPtr& pStateHeader,
-	const std::vector<UTXO::CPtr>& utxos,
-	const BitSet& leafset,
-	const mmr::PruneList::Ptr& pPruneList,
-	const std::vector<mw::Hash>& pruned_parent_hashes)
-{
-	std::vector<ProofData> proofs;
-	proofs.reserve(PROOF_BATCH_SIZE);
-
-	std::vector<mmr::Leaf> leaves;
-	leaves.reserve(utxos.size());
-
-	for (const UTXO::CPtr& pUTXO : utxos) {
-		leaves.push_back(
-			mmr::Leaf::Create(pUTXO->GetLeafIndex(), pUTXO->GetRangeProof()->Serialized())
-		);
-
-		proofs.push_back(pUTXO->BuildProofData());
-		if (proofs.size() == PROOF_BATCH_SIZE) {
-			if (!Bulletproofs::BatchVerify(proofs)) {
-				ThrowValidation(EConsensusError::BULLETPROOF);
-			}
-
-			proofs.clear();
-		}
-	}
-
-	if (!proofs.empty()) {
-		if (!Bulletproofs::BatchVerify(proofs)) {
-			ThrowValidation(EConsensusError::BULLETPROOF);
-		}
-	}
-
-	mmr::MMR::Ptr pRangeProofPMMR = mmr::MMRFactory::Build(
-		'R',
-		pDBWrapper,
-		pBatch,
-		pPruneList,
-		mmr_info,
-		chainDir,
-		leafset,
-		leaves,
-		pruned_parent_hashes
-	);
-
-	if (pRangeProofPMMR->Root() != pStateHeader->GetRangeProofRoot()
-		|| pRangeProofPMMR->GetNumLeaves() != pStateHeader->GetNumTXOs()) {
-		ThrowValidation(EConsensusError::MMR_MISMATCH);
-	}
-
-	if (pRangeProofPMMR->Root() != pStateHeader->GetRangeProofRoot()) {
-		ThrowValidation(EConsensusError::MMR_MISMATCH);
-	}
-
-	return pRangeProofPMMR;
 }
