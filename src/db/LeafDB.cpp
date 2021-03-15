@@ -28,7 +28,7 @@ void LeafDB::Add(const std::vector<mmr::Leaf>& leaves)
         leaves.cbegin(), leaves.cend(),
         std::back_inserter(entries),
         [](const mmr::Leaf& leaf) {
-            return DBEntry<SerializableVec>(std::to_string(leaf.GetLeafIndex().GetLeafIndex()), leaf.vec());
+            return DBEntry<SerializableVec>(std::to_string(leaf.GetLeafIndex().Get()), leaf.vec());
         }
     );
     m_pDatabase->Put(m_prefix, entries);

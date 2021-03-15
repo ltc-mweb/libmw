@@ -30,9 +30,6 @@ std::vector<UTXO::CPtr> CoinsViewDB::GetUTXOs(const CoinDB& coinDB, const Commit
 void CoinsViewDB::AddUTXO(CoinDB& coinDB, const Output& output)
 {
     mmr::LeafIndex leafIdx = m_pOutputPMMR->Add(OutputId{ output.GetFeatures(), output.GetCommitment() });
-    mmr::LeafIndex leafIdx2 = m_pRangeProofPMMR->Add(*output.GetRangeProof());
-    assert(leafIdx == leafIdx2);
-
     m_pLeafSet->Add(leafIdx);
 
     AddUTXO(coinDB, std::make_shared<UTXO>(GetBestHeader()->GetHeight(), std::move(leafIdx), output));

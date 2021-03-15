@@ -12,16 +12,12 @@ void File::Create()
     m_path.GetParent().CreateDir();
 
     std::ifstream inFile(m_path.m_path, std::ios::in | std::ifstream::ate | std::ifstream::binary);
-    if (inFile.is_open())
-    {
+    if (inFile.is_open()) {
         inFile.close();
-    }
-    else
-    {
+    } else {
         LOG_INFO_F("File {} does not exist. Creating it now.", m_path);
         std::ofstream outFile(m_path.m_path, std::ios::out | std::ios::binary | std::ios::trunc);
-        if (!outFile.is_open())
-        {
+        if (!outFile.is_open()) {
             ThrowFile_F("Failed to create file: {}", m_path);
         }
         outFile.close();
@@ -57,36 +53,31 @@ void File::Truncate(const uint64_t size)
     success = (truncate(m_path.ToString().c_str(), size) == 0);
 #endif
 
-    if (!success)
-    {
+    if (!success) {
         ThrowFile_F("Failed to truncate {}", m_path);
     }
 }
 
 void File::Rename(const std::string& filename)
 {
-    if (m_path.IsDirectory())
-    {
+    if (m_path.IsDirectory()) {
         // FUTURE: Support renaming directories?
         ThrowFile("Rename not implemented for directories");
     }
 
     const FilePath parent(m_path.GetParent());
-    if (parent == m_path)
-    {
+    if (parent == m_path) {
         ThrowFile_F("Can't find parent path for {}", *this);
     }
 
     const FilePath destination = parent.GetChild(filename);
-    if (destination.Exists())
-    {
+    if (destination.Exists()) {
         destination.Remove();
     }
 
     std::error_code ec;
     filesystem::rename(m_path.m_path, destination.m_path, ec);
-    if (ec)
-    {
+    if (ec) {
         ThrowFile_F("Failed to rename {} to {}", *this, destination);
     }
 
@@ -96,14 +87,12 @@ void File::Rename(const std::string& filename)
 std::vector<uint8_t> File::ReadBytes() const
 {
     std::error_code ec;
-    if (!filesystem::exists(m_path.m_path, ec) || ec)
-    {
+    if (!filesystem::exists(m_path.m_path, ec) || ec) {
         ThrowFile_F("{} not found", *this);
     }
 
     std::ifstream file(m_path.m_path, std::ios::in | std::ios::binary);
-    if (!file.is_open())
-    {
+    if (!file.is_open()) {
         ThrowFile_F("Failed to open {} for reading", *this);
     }
 
@@ -149,8 +138,7 @@ void File::Write(const std::vector<uint8_t>& bytes)
     }
 
     std::ofstream file(m_path.m_path, std::ios::out | std::ios::binary | std::ios::app);
-    if (!file.is_open())
-    {
+    if (!file.is_open()) {
         ThrowFile_F("Failed to write to file: {}", m_path);
     }
 
@@ -160,11 +148,9 @@ void File::Write(const std::vector<uint8_t>& bytes)
 
 void File::Write(const size_t startIndex, const std::vector<uint8_t>& bytes, const bool truncate)
 {
-    if (!bytes.empty())
-    {
+    if (!bytes.empty()) {
         std::fstream file(m_path.m_path, std::ios::out | std::ios::binary | std::ios::app);
-        if (!file.is_open())
-        {
+        if (!file.is_open()) {
             ThrowFile_F("Failed to write to file: {}", m_path);
         }
 
@@ -173,8 +159,7 @@ void File::Write(const size_t startIndex, const std::vector<uint8_t>& bytes, con
         file.close();
     }
 
-    if (truncate)
-    {
+    if (truncate) {
         Truncate(startIndex + bytes.size());
     }
 }
@@ -183,8 +168,7 @@ void File::WriteBytes(const std::unordered_map<uint64_t, uint8_t>& bytes)
 {
     std::fstream file(m_path.m_path, std::ios_base::binary | std::ios_base::out | std::ios_base::in);
 
-    for (auto iter : bytes)
-    {
+    for (auto iter : bytes) {
         file.seekp(iter.first);
         file.write((const char*)&iter.second, 1);
     }
@@ -200,8 +184,7 @@ size_t File::GetSize() const
 
     std::error_code ec;
     const size_t size = (size_t)filesystem::file_size(m_path.m_path, ec);
-    if (ec)
-    {
+    if (ec) {
         ThrowFile_F("Failed to determine size of {}", *this);
     }
 

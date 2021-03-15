@@ -20,6 +20,7 @@ public:
     uint64_t GetBlockHeight() const noexcept { return m_blockHeight; }
     const mmr::LeafIndex GetLeafIndex() const noexcept { return m_leafIdx; }
     const Output& GetOutput() const noexcept { return m_output; }
+    OutputId ToOutputId() const noexcept { return m_output.ToIdentifier(); }
 
     const Commitment& GetCommitment() const noexcept { return m_output.GetCommitment(); }
     RangeProof::CPtr GetRangeProof() const noexcept { return m_output.GetRangeProof(); }

@@ -35,8 +35,6 @@
 * After adding all kernels from a block to the end of the kernel MMR, the size shall match the header's kernel size.
 * After adding all outputs from a block to the end of the output MMR, the root shall match the header's output root.
 * After adding all outputs from a block to the end of the output MMR, the size shall match the header's output size.
-* After adding all rangeproofs from a block to the end of the rangeproof MMR, the root shall match the header's rangeproof root.
-* After adding all rangeproofs from a block to the end of the rangeproof MMR, the size shall match the header's output size.
 ---
 
 #### UTXO LeafSet
@@ -86,3 +84,7 @@ TBD
 * Signed owner messages shall be counted as having a weight of 1.
 * Extension blocks shall be capped at a maximum total weight of 21,000.
 * Inputs shall not contribute toward the block weight.
+* Kernel `extra_data` shall not exceed 33 bytes.
+  * TODO: Should adding `extra_data` just increase the weight instead?
+
+#### Horizon

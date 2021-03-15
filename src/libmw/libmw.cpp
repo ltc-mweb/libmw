@@ -1,14 +1,13 @@
 #include <libmw/libmw.h>
 
 #include "Transformers.h"
-#include "BlockStoreWrapper.h"
-#include "State.h"
 
 #include <mw/models/block/Block.h>
 #include <mw/models/block/BlockUndo.h>
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/tx/UTXO.h>
 #include <mw/node/INode.h>
+#include <mw/node/State.h>
 #include <mw/wallet/Wallet.h>
 
 LIBMW_NAMESPACE

@@ -5,7 +5,7 @@ MMR_NAMESPACE
 
 LeafSet::Ptr LeafSet::Open(const FilePath& leafset_dir, const uint32_t file_index)
 {
-	File file = leafset_dir.GetChild(StringUtil::Format("leaf{:0>6}.dat", file_index));
+    File file = GetPath(leafset_dir, file_index);
     if (!file.Exists()) {
         file.Create();
     }
@@ -21,6 +21,11 @@ LeafSet::Ptr LeafSet::Open(const FilePath& leafset_dir, const uint32_t file_inde
     MemMap mappedFile{ file };
     mappedFile.Map();
 	return std::shared_ptr<LeafSet>(new LeafSet{ leafset_dir, std::move(mappedFile), nextLeafIdx });
+}
+
+FilePath LeafSet::GetPath(const FilePath& leafset_dir, const uint32_t file_index)
+{
+    return leafset_dir.GetChild(StringUtil::Format("leaf{:0>6}.dat", file_index));
 }
 
 void LeafSet::ApplyUpdates(
@@ -55,7 +60,7 @@ void LeafSet::Flush(const uint32_t file_index)
         m_modifiedBytes[i] = nextLeafIdxBytes[i];
     }
 
-    FilePath new_leafset_path = m_dir.GetChild(StringUtil::Format("leaf{:0>6}.dat", file_index));
+    FilePath new_leafset_path = GetPath(m_dir, file_index);
     m_mmap.GetFile().CopyTo(new_leafset_path);
 
     File new_leafset_file(std::move(new_leafset_path));

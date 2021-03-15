@@ -94,7 +94,6 @@ Output Output::Create(
         .Append(signature)
         .vec();
 
-    // TODO: Determine how to use bulletproof rewind messages.
     // Probably best to store sender_key so sender can identify all outputs they've sent?
     RangeProof::CPtr pRangeProof = Bulletproofs::Generate(
         value,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mw/common/BitSet.h>
 #include <mw/mmr/Index.h>
 #include <mw/mmr/LeafIndex.h>
 #include <mw/util/BitUtil.h>
@@ -45,16 +46,14 @@ private:
 class MMRUtil
 {
 public:
-    static void BuildCompactBitSet(
-        const uint64_t num_leaves,
-        const boost::dynamic_bitset<>& unspent_leaf_indices,
-        boost::dynamic_bitset<>& compactable_node_indices)
+    static BitSet BuildCompactBitSet(const uint64_t num_leaves, const BitSet& unspent_leaf_indices)
     {
-        compactable_node_indices = boost::dynamic_bitset<>(num_leaves * 2);
+        BitSet compactable_node_indices(num_leaves * 2);
+
         boost::dynamic_bitset<> prunable_nodes(num_leaves * 2);
 
         mmr::LeafIndex leaf_idx = mmr::LeafIndex::At(0);
-        while (leaf_idx.GetLeafIndex() <= num_leaves) {
+        while (leaf_idx.GetLeafIndex() < num_leaves) {
             if (unspent_leaf_indices.size() > leaf_idx.GetLeafIndex() && !unspent_leaf_indices.test(leaf_idx.GetLeafIndex())) {
                 prunable_nodes.set(leaf_idx.GetPosition());
             }
@@ -62,7 +61,7 @@ public:
             leaf_idx = leaf_idx.Next();
         }
 
-        mmr::Index last_node = mmr::Index::At(mmr::LeafIndex::At(num_leaves).GetPosition());
+        mmr::Index last_node = mmr::LeafIndex::At(num_leaves).GetNodeIndex();
 
         uint64_t height = 1;
         while ((std::pow(2, height + 1) - 2) <= last_node.GetPosition()) {
@@ -81,13 +80,13 @@ public:
 
             ++height;
         }
+
+        return compactable_node_indices;
     }
 
-    static boost::dynamic_bitset<> DiffCompactBitSet(
-        const boost::dynamic_bitset<>& prev_compact,
-        const boost::dynamic_bitset<>& new_compact)
+    static BitSet DiffCompactBitSet(const BitSet& prev_compact, const BitSet& new_compact)
     {
-        boost::dynamic_bitset<> diff;
+        BitSet diff;
 
         for (size_t i = 0; i < new_compact.size(); i++) {
             if (prev_compact.size() > i && prev_compact.test(i)) {
@@ -95,10 +94,53 @@ public:
                 continue;
             }
 
-            diff.push_back(new_compact.test(i));
+            diff.bitset.push_back(new_compact.test(i));
         }
 
         return diff;
+    }
+
+    /// <summary>
+    /// An MMR can be rebuilt from the leaves and a small set of carefully chosen parent hashes.
+    /// This calculates the positions of those parent hashes.
+    /// </summary>
+    /// <param name="unspent_leaf_indices">The unspent leaf indices.</param>
+    /// <returns>The pruned parent positions.</returns>
+    static BitSet CalcPrunedParents(const BitSet& unspent_leaf_indices)
+    {
+        BitSet ret(unspent_leaf_indices.size() * 2);
+
+        mmr::LeafIndex leaf_idx = mmr::LeafIndex::At(0);
+        while (leaf_idx.GetLeafIndex() < unspent_leaf_indices.size()) {
+            if (!unspent_leaf_indices.test(leaf_idx.GetLeafIndex())) {
+                ret.set(leaf_idx.GetPosition());
+            }
+
+            leaf_idx = leaf_idx.Next();
+        }
+
+        mmr::Index last_node = mmr::LeafIndex::At(unspent_leaf_indices.size()).GetNodeIndex();
+
+        uint64_t height = 1;
+        while ((std::pow(2, height + 1) - 2) <= last_node.GetPosition()) {
+            SiblingIter iter(height, last_node);
+            while (iter.Next()) {
+                mmr::Index right_child = iter.Get().GetRightChild();
+                if (ret.test(right_child.GetPosition())) {
+                    mmr::Index left_child = iter.Get().GetLeftChild();
+                    if (ret.test(left_child.GetPosition())) {
+                        ret.set(right_child.GetPosition(), false);
+                        ret.set(left_child.GetPosition(), false);
+                        ret.set(iter.Get().GetPosition());
+                    }
+                }
+            }
+
+            ++height;
+        }
+
+
+        return ret;
     }
 };
 

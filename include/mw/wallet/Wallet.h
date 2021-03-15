@@ -6,7 +6,6 @@
 #include <mw/models/block/Block.h>
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/crypto/PublicKey.h>
-#include <mw/models/crypto/Bech32Address.h>
 #include <mw/models/wallet/PartialTx.h>
 #include <mw/models/wallet/StealthAddress.h>
 

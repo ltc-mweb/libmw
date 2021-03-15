@@ -45,26 +45,4 @@ public:
     virtual std::unique_ptr<IDBBatch> CreateBatch() = 0;
 };
 
-//
-// Interface for looking up blocks and headers.
-// This must be implemented by the libmw consumer.
-// TODO: Get by height functions should be replaced with reverse iterators or get prev functions.
-//
-class IBlockStore
-{
-public:
-    using Ptr = std::shared_ptr<libmw::IBlockStore>;
-
-    virtual ~IBlockStore() = default;
-
-    virtual libmw::HeaderRef GetHeader(const uint64_t height) const /*throw(NotFoundException)*/ = 0;
-    virtual libmw::HeaderRef GetHeader(const libmw::BlockHash& hash) const /*throw(NotFoundException)*/ = 0;
-
-    virtual libmw::HeaderAndPegsRef GetHeaderAndPegs(const uint64_t height) const /*throw(NotFoundException)*/ = 0;
-    virtual libmw::HeaderAndPegsRef GetHeaderAndPegs(const libmw::BlockHash& hash) const /*throw(NotFoundException)*/ = 0;
-
-    virtual libmw::BlockRef GetBlock(const uint64_t height) const /*throw(NotFoundException)*/ = 0;
-    virtual libmw::BlockRef GetBlock(const libmw::BlockHash& hash) const /*throw(NotFoundException)*/ = 0;
-};
-
 END_NAMESPACE // libmw

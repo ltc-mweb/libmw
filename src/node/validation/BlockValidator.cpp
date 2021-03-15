@@ -51,15 +51,27 @@ void BlockValidator::ValidatePegInCoins(
     }
 }
 
+namespace std
+{
+    template<>
+    struct hash<std::vector<uint8_t>>
+    {
+        size_t operator()(const std::vector<uint8_t>& scriptPubKey) const
+        {
+            return boost::hash_value(scriptPubKey);
+        }
+    };
+}
+
 void BlockValidator::ValidatePegOutCoins(
     const mw::Block::CPtr& pBlock,
     const std::vector<PegOutCoin>& pegOutCoins)
 {
-    std::unordered_map<Bech32Address, uint64_t> pegOutAmounts;
+    std::unordered_map<std::vector<uint8_t>, uint64_t> pegOutAmounts;
     std::for_each(
         pegOutCoins.cbegin(), pegOutCoins.cend(),
         [&pegOutAmounts](const PegOutCoin& coin) {
-            pegOutAmounts.insert({ coin.GetAddress(), coin.GetAmount() });
+            pegOutAmounts.insert({ coin.GetScriptPubKey(), coin.GetAmount() });
         }
     );
 
@@ -69,7 +81,7 @@ void BlockValidator::ValidatePegOutCoins(
     }
 
     for (const auto& pegout : pegout_coins) {
-        auto pIter = pegOutAmounts.find(pegout.GetAddress());
+        auto pIter = pegOutAmounts.find(pegout.GetScriptPubKey());
         if (pIter == pegOutAmounts.end() || pegout.GetAmount() != pIter->second) {
             ThrowValidation(EConsensusError::PEGOUT_MISMATCH);
         }

@@ -139,6 +139,18 @@ void TxBody::Validate() const
         ThrowValidation(EConsensusError::BLOCK_WEIGHT);
     }
 
+    // Verify no kernel's extra_data or pegout scriptPubKey exceeds max size
+    bool extra_data_exceeds_max = std::any_of(
+        m_kernels.cbegin(), m_kernels.cend(),
+        [](const Kernel& kernel) {
+            size_t pubkeySize = kernel.GetPegOut().has_value() ? kernel.GetPegOut().value().GetScriptPubKey().size() : 4;
+            return pubkeySize > 42 || pubkeySize < 4 || kernel.GetExtraData().size() > libmw::MAX_KERNEL_EXTRADATA_SIZE;
+        }
+    );
+    if (extra_data_exceeds_max) {
+        ThrowValidation(EConsensusError::BLOCK_WEIGHT);
+    }
+
     // Verify inputs, outputs, kernels, and owner signatures are sorted
     if (!std::is_sorted(m_inputs.cbegin(), m_inputs.cend(), SortByCommitment)
         || !std::is_sorted(m_outputs.cbegin(), m_outputs.cend(), SortByCommitment)

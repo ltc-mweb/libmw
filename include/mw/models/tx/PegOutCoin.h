@@ -1,6 +1,5 @@
 #pragma once
 
-#include <mw/models/crypto/Bech32Address.h>
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Printable.h>
 
@@ -10,18 +9,18 @@
 class PegOutCoin : public Traits::ISerializable, public Traits::IPrintable
 {
 public:
-    PegOutCoin(const uint64_t amount, const Bech32Address& address)
-        : m_amount(amount), m_address(address) { }
-    PegOutCoin(const uint64_t amount, Bech32Address&& address)
-        : m_amount(amount), m_address(std::move(address)) { }
+    PegOutCoin(const uint64_t amount, const std::vector<uint8_t>& scriptPubKey)
+        : m_amount(amount), m_scriptPubKey(scriptPubKey) { }
+    PegOutCoin(const uint64_t amount, std::vector<uint8_t>&& scriptPubKey)
+        : m_amount(amount), m_scriptPubKey(std::move(scriptPubKey)) { }
 
     bool operator==(const PegOutCoin& rhs) const noexcept
     {
-        return m_amount == rhs.m_amount && m_address == rhs.m_address;
+        return m_amount == rhs.m_amount && m_scriptPubKey == rhs.m_scriptPubKey;
     }
 
     uint64_t GetAmount() const noexcept { return m_amount; }
-    const Bech32Address& GetAddress() const noexcept { return m_address; }
+    const std::vector<uint8_t>& GetScriptPubKey() const noexcept { return m_scriptPubKey; }
 
     //
     // Serialization/Deserialization
@@ -30,23 +29,25 @@ public:
     {
         return serializer
             .Append(m_amount)
-            .Append(m_address);
+            .Append<uint8_t>((uint8_t)m_scriptPubKey.size())
+            .Append(m_scriptPubKey);
     }
 
     static PegOutCoin Deserialize(Deserializer& deserializer)
     {
         uint64_t amount = deserializer.Read<uint64_t>();
-        Bech32Address address = Bech32Address::Deserialize(deserializer);
+        uint8_t num_bytes = deserializer.Read<uint8_t>();
+        std::vector<uint8_t> scriptPubKey = deserializer.ReadVector(num_bytes);
 
-        return PegOutCoin(amount, std::move(address));
+        return PegOutCoin(amount, std::move(scriptPubKey));
     }
 
     std::string Format() const noexcept final
     {
-        return std::string("PegOutCoin(address: ") + m_address.ToString() + ", amount: " + std::to_string(m_amount) + ")";
+        return StringUtil::Format("PegOutCoin(pubkey:{}, amount:{})", HexUtil::ToHex(m_scriptPubKey), m_amount);
     }
 
 private:
     uint64_t m_amount;
-    Bech32Address m_address;
+    std::vector<uint8_t> m_scriptPubKey;
 };

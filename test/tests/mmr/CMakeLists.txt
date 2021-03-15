@@ -7,6 +7,7 @@ list_append_parent(
 	"Test_LeafSet.cpp"
 	"Test_LeafSetCache.cpp"
     "Test_MMR.cpp"
+    "Test_MMRFactory.cpp"
     "Test_MMRUtil.cpp"
     "Test_PruneList.cpp"
 )

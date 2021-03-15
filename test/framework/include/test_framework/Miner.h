@@ -41,13 +41,11 @@ public:
 
         auto kernelMMR = GetKernelMMR(pTransaction->GetKernels());
         auto outputMMR = GetOutputMMR(pTransaction->GetOutputs());
-        auto rangeProofMMR = GetRangeProofMMR(pTransaction->GetOutputs());
         auto pLeafSet = GetLeafSet(pTransaction->GetInputs(), pTransaction->GetOutputs());
 
         auto pHeader = std::make_shared<mw::Header>(
             height,
             outputMMR.Root(),
-            rangeProofMMR.Root(),
             kernelMMR.Root(),
             pLeafSet->Root(),
             std::move(kernel_offset),
@@ -104,24 +102,6 @@ private:
         auto mmr = mmr::MMR(std::make_shared<mmr::VectorBackend>());
         for (const Output& output : outputs) {
             mmr.Add(output.ToIdentifier().Serialized());
-        }
-
-        return mmr;
-    }
-
-    mmr::MMR GetRangeProofMMR(const std::vector<Output>& additionalOutputs = {})
-    {
-        std::vector<Output> outputs;
-        for (const auto& block : m_blocks) {
-            const auto& blockOutputs = block.GetBlock()->GetOutputs();
-            std::copy(blockOutputs.cbegin(), blockOutputs.cend(), std::back_inserter(outputs));
-        }
-
-        std::copy(additionalOutputs.cbegin(), additionalOutputs.cend(), std::back_inserter(outputs));
-
-        auto mmr = mmr::MMR(std::make_shared<mmr::VectorBackend>());
-        for (const Output& output : outputs) {
-            mmr.Add(output.GetRangeProof()->Serialized());
         }
 
         return mmr;

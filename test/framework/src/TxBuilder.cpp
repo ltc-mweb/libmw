@@ -103,7 +103,7 @@ TxBuilder& TxBuilder::AddPegoutKernel(const uint64_t amount, const uint64_t fee,
 {
     SecretKey kernel_excess = Random::CSPRNG<32>();
     m_kernelOffset.Sub(kernel_excess);
-    Bech32Address ltc_address("hrp", Random::CSPRNG<32>().vec());
+    std::vector<uint8_t> ltc_address = Random::CSPRNG<32>().vec();
 
     Kernel kernel = Kernel::Create(kernel_excess, fee, boost::none, PegOutCoin(amount, ltc_address), boost::none);
 

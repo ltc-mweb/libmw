@@ -24,11 +24,12 @@ public:
 
     mw::ICoinsView::Ptr ApplyState(
         const libmw::IDBWrapper::Ptr& pDBWrapper,
-        const mw::IBlockStore& blockStore,
-        const mw::Hash& firstMWHeaderHash,
-        const mw::Hash& stateHeaderHash,
+        const libmw::IChain::Ptr& pChain,
+        const mw::Header::CPtr& pStateHeader,
         const std::vector<UTXO::CPtr>& utxos,
-        const std::vector<Kernel>& kernels
+        const std::vector<Kernel>& kernels,
+        const BitSet& leafset,
+        const std::vector<mw::Hash>& pruned_parent_hashes
     ) final;
 
 private:

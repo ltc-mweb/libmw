@@ -33,6 +33,8 @@ public:
         const mmr::PruneList::CPtr& pPruneList
     );
 
+    static FilePath GetPath(const FilePath& dir, const char prefix, const uint32_t file_index);
+
     void AddLeaf(const Leaf& leaf) final;
     void AddHash(const mw::Hash& hash) final;
     void Rewind(const LeafIndex& nextLeafIndex) final;
@@ -46,8 +48,6 @@ public:
     void Commit(const uint32_t file_index, const std::unique_ptr<libmw::IDBBatch>& pBatch) final;
 
 private:
-    static FilePath GetPath(const FilePath& dir, const char prefix, const uint32_t file_index);
-
     char m_dbPrefix;
     FilePath m_dir;
     AppendOnlyFile::Ptr m_pHashFile;

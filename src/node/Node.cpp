@@ -25,25 +25,18 @@ mw::INode::Ptr mw::InitializeNode(
     auto pLeafSet = mmr::LeafSet::Open(datadir, file_index);
     auto pPruneList = mmr::PruneList::Open(datadir, compact_index);
 
-    auto kernels_path = datadir.GetChild("kern").CreateDir();
-    auto pKernelsBackend = mmr::FileBackend::Open('K', kernels_path, file_index, pDBWrapper, nullptr);
+    auto pKernelsBackend = mmr::FileBackend::Open('K', datadir, file_index, pDBWrapper, nullptr);
     mmr::MMR::Ptr pKernelsMMR = std::make_shared<mmr::MMR>(pKernelsBackend);
 
-    auto outputs_path = datadir.GetChild("out").CreateDir();
-    auto pOutputBackend = mmr::FileBackend::Open('O', outputs_path, file_index, pDBWrapper, pPruneList);
+    auto pOutputBackend = mmr::FileBackend::Open('O', datadir, file_index, pDBWrapper, pPruneList);
     mmr::MMR::Ptr pOutputMMR = std::make_shared<mmr::MMR>(pOutputBackend);
-
-    auto rangeproof_path = datadir.GetChild("proof").CreateDir();
-    auto pRangeProofBackend = mmr::FileBackend::Open('R', rangeproof_path, file_index, pDBWrapper, pPruneList);
-    mmr::MMR::Ptr pRangeProofMMR = std::make_shared<mmr::MMR>(pRangeProofBackend);
 
     mw::CoinsViewDB::Ptr pDBView = std::make_shared<mw::CoinsViewDB>(
         pBestHeader,
         pDBWrapper,
         pLeafSet,
         pKernelsMMR,
-        pOutputMMR,
-        pRangeProofMMR
+        pOutputMMR
     );
 
     return std::shared_ptr<mw::INode>(new Node(datadir, pDBView));
@@ -99,19 +92,21 @@ void Node::DisconnectBlock(const mw::BlockUndo::CPtr& pUndoData, const mw::ICoin
 
 mw::ICoinsView::Ptr Node::ApplyState(
     const libmw::IDBWrapper::Ptr& pDBWrapper,
-    const mw::IBlockStore& blockStore,
-    const mw::Hash& firstMWHeaderHash,
-    const mw::Hash& stateHeaderHash,
+    const libmw::IChain::Ptr& pChain,
+    const mw::Header::CPtr& pStateHeader,
     const std::vector<UTXO::CPtr>& utxos,
-    const std::vector<Kernel>& kernels)
+    const std::vector<Kernel>& kernels,
+    const BitSet& leafset,
+    const std::vector<mw::Hash>& pruned_parent_hashes)
 {
     return CoinsViewFactory::CreateDBView(
         pDBWrapper,
-        blockStore,
+        pChain,
         m_datadir,
-        firstMWHeaderHash,
-        stateHeaderHash,
+        pStateHeader,
         utxos,
-        kernels
+        kernels,
+        leafset,
+        pruned_parent_hashes
     );
 }

@@ -1,8 +1,6 @@
 #include <libmw/node.h>
 
 #include "Transformers.h"
-#include "BlockStoreWrapper.h"
-#include "State.h"
 
 #include <mw/common/Logger.h>
 #include <mw/exceptions/ValidationException.h>
@@ -11,6 +9,8 @@
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/tx/UTXO.h>
 #include <mw/node/INode.h>
+#include <mw/node/Snapshot.h>
+#include <mw/node/State.h>
 #include <mw/wallet/Wallet.h>
 
 static mw::INode::Ptr NODE = nullptr;
@@ -36,20 +36,19 @@ MWEXPORT void Shutdown()
 }
 
 MWEXPORT libmw::CoinsViewRef ApplyState(
-    const libmw::IBlockStore::Ptr& pBlockStore,
+    const libmw::IChain::Ptr& pChain,
     const libmw::IDBWrapper::Ptr& pCoinsDB,
-    const libmw::BlockHash& firstMWHeaderHash,
-    const libmw::BlockHash& stateHeaderHash,
+    const libmw::HeaderRef& stateHeader,
     const libmw::StateRef& state)
 {
-    BlockStoreWrapper blockStore(pBlockStore.get());
     auto pCoinsViewDB = NODE->ApplyState(
         pCoinsDB,
-        blockStore,
-        mw::Hash{ firstMWHeaderHash },
-        mw::Hash{ stateHeaderHash },
+        pChain,
+        stateHeader.pHeader,
         state.pState->utxos,
-        state.pState->kernels
+        state.pState->kernels,
+        state.pState->leafset,
+        state.pState->pruned_parent_hashes
     );
 
     return libmw::CoinsViewRef{ pCoinsViewDB };
@@ -96,9 +95,10 @@ MWEXPORT void FlushCache(const libmw::CoinsViewRef& view, const std::unique_ptr<
     LOG_TRACE("Cache flushed");
 }
 
-MWEXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef&)
+MWEXPORT libmw::StateRef SnapshotState(const libmw::CoinsViewRef& view)
 {
-    return { nullptr }; // TODO: Implement
+    assert(view.pCoinsView != nullptr);
+    return { std::make_shared<mw::State>(mw::Snapshot::Build(view.pCoinsView)) };
 }
 
 MWEXPORT bool CheckTransaction(const libmw::TxRef& transaction)

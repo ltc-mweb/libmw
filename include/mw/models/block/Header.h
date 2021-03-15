@@ -34,7 +34,6 @@ public:
     Header(
         const uint64_t height,
         mw::Hash&& outputRoot,
-        mw::Hash&& rangeProofRoot,
         mw::Hash&& kernelRoot,
 		mw::Hash&& leafsetRoot,
         BlindingFactor&& kernelOffset,
@@ -44,7 +43,6 @@ public:
     )
         : m_height(height),
         m_outputRoot(std::move(outputRoot)),
-        m_rangeProofRoot(std::move(rangeProofRoot)),
         m_kernelRoot(std::move(kernelRoot)),
 		m_leafsetRoot(std::move(leafsetRoot)),
         m_kernelOffset(std::move(kernelOffset)),
@@ -62,7 +60,6 @@ public:
     //
     uint64_t GetHeight() const noexcept { return m_height; }
     const mw::Hash& GetOutputRoot() const noexcept { return m_outputRoot; }
-    const mw::Hash& GetRangeProofRoot() const noexcept { return m_rangeProofRoot; }
     const mw::Hash& GetKernelRoot() const noexcept { return m_kernelRoot; }
 	const mw::Hash& GetLeafsetRoot() const noexcept { return m_leafsetRoot; }
     const BlindingFactor& GetKernelOffset() const noexcept { return m_kernelOffset; }
@@ -93,7 +90,6 @@ public:
         return serializer
             .Append<uint64_t>(m_height)
             .Append(m_outputRoot)
-            .Append(m_rangeProofRoot)
             .Append(m_kernelRoot)
 			.Append(m_leafsetRoot)
             .Append(m_kernelOffset)
@@ -106,7 +102,6 @@ public:
     {
         uint64_t height = deserializer.Read<uint64_t>();
         mw::Hash outputRoot = mw::Hash::Deserialize(deserializer);
-        mw::Hash proofRoot = mw::Hash::Deserialize(deserializer);
 		mw::Hash kernelRoot = mw::Hash::Deserialize(deserializer);
 		mw::Hash leafsetRoot = mw::Hash::Deserialize(deserializer);
         BlindingFactor kernelOffset = BlindingFactor::Deserialize(deserializer);
@@ -117,7 +112,6 @@ public:
         return Header{
             height,
             std::move(outputRoot),
-            std::move(proofRoot),
             std::move(kernelRoot),
 			std::move(leafsetRoot),
             std::move(kernelOffset),
@@ -131,7 +125,6 @@ private:
     mutable boost::optional<mw::Hash> m_hash;
     uint64_t m_height;
     mw::Hash m_outputRoot;
-    mw::Hash m_rangeProofRoot;
     mw::Hash m_kernelRoot;
 	mw::Hash m_leafsetRoot;
     BlindingFactor m_kernelOffset;

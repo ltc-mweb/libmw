@@ -82,7 +82,6 @@ void CoinsViewCache::UndoBlock(const mw::BlockUndo::CPtr& pUndo)
         m_pLeafSet->Rewind(0, {});
         m_pKernelMMR->Rewind(0);
         m_pOutputPMMR->Rewind(0);
-        m_pRangeProofPMMR->Rewind(0);
         SetBestHeader(nullptr);
         return;
     }
@@ -90,7 +89,6 @@ void CoinsViewCache::UndoBlock(const mw::BlockUndo::CPtr& pUndo)
     m_pLeafSet->Rewind(pHeader->GetNumTXOs(), leavesToAdd);
     m_pKernelMMR->Rewind(pHeader->GetNumKernels());
     m_pOutputPMMR->Rewind(pHeader->GetNumTXOs());
-    m_pRangeProofPMMR->Rewind(pHeader->GetNumTXOs());
     SetBestHeader(pHeader);
 
     // Sanity check to make sure rewind applied successfully
@@ -122,7 +120,6 @@ mw::Block::Ptr CoinsViewCache::BuildNextBlock(const uint64_t height, const std::
     const uint64_t kernel_mmr_size = m_pKernelMMR->GetNumLeaves();
 
     mw::Hash output_root = m_pOutputPMMR->Root();
-    mw::Hash rangeproof_root = m_pRangeProofPMMR->Root();
     mw::Hash kernel_root = m_pKernelMMR->Root();
     mw::Hash leafset_root = m_pLeafSet->Root();
 
@@ -139,7 +136,6 @@ mw::Block::Ptr CoinsViewCache::BuildNextBlock(const uint64_t height, const std::
     auto pHeader = std::make_shared<mw::Header>(
         height,
         std::move(output_root),
-        std::move(rangeproof_root),
         std::move(kernel_root),
         std::move(leafset_root),
         std::move(kernel_offset),
@@ -169,9 +165,6 @@ bool CoinsViewCache::HasCoinInCache(const Commitment& commitment) const noexcept
 void CoinsViewCache::AddUTXO(const uint64_t header_height, const Output& output)
 {
     mmr::LeafIndex leafIdx = m_pOutputPMMR->Add(output.ToIdentifier()); // TODO: Should be everything on Output except rangeproof and signature?
-    mmr::LeafIndex leafIdx2 = m_pRangeProofPMMR->Add(*output.GetRangeProof());
-    assert(leafIdx == leafIdx2);
-
     m_pLeafSet->Add(leafIdx);
 
     auto pUTXO = std::make_shared<UTXO>(header_height, std::move(leafIdx), output);
@@ -227,7 +220,6 @@ void CoinsViewCache::Flush(const std::unique_ptr<libmw::IDBBatch>& pBatch)
     m_pLeafSet->Flush(mmr_info.index);
     m_pKernelMMR->Flush(mmr_info.index, pBatch);
     m_pOutputPMMR->Flush(mmr_info.index, pBatch);
-    m_pRangeProofPMMR->Flush(mmr_info.index, pBatch);
 
     if (!m_pBase->IsCache()) {
         MMRInfoDB(GetDatabase().get(), pBatch.get())

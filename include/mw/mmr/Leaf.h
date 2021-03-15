@@ -20,12 +20,16 @@ public:
 
     static Leaf Create(const LeafIndex& index, std::vector<uint8_t> data)
     {
-        Serializer hashSerializer;
-        hashSerializer.Append<uint64_t>(index.GetPosition());
-        hashSerializer.Append(data);
-        mw::Hash hash = Hashed(hashSerializer.vec());
-
+        mw::Hash hash = CalcHash(index, data);
         return Leaf(index, std::move(hash), std::move(data));
+    }
+
+    static mw::Hash CalcHash(const LeafIndex& index, const std::vector<uint8_t>& data)
+    {
+        return Hasher()
+            .Append<uint64_t>(index.GetPosition())
+            .Append(data)
+            .hash();
     }
 
     Leaf& operator=(const Leaf& rhs) noexcept

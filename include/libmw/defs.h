@@ -67,6 +67,7 @@ static constexpr size_t KERNEL_WEIGHT = 2;
 static constexpr size_t OWNER_SIG_WEIGHT = 1;
 static constexpr size_t OUTPUT_WEIGHT = 18;
 static constexpr uint16_t PEGIN_MATURITY = 20;
+static constexpr uint8_t MAX_KERNEL_EXTRADATA_SIZE = 33;
 
 struct PegIn
 {
@@ -87,7 +88,7 @@ struct PegIn
 struct PegOut
 {
     uint64_t amount;
-    std::string address;
+    std::vector<uint8_t> scriptPubKey;
 };
 
 struct HeaderRef
