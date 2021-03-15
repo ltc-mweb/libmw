@@ -69,7 +69,7 @@ private:
     // Suitable for testing only. Do not use in a production environment.
     BlindingFactor ToBlind(const std::string& path) const
     {        
-        return Hashed(Serializer().Append(m_seed).Append(path).vec());
+        return Hashed(Serializer().Append(m_seed).Append(std::vector<uint8_t>(path.begin(), path.end())).vec());
     }
 
     BlindingFactor m_seed;

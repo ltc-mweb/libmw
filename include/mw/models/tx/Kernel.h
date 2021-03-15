@@ -21,7 +21,7 @@ class Kernel :
 public:
     Kernel() = default;
     Kernel(
-        const uint64_t fee,
+        boost::optional<uint64_t> fee,
         boost::optional<uint64_t> pegin,
         boost::optional<PegOutCoin> pegout,
         boost::optional<uint64_t> lockHeight,
@@ -44,7 +44,7 @@ public:
     //
     static Kernel Create(
         const BlindingFactor& blind,
-        const uint64_t fee,
+        const boost::optional<uint64_t>& fee,
         const boost::optional<uint64_t>& pegin_amount,
         const boost::optional<PegOutCoin>& pegout,
         const boost::optional<uint64_t>& lock_height
@@ -60,7 +60,7 @@ public:
     //
     // Getters
     //
-    uint64_t GetFee() const noexcept { return m_fee; }
+    uint64_t GetFee() const noexcept { return m_fee.value_or(0); }
     uint64_t GetLockHeight() const noexcept { return m_lockHeight.value_or(0); }
     const Commitment& GetExcess() const noexcept { return m_excess; }
     const Signature& GetSignature() const noexcept { return m_signature; }
@@ -68,7 +68,7 @@ public:
 
     mw::Hash GetSignatureMessage() const;
     static mw::Hash GetSignatureMessage(
-        const uint64_t fee,
+        const boost::optional<uint64_t>& fee,
         const boost::optional<uint64_t>& pegin_amount,
         const boost::optional<PegOutCoin>& pegout,
         const boost::optional<uint64_t>& lock_height,
@@ -83,7 +83,7 @@ public:
 
     int64_t GetSupplyChange() const noexcept
     {
-        return (m_pegin.value_or(0) - m_fee) -
+        return (m_pegin.value_or(0) - m_fee.value_or(0)) -
             (int64_t)(m_pegout.has_value() ? m_pegout.value().GetAmount() : 0);
     }
 
@@ -101,10 +101,7 @@ public:
     const Commitment& GetCommitment() const noexcept final { return m_excess; }
 
 private:
-
-    // Fee originally included in the transaction this proof is for.
-    uint64_t m_fee;
-
+    boost::optional<uint64_t> m_fee;
     boost::optional<uint64_t> m_pegin;
     boost::optional<PegOutCoin> m_pegout;
     boost::optional<uint64_t> m_lockHeight;

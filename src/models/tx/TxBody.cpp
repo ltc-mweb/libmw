@@ -68,67 +68,19 @@ int64_t TxBody::GetSupplyChange() const noexcept
 
 Serializer& TxBody::Serialize(Serializer& serializer) const noexcept
 {
-    serializer
-        .Append<uint32_t>((uint32_t)m_inputs.size())
-        .Append<uint32_t>((uint32_t)m_outputs.size())
-        .Append<uint32_t>((uint32_t)m_kernels.size())
-        .Append<uint32_t>((uint32_t)m_ownerSigs.size());
-
-    std::for_each(
-        m_inputs.cbegin(), m_inputs.cend(),
-        [&serializer](const auto& input) { input.Serialize(serializer); }
-    );
-    std::for_each(
-        m_outputs.cbegin(), m_outputs.cend(),
-        [&serializer](const auto& output) { output.Serialize(serializer); }
-    );
-    std::for_each(
-        m_kernels.cbegin(), m_kernels.cend(),
-        [&serializer](const auto& kernel) { kernel.Serialize(serializer); }
-    );
-    std::for_each(
-        m_ownerSigs.cbegin(), m_ownerSigs.cend(),
-        [&serializer](const auto& owner_sig) { owner_sig.Serialize(serializer); }
-    );
-
-    return serializer;
+    return serializer
+        .AppendVec<Input>(m_inputs)
+        .AppendVec<Output>(m_outputs)
+        .AppendVec<Kernel>(m_kernels)
+        .AppendVec<SignedMessage>(m_ownerSigs);
 }
 
 TxBody TxBody::Deserialize(Deserializer& deserializer)
 {
-    const uint32_t numInputs = deserializer.Read<uint32_t>();
-    const uint32_t numOutputs = deserializer.Read<uint32_t>();
-    const uint32_t numKernels = deserializer.Read<uint32_t>();
-    const uint32_t numOwnerSigs = deserializer.Read<uint32_t>();
-
-    // Deserialize inputs
-    std::vector<Input> inputs;
-    inputs.reserve(numInputs);
-    for (uint32_t i = 0; i < numInputs; i++) {
-        inputs.emplace_back(Input::Deserialize(deserializer));
-    }
-
-    // Deserialize outputs
-    std::vector<Output> outputs;
-    outputs.reserve(numOutputs);
-    for (uint32_t i = 0; i < numOutputs; i++) {
-        outputs.emplace_back(Output::Deserialize(deserializer));
-    }
-
-    // Deserialize kernels
-    std::vector<Kernel> kernels;
-    kernels.reserve(numKernels);
-    for (uint32_t i = 0; i < numKernels; i++) {
-        kernels.emplace_back(Kernel::Deserialize(deserializer));
-    }
-
-    // Deserialize owner sigs
-    std::vector<SignedMessage> owner_sigs;
-    owner_sigs.reserve(numOwnerSigs);
-    for (uint32_t i = 0; i < numOwnerSigs; i++) {
-        owner_sigs.emplace_back(SignedMessage::Deserialize(deserializer));
-    }
-
+    std::vector<Input> inputs = deserializer.ReadVec<Input>();
+    std::vector<Output> outputs = deserializer.ReadVec<Output>();
+    std::vector<Kernel> kernels = deserializer.ReadVec<Kernel>();
+    std::vector<SignedMessage> owner_sigs = deserializer.ReadVec<SignedMessage>();
     return TxBody(std::move(inputs), std::move(outputs), std::move(kernels), std::move(owner_sigs));
 }
 

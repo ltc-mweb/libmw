@@ -42,31 +42,12 @@ public:
         return value;
     }
 
-    std::string ReadVarStr()
-    {
-        const uint64_t stringLength = Read<uint64_t>();
-        if (stringLength == 0)
-        {
-            return "";
-        }
-
-        if (m_index + stringLength > m_bytes.size())
-        {
-            ThrowDeserialization("Attempted to read past end of buffer.");
-        }
-
-        std::vector<uint8_t> temp(m_bytes.cbegin() + m_index, m_bytes.cbegin() + m_index + stringLength);
-        m_index += stringLength;
-
-        return std::string((char*)temp.data(), stringLength);
-    }
-
     template <class T, typename SFINAE = typename std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
     std::vector<T> ReadVec()
     {
-        const uint64_t num_entries = Read<uint64_t>();
+        const uint32_t num_entries = Read<uint32_t>();
         std::vector<T> vec(num_entries);
-        for (uint64_t i = 0; i < num_entries; i++) {
+        for (uint32_t i = 0; i < num_entries; i++) {
             vec[i] = T::Deserialize(*this);
         }
 

@@ -71,18 +71,6 @@ public:
         return *this;
     }
 
-    Serializer& Append(const std::string& varString)
-    {
-        Append<uint64_t>(varString.length());
-        m_serialized.insert(m_serialized.end(), varString.cbegin(), varString.cend());
-        return *this;
-    }
-
-    Serializer& Append(const char* str)
-    {
-        return Append(std::string(str));
-    }
-
     Serializer& Append(const Traits::ISerializable& serializable)
     {
         return serializable.Serialize(*this);
@@ -96,7 +84,7 @@ public:
     template <class T, typename SFINAE = typename std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
     Serializer& AppendVec(const std::vector<T>& vec)
     {
-        Append<uint64_t>(vec.size());
+        Append<uint32_t>((uint32_t)vec.size());
         for (const T& item : vec)
         {
             item.Serialize(*this);
@@ -108,7 +96,7 @@ public:
     template <class T, typename SFINAE = typename std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
     Serializer& AppendVec(const std::vector<std::shared_ptr<const T>>& vec)
     {
-        Append<uint64_t>(vec.size());
+        Append<uint32_t>((uint32_t)vec.size());
         for (const std::shared_ptr<const T>& pItem : vec) {
             pItem->Serialize(*this);
         }

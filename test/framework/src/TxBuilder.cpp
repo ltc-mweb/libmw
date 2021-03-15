@@ -78,7 +78,7 @@ TxBuilder& TxBuilder::AddPlainKernel(const uint64_t fee, const bool add_owner_si
     return *this;
 }
 
-TxBuilder& TxBuilder::AddPeginKernel(const uint64_t amount, const uint64_t fee, const bool add_owner_sig)
+TxBuilder& TxBuilder::AddPeginKernel(const uint64_t amount, const boost::optional<uint64_t>& fee, const bool add_owner_sig)
 {
     SecretKey kernel_excess = Random::CSPRNG<32>();
     m_kernelOffset.Sub(kernel_excess);

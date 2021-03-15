@@ -56,7 +56,7 @@ static mw::Hash Hashed(const EHashTag tag, const Traits::ISerializable& serializ
 
 static const mw::Hash& InputMessage()
 {
-    static const mw::Hash mweb_hash = Hashed({ 'M', 'W', 'E', 'B' }); // TODO: Determine actual message
+    static const mw::Hash mweb_hash = Hashed({ 'M', 'W', 'E', 'B' });
     return mweb_hash;
 }
 

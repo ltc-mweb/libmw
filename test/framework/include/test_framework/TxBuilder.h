@@ -44,7 +44,7 @@ public:
     );
 
     TxBuilder& AddPlainKernel(const uint64_t fee, const bool add_owner_sig = false);
-    TxBuilder& AddPeginKernel(const uint64_t amount, const uint64_t fee = 0, const bool add_owner_sig = false);
+    TxBuilder& AddPeginKernel(const uint64_t amount, const boost::optional<uint64_t>& fee = boost::none, const bool add_owner_sig = false);
     TxBuilder& AddPegoutKernel(const uint64_t amount, const uint64_t fee, const bool add_owner_sig = false);
 
     Tx Build();

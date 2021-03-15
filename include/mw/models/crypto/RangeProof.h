@@ -6,6 +6,7 @@
 
 #include <mw/traits/Printable.h>
 #include <mw/traits/Serializable.h>
+#include <mw/serialization/Serializer.h>
 #include <mw/util/HexUtil.h>
 
 #include <cassert>
@@ -53,15 +54,14 @@ public:
     Serializer& Serialize(Serializer& serializer) const noexcept final
     {
         return serializer
-            .Append<uint64_t>(m_bytes.size())
+            .Append<uint16_t>((uint16_t)m_bytes.size())
             .Append(m_bytes);
     }
 
     static RangeProof Deserialize(Deserializer& deserializer)
     {
-        const uint64_t proofSize = deserializer.Read<uint64_t>();
-        if (proofSize > MAX_SIZE)
-        {
+        const uint16_t proofSize = deserializer.Read<uint16_t>();
+        if (proofSize > MAX_SIZE) {
             ThrowDeserialization("RangeProof is larger than MAX_SIZE");
         }
 

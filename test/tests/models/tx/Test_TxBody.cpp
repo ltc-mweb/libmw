@@ -19,23 +19,11 @@ TEST_CASE("Tx Body")
     //
     // Serialization
     //
-    {
-        std::vector<uint8_t> serialized = txBody.Serialized();
-
-        Deserializer deserializer(serialized);
-        REQUIRE(deserializer.Read<uint32_t>() == txBody.GetInputs().size());
-        REQUIRE(deserializer.Read<uint32_t>() == txBody.GetOutputs().size());
-        REQUIRE(deserializer.Read<uint32_t>() == txBody.GetKernels().size());
-        REQUIRE(deserializer.Read<uint32_t>() == txBody.GetOwnerSigs().size());
-
-        Deserializer deserializer2(serialized);
-        REQUIRE(txBody == TxBody::Deserialize(deserializer2));
-    }
+    Deserializer deserializer(txBody.Serialized());
+    REQUIRE(txBody == deserializer.Read<TxBody>());
 
     //
     // Getters
     //
-    {
-        REQUIRE(txBody.GetTotalFee() == fee);
-    }
+    REQUIRE(txBody.GetTotalFee() == fee);
 }

@@ -36,12 +36,6 @@ TEST_CASE("Serializer")
         REQUIRE(std::vector<uint8_t>({ 1, 2, 3, 4, 5, 6 }) == serializer.vec());
     }
 
-    // Append(string), Append(char*)
-    {
-        REQUIRE(std::vector<uint8_t>({ 0, 0, 0, 0, 0, 0, 0, 4, 84, 69, 83, 84, }) == Serializer().Append(std::string("TEST")).vec());
-        REQUIRE(std::vector<uint8_t>({ 0, 0, 0, 0, 0, 0, 0, 4, 84, 69, 83, 84, }) == Serializer().Append("TEST").vec());
-    }
-
     // TODO: Finish this
     // Append(const Serializable&)
     // Append(const std::shared_ptr<const Serializable>)
