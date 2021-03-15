@@ -7,6 +7,7 @@ list_append_parent(
 	"CoinsViewDB.cpp"
 	"CoinsViewFactory.cpp"
 	"ICoinsView.cpp"
+	"Snapshot.cpp"
 	"validation/BlockValidator.cpp"
 	"validation/StateValidator.cpp"
 )

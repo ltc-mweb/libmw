@@ -31,6 +31,12 @@ public:
     bool operator<=(const LeafIndex& rhs) const noexcept { return m_leafIndex <= rhs.m_leafIndex; }
     bool operator>=(const LeafIndex& rhs) const noexcept { return m_leafIndex >= rhs.m_leafIndex; }
 
+    LeafIndex& operator++()
+    {
+        *this = this->Next();
+        return *this;
+    }
+
     uint64_t Get() const noexcept { return m_leafIndex; }
     uint64_t GetLeafIndex() const noexcept { return m_leafIndex; }
     const Index& GetNodeIndex() const noexcept { return m_nodeIndex; }

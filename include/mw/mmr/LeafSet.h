@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mw/common/Macros.h>
+#include <mw/common/BitSet.h>
 #include <mw/file/File.h>
 #include <mw/file/MemMap.h>
 #include <mw/models/crypto/Hash.h>
@@ -28,6 +29,7 @@ public:
 	mw::Hash Root() const;
 	void Rewind(const uint64_t numLeaves, const std::vector<LeafIndex>& leavesToAdd);
 	const mmr::LeafIndex& GetNextLeafIdx() const noexcept { return m_nextLeafIdx; }
+	BitSet ToBitSet() const;
 
 	virtual void ApplyUpdates(
 		const uint32_t file_index,
@@ -84,7 +86,6 @@ public:
 	//uint64_t GetSize() const final;
 	uint8_t GetByte(const uint64_t byteIdx) const final;
 	void SetByte(const uint64_t byteIdx, const uint8_t value) final;
-	//void Snapshot(const File& snapshotFile) const;
 
 	void ApplyUpdates(
 		const uint32_t file_index,

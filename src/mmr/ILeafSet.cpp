@@ -59,4 +59,20 @@ uint8_t ILeafSet::BitToByte(const uint8_t bit) const
 	return 1 << (7 - bit);
 }
 
+BitSet ILeafSet::ToBitSet() const
+{
+	BitSet bitset(GetNextLeafIdx().Get());
+
+	mmr::LeafIndex idx = mmr::LeafIndex::At(0);
+	while (idx < GetNextLeafIdx()) {
+		if (Contains(idx)) {
+			bitset.set(idx.Get());
+		}
+
+		++idx;
+	}
+
+	return bitset;
+}
+
 END_NAMESPACE
