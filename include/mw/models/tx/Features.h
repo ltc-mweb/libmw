@@ -8,6 +8,7 @@
 #include <string>
 #include <mw/exceptions/DeserializationException.h>
 
+ // TODO: Not needed if there's no peg-in maturity.
 enum EOutputFeatures : uint8_t
 {
     // No Flags

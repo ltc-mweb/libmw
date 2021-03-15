@@ -46,7 +46,16 @@ TEST_CASE("Output::Create")
     REQUIRE_FALSE(output.IsPeggedIn());
     REQUIRE(output.GetCommitment() == expected_commit);
     REQUIRE(output.GetFeatures() == features);
-    REQUIRE(output.ToIdentifier() == OutputId(features, expected_commit));
+    REQUIRE(output.ToOutputId() == OutputId(
+        expected_commit,
+        features,
+        output.GetReceiverPubKey(),
+        output.GetKeyExchangePubKey(),
+        output.GetViewTag(),
+        output.GetMaskedValue(),
+        output.GetMaskedNonce(),
+        output.GetSenderPubKey()
+    ));
 
     //
     // Test Restoring Output

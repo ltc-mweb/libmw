@@ -6,20 +6,41 @@
 
 TEST_CASE("Tx Output Identifier")
 {
-    EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT;
     Commitment commit = Random::CSPRNG<33>().GetBigInt();
-    OutputId outputId(features, commit);
+    EOutputFeatures features = EOutputFeatures::DEFAULT_OUTPUT;
+    PublicKey receiverPubKey = Random::CSPRNG<33>().GetBigInt();
+    PublicKey exchangePubKey = Random::CSPRNG<33>().GetBigInt();
+    uint8_t viewTag = 100;
+    uint64_t maskedValue = 123456789;
+    BigInt<16> maskedNonce = Random::CSPRNG<16>().GetBigInt();
+    PublicKey senderPubKey = Random::CSPRNG<33>().GetBigInt();
+    OutputId outputId(
+        commit,
+        features,
+        receiverPubKey,
+        exchangePubKey,
+        viewTag,
+        maskedValue,
+        maskedNonce,
+        senderPubKey
+    );
 
     //
     // Serialization
     //
     {
         std::vector<uint8_t> serialized = outputId.Serialized();
-        REQUIRE(serialized.size() == 34);
+        REQUIRE(serialized.size() == 158);
 
         Deserializer deserializer(serialized);
+        REQUIRE(deserializer.Read<Commitment>() == commit);
         REQUIRE(deserializer.Read<uint8_t>() == features);
-        REQUIRE(Commitment::Deserialize(deserializer) == commit);
+        REQUIRE(deserializer.Read<PublicKey>() == receiverPubKey);
+        REQUIRE(deserializer.Read<PublicKey>() == exchangePubKey);
+        REQUIRE(deserializer.Read<uint8_t>() == viewTag);
+        REQUIRE(deserializer.Read<uint64_t>() == maskedValue);
+        REQUIRE(deserializer.Read<BigInt<16>>() == maskedNonce);
+        REQUIRE(deserializer.Read<PublicKey>() == senderPubKey);
 
         Deserializer deserializer2(serialized);
         REQUIRE(outputId == OutputId::Deserialize(deserializer2));
@@ -32,7 +53,7 @@ TEST_CASE("Tx Output Identifier")
     //
     {
         REQUIRE_FALSE(outputId.IsPeggedIn());
-        REQUIRE(outputId.GetFeatures() == features);
+        //REQUIRE(outputId.GetFeatures() == features);
         REQUIRE(outputId.GetCommitment() == commit);
     }
 }

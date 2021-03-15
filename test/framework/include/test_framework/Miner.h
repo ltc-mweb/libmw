@@ -101,7 +101,7 @@ private:
 
         auto mmr = mmr::MMR(std::make_shared<mmr::VectorBackend>());
         for (const Output& output : outputs) {
-            mmr.Add(output.ToIdentifier().Serialized());
+            mmr.Add(output.ToOutputId().Serialized());
         }
 
         return mmr;

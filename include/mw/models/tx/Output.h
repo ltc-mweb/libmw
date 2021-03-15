@@ -13,7 +13,6 @@
 #include <mw/models/crypto/SecretKey.h>
 #include <mw/models/crypto/SignedMessage.h>
 #include <mw/traits/Committed.h>
-#include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
 
 // Forward Declarations
@@ -24,7 +23,6 @@ class StealthAddress;
 ////////////////////////////////////////
 class Output :
     public Traits::ICommitted,
-    public Traits::IHashable,
     public Traits::ISerializable
 {
 public:
@@ -94,18 +92,24 @@ public:
 
     bool IsPeggedIn() const noexcept { return GetFeatures().IsSet(EOutputFeatures::PEGGED_IN); }
 
-    OutputId ToIdentifier() const noexcept { return OutputId(GetFeatures(), m_commitment); }
+    OutputId ToOutputId() const noexcept {
+        return OutputId(
+            m_commitment,
+            m_features,
+            m_receiverPubKey,
+            m_keyExchangePubKey,
+            m_viewTag,
+            m_maskedValue,
+            m_maskedNonce,
+            m_senderPubKey
+        );
+    }
 
     //
     // Serialization/Deserialization
     //
     Serializer& Serialize(Serializer& serializer) const noexcept final;
     static Output Deserialize(Deserializer& deserializer);
-
-    //
-    // Traits
-    //
-    mw::Hash GetHash() const noexcept final { return m_hash; }
 
 private:
     // The homomorphic commitment representing the output amount

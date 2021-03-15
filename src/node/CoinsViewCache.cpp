@@ -164,7 +164,7 @@ bool CoinsViewCache::HasCoinInCache(const Commitment& commitment) const noexcept
 
 void CoinsViewCache::AddUTXO(const uint64_t header_height, const Output& output)
 {
-    mmr::LeafIndex leafIdx = m_pOutputPMMR->Add(output.ToIdentifier()); // TODO: Should be everything on Output except rangeproof and signature?
+    mmr::LeafIndex leafIdx = m_pOutputPMMR->Add(output.ToOutputId());
     m_pLeafSet->Add(leafIdx);
 
     auto pUTXO = std::make_shared<UTXO>(header_height, std::move(leafIdx), output);
