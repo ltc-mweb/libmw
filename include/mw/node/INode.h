@@ -2,7 +2,6 @@
 
 #include <mw/common/Macros.h>
 #include <mw/common/BitSet.h>
-#include <mw/db/IBlockStore.h>
 #include <mw/node/CoinsView.h>
 #include <mw/models/block/Header.h>
 #include <mw/models/block/Block.h>
@@ -11,6 +10,7 @@
 #include <mw/models/tx/PegInCoin.h>
 #include <mw/models/tx/PegOutCoin.h>
 #include <mw/models/tx/UTXO.h>
+#include <libmw/interfaces/chain_interface.h>
 #include <libmw/interfaces/db_interface.h>
 #include <functional>
 #include <vector>
@@ -49,9 +49,8 @@ public:
 
     virtual mw::ICoinsView::Ptr ApplyState(
         const libmw::IDBWrapper::Ptr& pDBWrapper,
-        const mw::IBlockStore& blockStore,
-        const mw::Hash& firstMWHeaderHash,
-        const mw::Hash& stateHeaderHash,
+        const libmw::IChain::Ptr& pChain,
+        const mw::Header::CPtr& pStateHeader,
         const std::vector<UTXO::CPtr>& utxos,
         const std::vector<Kernel>& kernels,
         const BitSet& leafset,

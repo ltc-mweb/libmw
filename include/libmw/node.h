@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defs.h"
+#include <libmw/interfaces/chain_interface.h>
 #include <libmw/interfaces/db_interface.h>
 
 LIBMW_NAMESPACE
@@ -30,17 +31,15 @@ MWIMPORT void Shutdown();
 /// Validates the chainstate and replaces the existing state if valid.
 /// This should be used during initial sync, or when syncing from beyond the horizon.
 /// </summary>
-/// <param name="pBlockStore">A block store that provides access to MWEB headers and blocks. Must not be null.</param>
+/// <param name="pChain">Provides access to MWEB headers and blocks. Must not be null.</param>
 /// <param name="pCoinsDB">A wrapper around the node database. Must not be null.</param>
-/// <param name="firstMWHeaderHash">The hash of the "genesis" MWEB header (first MWEB after activation).</param>
-/// <param name="stateHeaderHash">The hash of the MWEB header at the chain tip.</param>
+/// <param name="stateHeader">The MWEB header at the chain tip.</param>
 /// <param name="state">The chainstate to validate and apply. Must not be null.</param>
 /// <returns>The CoinsViewDB which represents the state of the flushed chain.</returns>
 MWIMPORT libmw::CoinsViewRef ApplyState(
-    const libmw::IBlockStore::Ptr& pBlockStore,
+    const libmw::IChain::Ptr& pChain,
+    const libmw::HeaderRef& stateHeader,
     const libmw::IDBWrapper::Ptr& pCoinsDB,
-    const libmw::BlockHash& firstMWHeaderHash,
-    const libmw::BlockHash& stateHeaderHash,
     const libmw::StateRef& state
 );
 

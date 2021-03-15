@@ -1,7 +1,6 @@
 #include <libmw/node.h>
 
 #include "Transformers.h"
-#include "BlockStoreWrapper.h"
 
 #include <mw/node/BlockBuilder.h>
 #include <mw/common/Logger.h>

@@ -1,7 +1,6 @@
 #include <libmw/libmw.h>
 
 #include "Transformers.h"
-#include "BlockStoreWrapper.h"
 
 #include <mw/models/block/Block.h>
 #include <mw/models/block/BlockUndo.h>

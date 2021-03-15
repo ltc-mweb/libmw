@@ -17,18 +17,14 @@ static const size_t PROOF_BATCH_SIZE = 512;
 // TODO: Use StateValidator
 mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
-	const mw::IBlockStore& blockStore,
+	const libmw::IChain::Ptr& pChain,
     const FilePath& chainDir,
-	const mw::Hash& firstMWHeaderHash,
-	const mw::Hash& stateHeaderHash,
+	const mw::Header::CPtr& pStateHeader,
     const std::vector<UTXO::CPtr>& utxos,
     const std::vector<Kernel>& kernels,
 	const BitSet& leafset,
 	const std::vector<mw::Hash>& pruned_parent_hashes)
 {
-	auto pStateHeader = blockStore.GetHeader(stateHeaderHash);
-	assert(pStateHeader != nullptr);
-
     if (kernels.size() != pStateHeader->GetNumKernels()) {
         ThrowValidation(EConsensusError::MMR_MISMATCH);
     }
@@ -39,9 +35,9 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	auto pMMRInfo = MMRInfoDB(pDBWrapper.get()).GetLatest();
 	MMRInfo mmr_info = pMMRInfo ? *pMMRInfo : MMRInfo{};
 	mmr_info.index++;
-	mmr_info.pruned = stateHeaderHash;
+	mmr_info.pruned = pStateHeader->GetHash();
 	mmr_info.compact_index++;
-	mmr_info.compacted = stateHeaderHash;
+	mmr_info.compacted = pStateHeader->GetHash();
 	MMRInfoDB(pDBWrapper.get()).Save(mmr_info);
 
 
@@ -71,9 +67,8 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
         pDBWrapper,
 		pBatch,
 		mmr_info,
-        blockStore,
+        pChain,
         chainDir,
-		firstMWHeaderHash,
         pStateHeader,
         kernels
     );
@@ -142,9 +137,8 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
 	const std::unique_ptr<libmw::IDBBatch>& pBatch,
 	const MMRInfo& mmr_info,
-	const mw::IBlockStore& blockStore,
+	const libmw::IChain::Ptr& pChain,
     const FilePath& chainDir,
-    const mw::Hash& firstMWHeaderHash,
     const mw::Header::CPtr& pStateHeader,
     const std::vector<Kernel>& kernels)
 {
@@ -152,8 +146,8 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
 		mmr::FileBackend::Open('K', chainDir, mmr_info.index, pDBWrapper, nullptr)
 	);
 
-    auto pNextHeader = blockStore.GetHeader(firstMWHeaderHash);
-	assert(pNextHeader != nullptr);
+	auto pChainIter = pChain->NewIterator();
+	assert(pChainIter->Valid());
 
 	std::vector<mmr::Leaf> leaves;
 	leaves.reserve(kernels.size());
@@ -161,23 +155,27 @@ mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
 	uint64_t kernels_added = 0;
     for (const Kernel& kernel : kernels)
     {
+		if (!pChainIter->Valid()) {
+			ThrowValidation(EConsensusError::MMR_MISMATCH);
+		}
+
         mmr::LeafIndex leaf_idx = pMMR->Add(kernel);
 		leaves.push_back(mmr::Leaf::Create(leaf_idx, kernel.Serialized()));
 
 		++kernels_added;
 
         // We have to loop here because some blocks may not have any new kernels.
-        while (kernels_added == pNextHeader->GetNumKernels())
+        while (pChainIter->Valid() && kernels_added == pChainIter->GetHeader().pHeader->GetNumKernels())
         {
-            if (pNextHeader->GetKernelRoot() != pMMR->Root()) {
+            if (pChainIter->GetHeader().pHeader->GetKernelRoot() != pMMR->Root()) {
                 ThrowValidation(EConsensusError::MMR_MISMATCH);
             }
 
-            if (pNextHeader == pStateHeader) {
+            if (pChainIter->GetHeader().pHeader == pStateHeader) {
                 break;
             }
 
-			pNextHeader = blockStore.GetHeader(pNextHeader->GetHeight() + 1);
+			pChainIter->Next();
         }
     }
 

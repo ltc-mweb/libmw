@@ -1,7 +1,6 @@
 #include <libmw/node.h>
 
 #include "Transformers.h"
-#include "BlockStoreWrapper.h"
 
 #include <mw/common/Logger.h>
 #include <mw/exceptions/ValidationException.h>
@@ -37,18 +36,15 @@ MWEXPORT void Shutdown()
 }
 
 MWEXPORT libmw::CoinsViewRef ApplyState(
-    const libmw::IBlockStore::Ptr& pBlockStore,
+    const libmw::IChain::Ptr& pChain,
     const libmw::IDBWrapper::Ptr& pCoinsDB,
-    const libmw::BlockHash& firstMWHeaderHash,
-    const libmw::BlockHash& stateHeaderHash,
+    const libmw::HeaderRef& stateHeader,
     const libmw::StateRef& state)
 {
-    BlockStoreWrapper blockStore(pBlockStore.get());
     auto pCoinsViewDB = NODE->ApplyState(
         pCoinsDB,
-        blockStore,
-        mw::Hash{ firstMWHeaderHash },
-        mw::Hash{ stateHeaderHash },
+        pChain,
+        stateHeader.pHeader,
         state.pState->utxos,
         state.pState->kernels,
         state.pState->leafset,

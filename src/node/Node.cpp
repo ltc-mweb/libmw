@@ -96,9 +96,8 @@ void Node::DisconnectBlock(const mw::BlockUndo::CPtr& pUndoData, const mw::ICoin
 
 mw::ICoinsView::Ptr Node::ApplyState(
     const libmw::IDBWrapper::Ptr& pDBWrapper,
-    const mw::IBlockStore& blockStore,
-    const mw::Hash& firstMWHeaderHash,
-    const mw::Hash& stateHeaderHash,
+    const libmw::IChain::Ptr& pChain,
+    const mw::Header::CPtr& pStateHeader,
     const std::vector<UTXO::CPtr>& utxos,
     const std::vector<Kernel>& kernels,
     const BitSet& leafset,
@@ -106,10 +105,9 @@ mw::ICoinsView::Ptr Node::ApplyState(
 {
     return CoinsViewFactory::CreateDBView(
         pDBWrapper,
-        blockStore,
+        pChain,
         m_datadir,
-        firstMWHeaderHash,
-        stateHeaderHash,
+        pStateHeader,
         utxos,
         kernels,
         leafset,
