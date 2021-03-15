@@ -1,13 +1,14 @@
 #include <catch.hpp>
 
 #include <mw/crypto/Crypto.h>
+#include <mw/crypto/Random.h>
 #include <mw/models/tx/PegOutCoin.h>
 
 TEST_CASE("Tx Peg-Out Coin")
 {
     uint64_t amount = 123;
-    Bech32Address address = Bech32Address::FromString("tltc1qh50sy0823vxn4l9zk2820w4fuj0q4fgv48ma6c");
-    PegOutCoin pegOutCoin(amount, address);
+    std::vector<uint8_t> scriptPubKey = Random::CSPRNG<32>().vec();
+    PegOutCoin pegOutCoin(amount, scriptPubKey);
 
     //
     // Serialization
@@ -17,7 +18,8 @@ TEST_CASE("Tx Peg-Out Coin")
 
         Deserializer deserializer(serialized);
         REQUIRE(deserializer.Read<uint64_t>() == amount);
-        REQUIRE(Bech32Address::Deserialize(deserializer) == address);
+        REQUIRE(deserializer.Read<uint8_t>() == 32);
+        REQUIRE(deserializer.ReadVector(32) == scriptPubKey);
 
         Deserializer deserializer2(serialized);
         REQUIRE(pegOutCoin == PegOutCoin::Deserialize(deserializer2));
@@ -28,6 +30,6 @@ TEST_CASE("Tx Peg-Out Coin")
     //
     {
         REQUIRE(pegOutCoin.GetAmount() == amount);
-        REQUIRE(pegOutCoin.GetAddress() == address);
+        REQUIRE(pegOutCoin.GetScriptPubKey() == scriptPubKey);
     }
 }

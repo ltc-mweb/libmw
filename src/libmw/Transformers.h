@@ -29,7 +29,7 @@ static std::vector<PegOutCoin> TransformPegOuts(const std::vector<libmw::PegOut>
     std::transform(
         pegOutCoins.cbegin(), pegOutCoins.cend(),
         std::back_inserter(pegouts),
-        [](const libmw::PegOut& pegout) { return PegOutCoin{ pegout.amount, Bech32Address::FromString(pegout.address) }; }
+        [](const libmw::PegOut& pegout) { return PegOutCoin{ pegout.amount, pegout.scriptPubKey }; }
     );
 
     return pegouts;
@@ -65,7 +65,7 @@ static libmw::BlockAndPegs TransformBlock(const mw::Block::Ptr& pBlock)
         pegout_coins.cbegin(), pegout_coins.cend(),
         std::back_inserter(pegouts),
         [](const PegOutCoin& pegout) {
-            return libmw::PegOut{ pegout.GetAmount(), pegout.GetAddress().ToString() };
+            return libmw::PegOut{ pegout.GetAmount(), pegout.GetScriptPubKey() };
         }
     );
 

@@ -7,7 +7,6 @@
 #include <mw/traits/Hashable.h>
 #include <mw/traits/Serializable.h>
 #include <mw/traits/Printable.h>
-#include <mw/models/crypto/Bech32Address.h>
 #include <mw/models/crypto/BlindingFactor.h>
 #include <mw/models/crypto/Signature.h>
 #include <mw/models/tx/PegOutCoin.h>

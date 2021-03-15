@@ -70,7 +70,7 @@ MWEXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
     for (const Kernel& kernel : pTransaction->GetKernels()) {
         if (kernel.HasPegOut()) {
             const PegOutCoin& pegout = kernel.GetPegOut().value();
-            pegouts.emplace_back(PegOut{ pegout.GetAmount(), pegout.GetAddress().ToString() });
+            pegouts.emplace_back(PegOut{ pegout.GetAmount(), pegout.GetScriptPubKey() });
         }
     }
 

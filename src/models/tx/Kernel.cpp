@@ -30,7 +30,7 @@ Kernel Kernel::Create(
     if (pegout.has_value()) {
         sig_message_hasher
             .Append<uint64_t>(pegout.value().GetAmount())
-            .Append<Bech32Address>(pegout.value().GetAddress());
+            .Append(pegout.value().GetScriptPubKey());
     }
 
     if (lock_height.has_value()) {
@@ -81,7 +81,7 @@ mw::Hash Kernel::GetSignatureMessage(
     if (pegout.has_value()) {
         sig_message_hasher
             .Append<uint64_t>(pegout.value().GetAmount())
-            .Append<Bech32Address>(pegout.value().GetAddress());
+            .Append(pegout.value().GetScriptPubKey());
     }
 
     if (lock_height.has_value()) {
@@ -90,7 +90,6 @@ mw::Hash Kernel::GetSignatureMessage(
 
     if (!extra_data.empty()) {
         sig_message_hasher
-            .Append<uint8_t>((uint8_t)extra_data.size())
             .Append(extra_data);
     }
 
@@ -116,7 +115,8 @@ Serializer& Kernel::Serialize(Serializer& serializer) const noexcept
     if (m_pegout.has_value()) {
         serializer
             .Append<uint64_t>(m_pegout.value().GetAmount())
-            .Append(m_pegout.value().GetAddress());
+            .Append<uint8_t>((uint8_t)m_pegout.value().GetScriptPubKey().size())
+            .Append(m_pegout.value().GetScriptPubKey());
     }
 
     if (m_lockHeight.has_value()) {
@@ -149,8 +149,9 @@ Kernel Kernel::Deserialize(Deserializer& deserializer)
     boost::optional<PegOutCoin> pegout = boost::none;
     if (features & PEGOUT_FEATURE_BIT) {
         uint64_t amount = deserializer.Read<uint64_t>();
-        Bech32Address address = deserializer.Read<Bech32Address>();
-        pegout = PegOutCoin(amount, std::move(address));
+        uint8_t num_bytes = deserializer.Read<uint8_t>();
+        std::vector<uint8_t> scriptPubKey = deserializer.ReadVector(num_bytes);
+        pegout = PegOutCoin(amount, std::move(scriptPubKey));
     }
 
     boost::optional<uint64_t> lock_height = boost::none;

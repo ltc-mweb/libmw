@@ -88,7 +88,7 @@ struct PegIn
 struct PegOut
 {
     uint64_t amount;
-    std::string address;
+    std::vector<uint8_t> scriptPubKey;
 };
 
 struct HeaderRef

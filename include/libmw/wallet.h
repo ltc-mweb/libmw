@@ -10,7 +10,11 @@ LIBMW_NAMESPACE
 struct PegOutRecipient
 {
     uint64_t amount;
-    std::string address;
+
+    /// <summary>
+    /// 4-42 bytes
+    /// </summary>
+    std::vector<uint8_t> scriptPubKey;
 };
 
 struct MWEBRecipient

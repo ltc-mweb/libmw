@@ -27,7 +27,7 @@ MWEXPORT libmw::TxRef CreateTx(
             receivers.push_back(std::make_pair(pegin_recipient.amount, StealthAddress::Decode(pegin_recipient.address)));
         } else {
             const libmw::PegOutRecipient& pegout_recipient = boost::get<libmw::PegOutRecipient>(recipient);
-            pegouts.push_back(PegOutCoin(pegout_recipient.amount, Bech32Address::FromString(pegout_recipient.address)));
+            pegouts.push_back(PegOutCoin(pegout_recipient.amount, pegout_recipient.scriptPubKey));
         }
     }
 
