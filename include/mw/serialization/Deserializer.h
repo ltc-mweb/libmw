@@ -8,6 +8,7 @@
 #include <mw/exceptions/DeserializationException.h>
 #include <mw/traits/Serializable.h>
 
+#include <boost/optional.hpp>
 #include <vector>
 #include <string>
 #include <cstring>
@@ -32,6 +33,16 @@ public:
     decltype(auto) Read()
     {
         return T::Deserialize(*this);
+    }
+
+    template <class T, typename SFINAE = std::enable_if_t<std::is_base_of_v<Traits::ISerializable, T>>>
+    boost::optional<T> ReadOpt()
+    {
+        if (Read<bool>()) {
+            return { T::Deserialize(*this) };
+        }
+
+        return boost::none;
     }
 
     template <class T, typename SFINAE = std::enable_if_t<std::is_fundamental_v<T>>>

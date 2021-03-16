@@ -27,8 +27,6 @@ public:
 
     StealthAddress GetStealthAddress(const uint32_t index) const;
 
-    void ScanForOutputs(const libmw::IChain::Ptr& pChain);
-
     std::vector<libmw::Coin> GetCoins(const std::vector<Commitment>& commitments) const
     {
         std::vector<libmw::Coin> coins;

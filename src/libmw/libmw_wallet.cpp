@@ -41,11 +41,6 @@ MWEXPORT libmw::TxRef CreateTx(
     return libmw::TxRef{ pTransaction };
 }
 
-MWEXPORT void ScanForOutputs(const libmw::IWallet::Ptr& pWallet, const libmw::IChain::Ptr& pChain)
-{
-    Wallet::Open(pWallet).ScanForOutputs(pChain);
-}
-
 MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet, const uint32_t index)
 {
     return Wallet::Open(pWallet).GetStealthAddress(index).Encode();

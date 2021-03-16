@@ -44,46 +44,9 @@ SecretKey Wallet::GetSpendKey(const uint32_t index) const
     return Crypto::AddPrivateKeys(m_spendSecret, mi);
 }
 
-void Wallet::ScanForOutputs(const libmw::IChain::Ptr& pChain)
-{
-    // TODO: Just return outputs
-
-    //std::vector<libmw::Coin> coins_found;
-
-    //auto pChainIter = pChain->NewIterator();
-    //while (pChainIter->Valid()) {
-    //    try {
-    //        libmw::BlockRef block_ref = pChainIter->GetBlock();
-    //        if (block_ref.IsNull()) {
-    //            // TODO: Use output mmr
-    //        } else {
-    //            for (const Output& output : block_ref.pBlock->GetOutputs()) {
-    //                libmw::Coin coin;
-    //                if (RewindOutput(output, coin)) {
-    //                    coin.included_block = boost::make_optional<libmw::BlockHash>(pChainIter->GetCanonicalHash());
-    //                    if (coin.address_index != libmw::CHANGE_INDEX && !Features(coin.features).IsSet(EOutputFeatures::PEGGED_IN)) {
-    //                        // TODO: Create CWalletTx
-    //                    }
-    //                }
-    //            }
-
-    //            for (const Input& input : block_ref.pBlock->GetInputs()) {
-    //                auto pCoinIter = coinmap.find(input.GetCommitment());
-    //                if (pCoinIter != coinmap.end()) {
-    //                    pCoinIter->second.spent = true;
-    //                    pCoinIter->second.spent_block = pChainIter->GetCanonicalHash();
-    //                }
-    //            }
-    //        }
-    //    } catch (std::exception&) {}
-
-    //    pChainIter->Next();
-    //}
-}
-
 bool Wallet::RewindOutput(const Output& output, libmw::Coin& coin) const
 {
-    SecretKey a(m_pWalletInterface->GetHDKey("m/1/0/100'").keyBytes);
+    SecretKey a = m_scanSecret;
 
     SecretKey t = Hashed(EHashTag::DERIVE, output.Ke().Mul(a));
     if (t[0] == output.GetViewTag()) {

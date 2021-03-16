@@ -41,11 +41,6 @@ MWIMPORT libmw::TxRef CreateTx(
     const uint64_t fee
 );
 
-MWIMPORT void ScanForOutputs(
-    const libmw::IWallet::Ptr& pWallet,
-    const libmw::IChain::Ptr& pChain
-);
-
 /// <summary>
 /// Computes the MWEB wallet address.
 /// Currently, this always generates an address using a pre-defined bip32 keychain path.

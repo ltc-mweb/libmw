@@ -30,4 +30,7 @@ MWIMPORT std::vector<uint8_t> SerializeTx(const libmw::TxRef& tx);
 MWIMPORT libmw::StateRef DeserializeState(const std::vector<uint8_t>& bytes);
 MWIMPORT std::vector<uint8_t> SerializeState(const libmw::StateRef& state);
 
+MWIMPORT libmw::Coin DeserializeCoin(const std::vector<uint8_t>& bytes);
+MWIMPORT std::vector<uint8_t> SerializeCoin(const libmw::Coin& coin);
+
 END_NAMESPACE // libmw

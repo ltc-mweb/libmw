@@ -9,6 +9,7 @@
 #include <support/allocators/secure.h>
 #include <mw/serialization/Deserializer.h>
 
+#include <boost/optional.hpp>
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -99,6 +100,17 @@ public:
         Append<uint32_t>((uint32_t)vec.size());
         for (const std::shared_ptr<const T>& pItem : vec) {
             pItem->Serialize(*this);
+        }
+
+        return *this;
+    }
+
+    template<class T>
+    Serializer& Append(const boost::optional<T>& opt)
+    {
+        Append<bool>(opt.has_value());
+        if (opt.has_value()) {
+            Append(opt.value());
         }
 
         return *this;
