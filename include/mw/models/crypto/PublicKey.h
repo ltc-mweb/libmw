@@ -4,6 +4,7 @@
 #include <mw/models/crypto/SecretKey.h>
 #include <mw/traits/Printable.h>
 #include <mw/traits/Serializable.h>
+#include <boost/container_hash/hash.hpp>
 
 class PublicKey :
     public Traits::IPrintable,
@@ -31,6 +32,10 @@ public:
     PublicKey& operator=(PublicKey&& other) noexcept = default;
     bool operator==(const PublicKey& rhs) const { return m_compressed == rhs.m_compressed; }
     bool operator!=(const PublicKey& rhs) const { return m_compressed != rhs.m_compressed; }
+    bool operator<=(const PublicKey& rhs) const { return m_compressed <= rhs.m_compressed; }
+    bool operator<(const PublicKey& rhs) const { return m_compressed < rhs.m_compressed; }
+    bool operator>=(const PublicKey& rhs) const { return m_compressed >= rhs.m_compressed; }
+    bool operator>(const PublicKey& rhs) const { return m_compressed > rhs.m_compressed; }
 
     //
     // Factory
@@ -61,3 +66,15 @@ public:
 private:
     BigInt<33> m_compressed;
 };
+
+namespace std
+{
+    template<>
+    struct hash<PublicKey>
+    {
+        size_t operator()(const PublicKey& pubkey) const
+        {
+            return boost::hash_value(pubkey.vec());
+        }
+    };
+}

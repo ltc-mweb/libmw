@@ -39,6 +39,7 @@ TEST_CASE("Serializer")
     // TODO: Finish this
     // Append(const Serializable&)
     // Append(const std::shared_ptr<const Serializable>)
+    // Append(const boost::optional<Serializable>&)
     // uint8_t& operator[]
     // const uint8_t& operator[]
 }

@@ -6,9 +6,10 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 
 #include <string>
+#include <cstdint>
 #include <mw/exceptions/DeserializationException.h>
 
- // TODO: Not needed if there's no peg-in maturity.
+// TODO: Not needed if we decide not to require peg-in outputs to mature.
 enum EOutputFeatures : uint8_t
 {
     // No Flags

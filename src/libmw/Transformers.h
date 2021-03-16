@@ -47,31 +47,6 @@ static std::vector<mw::Transaction::CPtr> TransformTxs(const std::vector<libmw::
     return transactions;
 }
 
-static libmw::BlockAndPegs TransformBlock(const mw::Block::Ptr& pBlock)
-{
-    std::vector<PegInCoin> pegin_coins = pBlock->GetPegIns();
-    std::vector<libmw::PegIn> pegins;
-    std::transform(
-        pegin_coins.cbegin(), pegin_coins.cend(),
-        std::back_inserter(pegins),
-        [](const PegInCoin& pegin) {
-            return libmw::PegIn{ pegin.GetAmount(), pegin.GetCommitment().array() };
-        }
-    );
-
-    std::vector<PegOutCoin> pegout_coins = pBlock->GetPegOuts();
-    std::vector<libmw::PegOut> pegouts;
-    std::transform(
-        pegout_coins.cbegin(), pegout_coins.cend(),
-        std::back_inserter(pegouts),
-        [](const PegOutCoin& pegout) {
-            return libmw::PegOut{ pegout.GetAmount(), pegout.GetScriptPubKey() };
-        }
-    );
-
-    return libmw::BlockAndPegs{ pBlock, pegins, pegouts };
-}
-
 static std::vector<Commitment> TransformCommitments(const std::vector<libmw::Commitment>& libmw_commits)
 {
     std::vector<Commitment> commits;

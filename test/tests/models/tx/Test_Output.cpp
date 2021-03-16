@@ -6,7 +6,6 @@
 #include <mw/models/tx/Output.h>
 #include <mw/models/wallet/StealthAddress.h>
 
-// TODO: Create test vectors
 TEST_CASE("Output::Create")
 {
     // Generate receiver addr
@@ -88,6 +87,4 @@ TEST_CASE("Output::Create")
         SecretKey spend_key = Crypto::AddPrivateKeys(b, Hashed(EHashTag::OUT_KEY, t));
         REQUIRE(output.GetReceiverPubKey() == PublicKey::From(spend_key));
     }
-
-    // TODO: Test Serialization & Deserialization
 }

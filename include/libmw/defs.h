@@ -1,5 +1,10 @@
 #pragma once
 
+// Copyright (c) 2018-2020 David Burkett
+// Copyright (c) 2020-2021 The Litecoin Developers
+// Distributed under the MIT software license, see the accompanying
+// file LICENSE or http://www.opensource.org/licenses/mit-license.php.
+
 #include <array>
 #include <set>
 #include <vector>
@@ -47,8 +52,6 @@ namespace mw
     struct State;
 }
 
-// TODO: Consider pulling in serialize.h, and adding serialization logic here.
-
 LIBMW_NAMESPACE
 
 typedef std::array<uint8_t, 32> BlockHash;
@@ -62,6 +65,10 @@ typedef std::string MWEBAddress;
 static const uint8_t NORMAL_OUTPUT = 0;
 static const uint8_t PEGIN_OUTPUT = 1;
 
+/// <summary>
+/// Consensus parameters
+/// Any change to these will cause a hardfork!
+/// </summary>
 static constexpr size_t MAX_BLOCK_WEIGHT = 21'000;
 static constexpr size_t KERNEL_WEIGHT = 2;
 static constexpr size_t OWNER_SIG_WEIGHT = 1;
@@ -69,18 +76,26 @@ static constexpr size_t OUTPUT_WEIGHT = 18;
 static constexpr uint16_t PEGIN_MATURITY = 20;
 static constexpr uint8_t MAX_KERNEL_EXTRADATA_SIZE = 33;
 
+/// <summary>
+/// Change outputs will use the stealth address generated using index 2,000,000.
+/// </summary>
+static constexpr uint32_t CHANGE_INDEX{ 2'000'000 };
+
+/// <summary>
+/// Peg-in outputs will use the stealth address generated using index 2,000,000.
+/// </summary>
+static constexpr uint32_t PEGIN_INDEX{ 4'000'000 };
+
 struct PegIn
 {
     uint64_t amount;
     std::array<uint8_t, 33> commitment;
 
-    bool operator==(const PegIn& rhs) const
-    {
+    bool operator==(const PegIn& rhs) const {
         return amount == rhs.amount && commitment == rhs.commitment;
     }
 
-    bool operator!=(const PegIn& rhs) const
-    {
+    bool operator!=(const PegIn& rhs) const {
         return !(*this == rhs);
     }
 };
@@ -103,37 +118,44 @@ struct HeaderAndPegsRef
     std::vector<PegOut> pegouts;
 };
 
+/// <summary>
+/// A simple interface for accessing members of an MWEB block.
+/// </summary>
 struct BlockRef
 {
+    /// <summary>
+    /// Checks whether the internal block pointer is null.
+    /// If it's null, it is unsafe to call any other methods on this object.
+    /// </summary>
+    /// <returns>true if interal pointer is null. Otherwise, false.</returns>
     bool IsNull() const noexcept { return pBlock == nullptr; }
 
     MWIMPORT libmw::BlockHash GetHash() const noexcept;
-    MWIMPORT libmw::HeaderRef GetHeader() const;
+    MWIMPORT libmw::HeaderRef GetHeader() const noexcept;
     MWIMPORT uint64_t GetTotalFee() const noexcept;
     MWIMPORT uint64_t GetWeight() const noexcept;
-    MWIMPORT std::set<KernelHash> GetKernelHashes() const;
-    MWIMPORT std::vector<libmw::Commitment> GetInputCommits() const;
-    MWIMPORT std::vector<libmw::Commitment> GetOutputCommits() const;
+    MWIMPORT std::set<KernelHash> GetKernelHashes() const noexcept;
+    MWIMPORT std::vector<libmw::Commitment> GetInputCommits() const noexcept;
+    MWIMPORT std::vector<libmw::Commitment> GetOutputCommits() const noexcept;
 
     std::shared_ptr<mw::Block> pBlock;
 };
 
-struct BlockAndPegs
-{
-    std::shared_ptr<mw::Block> pBlock;
-    std::vector<PegIn> pegins;
-    std::vector<PegOut> pegouts;
-};
-
+/// <summary>
+/// A wrapper around an internal pointer to a BlockUndo object.
+/// </summary>
 struct BlockUndoRef
 {
     std::shared_ptr<const mw::BlockUndo> pUndo;
 };
 
+/// <summary>
+/// A simple interface for accessing members of an MWEB transaction.
+/// </summary>
 struct TxRef
 {
-    MWIMPORT std::vector<PegOut> GetPegouts() const noexcept;
-    MWIMPORT std::vector<PegIn> GetPegins() const noexcept;
+    MWIMPORT std::vector<libmw::PegOut> GetPegouts() const noexcept;
+    MWIMPORT std::vector<libmw::PegIn> GetPegins() const noexcept;
     MWIMPORT uint64_t GetTotalFee() const noexcept;
     MWIMPORT uint64_t GetWeight() const noexcept;
     MWIMPORT std::set<KernelHash> GetKernelHashes() const noexcept;
@@ -143,11 +165,18 @@ struct TxRef
     std::shared_ptr<const mw::Transaction> pTransaction;
 };
 
+/// <summary>
+/// A wrapper around an internal pointer to a coin view.
+/// This can either be a CoinsViewDB, which represents the flushed view, or a CoinsViewCache.
+/// When the node is instantiated, a single CoinsViewDB is created.
+/// Every other CoinView is a cache built directly on top of that, or on top of other caches.
+/// </summary>
 struct CoinsViewRef
 {
-    //
-    // Creates a new CoinsViewCache on top of this CoinsView.
-    //
+    /// <summary>
+    /// Creates a new CoinsViewCache on top of this CoinsView.
+    /// </summary>
+    /// <returns>A wrapper around the newly created CoinsViewCache, or null if the current view is null.</returns>
     MWIMPORT CoinsViewRef CreateCache() const;
 
     std::shared_ptr<mw::ICoinsView> pCoinsView;
@@ -175,11 +204,8 @@ struct BlockBuilderRef
     std::shared_ptr<mw::BlockBuilder> pBuilder;
 };
 
-inline static constexpr uint32_t CHANGE_INDEX{ 2'000'000 };
-inline static constexpr uint32_t PEGIN_INDEX{ 4'000'000 };
-
 /// <summary>
-/// Represents an output owned by the wallet.
+/// Represents an output owned by the wallet, and the keys necessary to spend it.
 /// </summary>
 struct Coin
 {
@@ -207,24 +233,6 @@ struct Coin
 
     bool IsChange() const noexcept { return address_index == CHANGE_INDEX; }
     bool IsPegIn() const noexcept { return address_index == PEGIN_INDEX; }
-};
-
-/// <summary>
-/// Contains the balances & statuses of all of the wallet's unspent coins.
-/// </summary>
-struct WalletBalance
-{
-    // Confirmed on-chain, meets maturity requirements.
-    uint64_t confirmed_balance = 0;
-
-    // Received coins that have not yet been seen on-chain.
-    uint64_t unconfirmed_balance = 0;
-
-    // Confirmed on-chain, but does not meet maturity requirements (eg. pegins).
-    uint64_t immature_balance = 0;
-
-    // Coins that have been spent, but whose spending txs has not yet been seen on-chain.
-    uint64_t locked_balance = 0;
 };
 
 END_NAMESPACE

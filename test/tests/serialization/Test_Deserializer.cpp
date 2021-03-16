@@ -28,5 +28,5 @@ TEST_CASE("Deserializer")
         REQUIRE(Deserializer({ 202 }).ReadLE<int8_t>() == (int8_t)-54);
     }
 
-    // TODO: ReadVector, ReadArray
+    // TODO: ReadVec, ReadVector, ReadArray, ReadOpt
 }

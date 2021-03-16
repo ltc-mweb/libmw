@@ -5,7 +5,9 @@ using namespace mw;
 
 State Snapshot::Build(const ICoinsView::CPtr& pView)
 {
-    // TODO: Rewind first?
+    // TODO: We will start using this in a future release when we finish
+    // the more-efficient state sync (i.e. download pruned state instead of block by block).
+    // When we do use this, we have to decide whether it's better to rewind from Litecoin code or from here.
 
     //
     // Load kernels

@@ -56,8 +56,6 @@ TEST_CASE("BlockBuilder")
         );
         REQUIRE(tx1_status);
 
-        // TODO: Test pegouts and regular txs
-
         libmw::BlockRef built_block = libmw::miner::BuildBlock(block_builder);
         REQUIRE(built_block.pBlock->GetKernels().front() == builder_tx1.GetKernels().front());
         BlockValidator().Validate(built_block.pBlock, built_block.pBlock->GetHash(), { builder_tx1.GetPegInCoin() }, {});

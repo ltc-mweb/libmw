@@ -13,12 +13,9 @@ MWEXPORT libmw::BlockHash BlockRef::GetHash() const noexcept
     return pBlock->GetHash().ToArray();
 }
 
-MWEXPORT libmw::HeaderRef BlockRef::GetHeader() const
+MWEXPORT libmw::HeaderRef BlockRef::GetHeader() const noexcept
 {
-    if (pBlock == nullptr) {
-        return libmw::HeaderRef{ nullptr };
-    }
-
+    assert(pBlock != nullptr);
     return libmw::HeaderRef{ pBlock->GetHeader() };
 }
 
@@ -34,7 +31,7 @@ MWEXPORT uint64_t BlockRef::GetWeight() const noexcept
     return Weight::Calculate(pBlock->GetTxBody());
 }
 
-MWEXPORT std::set<KernelHash> BlockRef::GetKernelHashes() const
+MWEXPORT std::set<KernelHash> BlockRef::GetKernelHashes() const noexcept
 {
     assert(pBlock != nullptr);
     std::set<KernelHash> kernelHashes;
@@ -44,7 +41,7 @@ MWEXPORT std::set<KernelHash> BlockRef::GetKernelHashes() const
     return kernelHashes;
 }
 
-MWEXPORT std::vector<libmw::Commitment> BlockRef::GetInputCommits() const
+MWEXPORT std::vector<libmw::Commitment> BlockRef::GetInputCommits() const noexcept
 {
     assert(pBlock != nullptr);
     std::vector<libmw::Commitment> input_commits;
@@ -54,7 +51,7 @@ MWEXPORT std::vector<libmw::Commitment> BlockRef::GetInputCommits() const
     return input_commits;
 }
 
-MWEXPORT std::vector<libmw::Commitment> BlockRef::GetOutputCommits() const
+MWEXPORT std::vector<libmw::Commitment> BlockRef::GetOutputCommits() const noexcept
 {
     assert(pBlock != nullptr);
     std::vector<libmw::Commitment> output_commits;
@@ -64,22 +61,22 @@ MWEXPORT std::vector<libmw::Commitment> BlockRef::GetOutputCommits() const
     return output_commits;
 }
 
-MWEXPORT std::vector<PegOut> TxRef::GetPegouts() const noexcept
+MWEXPORT std::vector<libmw::PegOut> TxRef::GetPegouts() const noexcept
 {
     std::vector<PegOut> pegouts;
     for (const Kernel& kernel : pTransaction->GetKernels()) {
         if (kernel.HasPegOut()) {
             const PegOutCoin& pegout = kernel.GetPegOut().value();
-            pegouts.emplace_back(PegOut{ pegout.GetAmount(), pegout.GetScriptPubKey() });
+            pegouts.emplace_back(libmw::PegOut{ pegout.GetAmount(), pegout.GetScriptPubKey() });
         }
     }
 
     return pegouts;
 }
 
-MWEXPORT std::vector<PegIn> TxRef::GetPegins() const noexcept
+MWEXPORT std::vector<libmw::PegIn> TxRef::GetPegins() const noexcept
 {
-    std::vector<PegIn> pegins;
+    std::vector<libmw::PegIn> pegins;
     for (const Kernel& kernel : pTransaction->GetKernels()) {
         if (kernel.HasPegIn()) {
             pegins.emplace_back(PegIn{ kernel.GetPegIn(), kernel.GetCommitment().array() });

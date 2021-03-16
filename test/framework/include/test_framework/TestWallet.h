@@ -2,7 +2,9 @@
 
 #include <libmw/libmw.h>
 #include <mw/models/crypto/BlindingFactor.h>
+#include <mw/models/crypto/PublicKey.h>
 #include <mw/models/wallet/KeyChainPath.h>
+#include <mw/crypto/Crypto.h>
 #include <mw/crypto/Hasher.h>
 #include <mw/crypto/Random.h>
 #include <mw/exceptions/InsufficientFundsException.h>
@@ -26,7 +28,29 @@ public:
 
     bool IsMine(const libmw::PubKey& spend_pubkey, uint32_t& index_out) final
     {
-        return true; // TODO: Implement
+        auto iter = m_pubkeys.find(PublicKey({ spend_pubkey }));
+        if (iter != m_pubkeys.end()) {
+            index_out = iter->second;
+            return true;
+        }
+
+        return false;
+    }
+
+    uint32_t GenerateNewAddress()
+    {
+        SecretKey scan_secret(GetHDKey("m/1/0/100'").keyBytes);
+        SecretKey spend_secret(GetHDKey("m/1/0/101'").keyBytes);
+
+        uint32_t index = (uint32_t)m_pubkeys.size();
+        SecretKey mi = Hasher(EHashTag::ADDRESS)
+            .Append<uint32_t>(index)
+            .Append(scan_secret)
+            .hash();
+
+        PublicKey pubkey = PublicKey::From(Crypto::AddPrivateKeys(spend_secret, mi));
+        m_pubkeys.insert({ pubkey, index });
+        return index;
     }
 
     libmw::PrivateKey GetHDKey(const std::string& bip32Path) const final
@@ -75,4 +99,5 @@ private:
     BlindingFactor m_seed;
     KeyChainPath m_nextPath;
     std::vector<libmw::Coin> m_coins;
+    std::map<PublicKey, uint32_t> m_pubkeys;
 };

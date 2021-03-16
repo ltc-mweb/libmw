@@ -6,7 +6,6 @@
 
 TEST_CASE("Plain Tx Input")
 {
-    // TODO: Use Commitment::FromHex instead
     Commitment commit(Random::CSPRNG<33>().GetBigInt());
     PublicKey pubkey(Random::CSPRNG<33>().GetBigInt());
     Signature signature(Random::CSPRNG<64>().GetBigInt());

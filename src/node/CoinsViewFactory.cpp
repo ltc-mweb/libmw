@@ -14,7 +14,6 @@
 static const size_t KERNEL_BATCH_SIZE = 512;
 static const size_t PROOF_BATCH_SIZE = 512;
 
-// TODO: Use StateValidator
 mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
 	const libmw::IChain::Ptr& pChain,
@@ -118,7 +117,8 @@ mw::CoinsViewDB::Ptr CoinsViewFactory::CreateDBView(
 	);
 }
 
-// TODO: Also validate peg-in/peg-out transactions
+// TODO: Do we also want to validate peg-in/peg-out transactions beyond the horizon?
+// This will require us to save the hogex txs to disk, and never prune them.
 mmr::MMR::Ptr CoinsViewFactory::BuildAndValidateKernelMMR(
     const std::shared_ptr<libmw::IDBWrapper>& pDBWrapper,
 	const std::unique_ptr<libmw::IDBBatch>& pBatch,
