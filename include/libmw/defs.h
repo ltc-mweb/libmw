@@ -50,6 +50,7 @@ namespace mw
     class ICoinsView;
     class BlockBuilder;
     struct State;
+    class Keychain;
 }
 
 LIBMW_NAMESPACE
@@ -58,6 +59,7 @@ typedef std::array<uint8_t, 32> BlockHash;
 typedef std::array<uint8_t, 32> KernelHash;
 typedef std::array<uint8_t, 32> Offset;
 typedef std::array<uint8_t, 32> BlindingFactor;
+typedef std::array<uint8_t, 32> PrivateKey;
 typedef std::array<uint8_t, 33> Commitment;
 typedef std::array<uint8_t, 33> PubKey;
 typedef std::string MWEBAddress;
@@ -79,12 +81,12 @@ static constexpr uint8_t MAX_KERNEL_EXTRADATA_SIZE = 33;
 /// <summary>
 /// Change outputs will use the stealth address generated using index 2,000,000.
 /// </summary>
-static constexpr uint32_t CHANGE_INDEX{ 2'000'000 };
+static constexpr uint32_t CHANGE_INDEX{ 0 };
 
 /// <summary>
 /// Peg-in outputs will use the stealth address generated using index 2,000,000.
 /// </summary>
-static constexpr uint32_t PEGIN_INDEX{ 4'000'000 };
+static constexpr uint32_t PEGIN_INDEX{ 1 };
 
 struct PegIn
 {
@@ -109,13 +111,6 @@ struct PegOut
 struct HeaderRef
 {
     std::shared_ptr<const mw::Header> pHeader;
-};
-
-struct HeaderAndPegsRef
-{
-    HeaderRef header;
-    std::vector<PegIn> pegins;
-    std::vector<PegOut> pegouts;
 };
 
 /// <summary>
@@ -191,12 +186,6 @@ struct ChainParams
 {
     boost::filesystem::path dataDirectory;
     std::string hrp;
-};
-
-struct PrivateKey
-{
-    std::string bip32Path;
-    libmw::BlindingFactor keyBytes;
 };
 
 struct BlockBuilderRef

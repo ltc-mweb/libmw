@@ -9,6 +9,8 @@
 #include "node.h"
 #include "wallet.h"
 #include "miner.h"
+#include "interfaces/chain_interface.h"
+#include "interfaces/db_interface.h"
 
 #include <memory>
 #include <cstdint>

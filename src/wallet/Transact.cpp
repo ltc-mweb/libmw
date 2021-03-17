@@ -1,4 +1,4 @@
-#include "Transact.h"
+#include <mw/wallet/Transact.h>
 #include "WalletUtil.h"
 
 #include <mw/consensus/Weight.h>
@@ -8,11 +8,11 @@
 #include <numeric>
 
 mw::Transaction::CPtr Transact::CreateTx(
-    const std::vector<Commitment>& input_commits,
+    const std::vector<libmw::Coin>& input_coins,
     const std::vector<std::pair<uint64_t, StealthAddress>>& recipients,
     const std::vector<PegOutCoin>& pegouts,
     const boost::optional<uint64_t>& pegin_amount,
-    const uint64_t fee) const
+    const uint64_t fee)
 {
     if (pegouts.size() > 1) {
         throw std::runtime_error("Only supporting one pegout at this time.");
@@ -29,7 +29,6 @@ mw::Transaction::CPtr Transact::CreateTx(
     );
 
     // Get input coins
-    std::vector<libmw::Coin> input_coins = m_wallet.GetCoins(input_commits);
     LOG_INFO_F(
         "Creating Txs: Inputs({}), pegins({}), pegouts({}), recipients({}), fee({})",
         WalletUtil::TotalAmount(input_coins),
@@ -91,7 +90,7 @@ mw::Transaction::CPtr Transact::CreateTx(
     );
 }
 
-Transact::Outputs Transact::CreateOutputs(const std::vector<std::pair<uint64_t, StealthAddress>>& recipients) const
+Transact::Outputs Transact::CreateOutputs(const std::vector<std::pair<uint64_t, StealthAddress>>& recipients)
 {
     Blinds output_blinds;
     Blinds output_keys;

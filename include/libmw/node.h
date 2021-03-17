@@ -111,8 +111,21 @@ MWIMPORT bool CheckTransaction(const libmw::TxRef& transaction);
 /// <returns>True if the inputs are unspent.</returns>
 MWIMPORT bool CheckTxInputs(const libmw::CoinsViewRef& view, const libmw::TxRef& transaction, uint64_t nSpendHeight);
 
+/// <summary>
+/// Checks if there's a unspent coin in the view with a matching commitment.
+/// </summary>
+/// <param name="view">The coins view to check.</param>
+/// <param name="commitment">The commitment to look for.</param>
+/// <returns>True if there's a matching unspent coin. Otherwise, false.</returns>
 MWIMPORT bool HasCoin(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment);
 
+/// <summary>
+/// Checks if there's a unspent coin with a matching commitment in the view that has not been flushed to the parent.
+/// This is useful for checking if a coin is in the mempool but not yet on chain.
+/// </summary>
+/// <param name="view">The coins view to check.</param>
+/// <param name="commitment">The commitment to look for.</param>
+/// <returns>True if there's a matching unspent coin. Otherwise, false.</returns>
 MWIMPORT bool HasCoinInCache(const libmw::CoinsViewRef& view, const libmw::Commitment& commitment);
 
 END_NAMESPACE // node

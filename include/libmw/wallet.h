@@ -1,8 +1,6 @@
 #pragma once
 
 #include "defs.h"
-#include "interfaces/chain_interface.h"
-#include "interfaces/wallet_interface.h"
 #include <boost/variant.hpp>
 
 LIBMW_NAMESPACE
@@ -31,29 +29,50 @@ struct PegInRecipient
 
 typedef boost::variant<MWEBRecipient, PegInRecipient, PegOutRecipient> Recipient;
 
+struct KeychainRef
+{
+    std::shared_ptr<mw::Keychain> pKeychain;
+
+    /// <summary>
+    /// Computes the MWEB wallet address with the given index.
+    /// </summary>
+    /// <param name="index">The index of the address keypair to use.</param>
+    /// <returns>The generated stealth address.</returns>
+    MWIMPORT MWEBAddress GetAddress(const uint32_t index);
+};
+
 WALLET_NAMESPACE
 
+/// <summary>
+/// Loads the wallet's keychain.
+/// </summary>
+/// <param name="scan_key">Scan private key generated with path m/1/0/100'</param>
+/// <param name="spend_key">Spend private key generated with path m/1/0/101'</param>
+/// <param name="address_index_counter">The highest index known to be used by the wallet.</param>
+/// <returns>The loaded keychain</returns>
+MWIMPORT KeychainRef LoadKeychain(
+    const libmw::PrivateKey& scan_key,
+    const libmw::PrivateKey& spend_key,
+    const uint32_t address_index_counter
+);
+
 MWIMPORT libmw::TxRef CreateTx(
-    const libmw::IWallet::Ptr& pWallet,
-    const std::vector<libmw::Commitment>& selected_inputs,
+    const std::vector<libmw::Coin>& input_coins,
     const std::vector<libmw::Recipient>& recipients,
     const boost::optional<uint64_t>& pegin_amount,
     const uint64_t fee
 );
 
-/// <summary>
-/// Computes the MWEB wallet address.
-/// Currently, this always generates an address using a pre-defined bip32 keychain path.
-/// FUTURE: Add multi-address support.
-/// </summary>
-/// <param name="pWallet">The wallet to calculate the MWEB wallet address for. Must not be null.</param>
-/// <param name="index">The index of the address keypair to use.</param>
-/// <returns>The MWEB wallet's bech32 address.</returns>
-MWIMPORT MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet, const uint32_t index);
+MWIMPORT bool RewindBlockOutput(
+    const libmw::KeychainRef& keychain,
+    const libmw::BlockRef& block,
+    const libmw::Commitment& output_commit,
+    libmw::Coin& coin_out
+);
 
-MWIMPORT bool RewindOutput(
-    const libmw::IWallet::Ptr& pWallet,
-    const boost::variant<libmw::TxRef, libmw::BlockRef>& parent,
+MWIMPORT bool RewindTxOutput(
+    const libmw::KeychainRef& keychain,
+    const libmw::TxRef& tx,
     const libmw::Commitment& output_commit,
     libmw::Coin& coin_out
 );

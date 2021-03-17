@@ -4,6 +4,7 @@
 #include <mw/models/wallet/StealthAddress.h>
 #include <mw/models/tx/PegInCoin.h>
 #include <mw/models/tx/PegOutCoin.h>
+#include <libmw/defs.h>
 
 // Forward Declarations
 class Wallet;
@@ -18,19 +19,14 @@ class Transact
     };
 
 public:
-    Transact(const Wallet& wallet)
-        : m_wallet(wallet) { }
-
-    mw::Transaction::CPtr CreateTx(
-        const std::vector<Commitment>& input_commits,
+    static mw::Transaction::CPtr CreateTx(
+        const std::vector<libmw::Coin>& input_coins,
         const std::vector<std::pair<uint64_t, StealthAddress>>& recipients,
         const std::vector<PegOutCoin>& pegouts,
         const boost::optional<uint64_t>& pegin_amount,
         const uint64_t fee
-    ) const;
+    );
 
 private:
-    Outputs CreateOutputs(const std::vector<std::pair<uint64_t, StealthAddress>>& recipients) const;
-
-    const Wallet& m_wallet;
+    static Outputs CreateOutputs(const std::vector<std::pair<uint64_t, StealthAddress>>& recipients);
 };

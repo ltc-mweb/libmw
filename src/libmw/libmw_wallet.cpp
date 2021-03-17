@@ -3,14 +3,36 @@
 #include "Transformers.h"
 
 #include <mw/models/tx/Transaction.h>
+#include <mw/wallet/Keychain.h>
+#include <mw/wallet/Transact.h>
 #include <mw/wallet/Wallet.h>
 
 LIBMW_NAMESPACE
+
+MWEXPORT libmw::MWEBAddress KeychainRef::GetAddress(const uint32_t index)
+{
+    assert(pKeychain != nullptr);
+
+    return pKeychain->GetStealthAddress(index).Encode();
+}
+
 WALLET_NAMESPACE
 
+MWEXPORT libmw::KeychainRef LoadKeychain(
+    const libmw::PrivateKey& scan_key,
+    const libmw::PrivateKey& spend_key,
+    const uint32_t address_index_counter)
+{
+    auto pKeychain = std::make_shared<mw::Keychain>(
+        scan_key,
+        spend_key,
+        address_index_counter
+    );
+    return libmw::KeychainRef{ pKeychain };
+}
+
 MWEXPORT libmw::TxRef CreateTx(
-    const libmw::IWallet::Ptr& pWallet,
-    const std::vector<libmw::Commitment>& selected_inputs,
+    const std::vector<libmw::Coin>& input_coins,
     const std::vector<libmw::Recipient>& recipients,
     const boost::optional<uint64_t>& pegin_amount,
     const uint64_t fee)
@@ -31,46 +53,46 @@ MWEXPORT libmw::TxRef CreateTx(
         }
     }
 
-    mw::Transaction::CPtr pTransaction = Wallet::Open(pWallet).CreateTx(
-        TransformCommitments(selected_inputs),
-        receivers,
-        pegouts,
-        pegin_amount,
-        fee
-    );
+    mw::Transaction::CPtr pTransaction = Transact::CreateTx(input_coins, receivers, pegouts, pegin_amount, fee);
     return libmw::TxRef{ pTransaction };
 }
 
-MWEXPORT libmw::MWEBAddress GetAddress(const libmw::IWallet::Ptr& pWallet, const uint32_t index)
-{
-    return Wallet::Open(pWallet).GetStealthAddress(index).Encode();
-}
-
-MWEXPORT bool RewindOutput(
-    const libmw::IWallet::Ptr& pWallet,
-    const boost::variant<libmw::TxRef, libmw::BlockRef>& parent,
+MWEXPORT bool RewindBlockOutput(
+    const libmw::KeychainRef& keychain,
+    const libmw::BlockRef& block,
     const libmw::Commitment& output_commit,
     libmw::Coin& coin_out)
 {
+    assert(keychain.pKeychain != nullptr);
+    assert(block.pBlock != nullptr);
+
+    Wallet wallet(keychain.pKeychain);
     ::Commitment commitment(output_commit);
 
-    if (parent.type() == typeid(libmw::TxRef)) {
-        const libmw::TxRef& tx = boost::get<libmw::TxRef>(parent);
-        assert(tx.pTransaction != nullptr);
-
-        for (const Output& output : tx.pTransaction->GetOutputs()) {
-            if (output.GetCommitment() == commitment) {
-                return Wallet::Open(pWallet).RewindOutput(output, coin_out);
-            }
+    for (const Output& output : block.pBlock->GetOutputs()) {
+        if (output.GetCommitment() == commitment) {
+            return wallet.RewindOutput(output, coin_out);
         }
-    } else {
-        const libmw::BlockRef& block = boost::get<libmw::BlockRef>(parent);
-        assert(block.pBlock != nullptr);
+    }
 
-        for (const Output& output : block.pBlock->GetOutputs()) {
-            if (output.GetCommitment() == commitment) {
-                return Wallet::Open(pWallet).RewindOutput(output, coin_out);
-            }
+    return false;
+}
+
+MWEXPORT bool RewindTxOutput(
+    const libmw::KeychainRef& keychain,
+    const libmw::TxRef& tx,
+    const libmw::Commitment& output_commit,
+    libmw::Coin& coin_out)
+{
+    assert(keychain.pKeychain != nullptr);
+    assert(tx.pTransaction!= nullptr);
+
+    Wallet wallet(keychain.pKeychain);
+    ::Commitment commitment(output_commit);
+
+    for (const Output& output : tx.pTransaction->GetOutputs()) {
+        if (output.GetCommitment() == commitment) {
+            return wallet.RewindOutput(output, coin_out);
         }
     }
 

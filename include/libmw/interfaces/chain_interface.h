@@ -9,6 +9,9 @@
 
 LIBMW_NAMESPACE
 
+/// <summary>
+/// Interface for iterating sequentially blocks in the chain.
+/// </summary>
 class IChainIterator
 {
 public:
@@ -18,17 +21,13 @@ public:
     virtual bool Valid() const noexcept = 0;
 
     virtual uint64_t GetHeight() const = 0;
-    virtual libmw::BlockHash GetCanonicalHash() const = 0;
-
     virtual libmw::HeaderRef GetHeader() const = 0;
-    virtual libmw::HeaderAndPegsRef GetHeaderAndPegs() const = 0;
     virtual libmw::BlockRef GetBlock() const = 0;
 };
 
-//
-// Interface for accessing blocks in the chain.
-// This must be implemented by the libmw consumer.
-//
+/// <summary>
+/// Interface for accessing blocks in the chain.
+/// </summary>
 class IChain
 {
 public:
