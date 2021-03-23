@@ -2,7 +2,6 @@
 
 #include <mw/crypto/Keys.h>
 #include <mw/models/crypto/PublicKey.h>
-#include <mw/models/crypto/Bech32Address.h>
 #include <mw/traits/Serializable.h>
 
 class StealthAddress : public Traits::ISerializable
@@ -21,25 +20,6 @@ public:
     static StealthAddress Random()
     {
         return StealthAddress(Keys::Random().PubKey(), Keys::Random().PubKey());
-    }
-
-    static StealthAddress Decode(const std::string& encoded)
-    {
-        std::vector<std::string> parts = StringUtil::Split(encoded, ":");
-        Bech32Address first_addr = Bech32Address::FromString(parts[0]);
-        Bech32Address second_addr = Bech32Address::FromString(parts[1]);
-
-        return StealthAddress(
-            PublicKey{ first_addr.GetAddress() },
-            PublicKey{ second_addr.GetAddress() }
-        );
-    }
-
-    std::string Encode() const
-    {
-        Bech32Address first_addr("mweb", m_scan.vec());
-        Bech32Address second_addr("ltc", m_spend.vec());
-        return first_addr.ToString() + ":" + second_addr.ToString();
     }
 
     const PublicKey& A() const noexcept { return m_scan; }

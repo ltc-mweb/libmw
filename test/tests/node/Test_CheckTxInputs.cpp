@@ -1,10 +1,11 @@
 #include <catch.hpp>
 
 #include <libmw/libmw.h>
-#include <mw/node/CoinsView.h>
+#include <mw/consensus/ChainParams.h>
 #include <mw/crypto/Hasher.h>
 #include <mw/file/ScopedFileRemover.h>
 #include <mw/mmr/backends/FileBackend.h>
+#include <mw/node/CoinsView.h>
 #include <mw/node/INode.h>
 
 #include <test_framework/DBWrapper.h>

@@ -5,6 +5,7 @@
 #include <mw/models/tx/PegOutCoin.h>
 #include <mw/models/tx/Transaction.h>
 #include <mw/models/block/Block.h>
+#include <mw/models/wallet/StealthAddress.h>
 
 static mw::Hash TransformHash(const libmw::BlockHash& hash)
 {
@@ -45,4 +46,17 @@ static std::vector<mw::Transaction::CPtr> TransformTxs(const std::vector<libmw::
     );
 
     return transactions;
+}
+
+static libmw::MWEBAddress TransformAddress(const StealthAddress& address)
+{
+    return std::make_pair(address.GetScanPubKey().array(), address.GetSpendPubKey().array());
+}
+
+static StealthAddress TransformAddress(const libmw::MWEBAddress& address)
+{
+    return StealthAddress(
+        PublicKey{ address.first },
+        PublicKey{ address.second }
+    );
 }

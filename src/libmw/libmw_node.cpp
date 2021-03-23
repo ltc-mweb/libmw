@@ -3,6 +3,7 @@
 #include "Transformers.h"
 
 #include <mw/common/Logger.h>
+#include <mw/consensus/ChainParams.h>
 #include <mw/exceptions/ValidationException.h>
 #include <mw/models/block/Block.h>
 #include <mw/models/block/BlockUndo.h>
