@@ -31,6 +31,7 @@ struct MMRInfo : public Traits::ISerializable
         return serializer
             .Append<uint32_t>(index)
             .Append(pruned)
+            .Append<uint32_t>(compact_index)
             .Append(compacted.value_or(mw::Hash()));
     }
 

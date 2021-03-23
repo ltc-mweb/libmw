@@ -55,7 +55,12 @@ void mmr::FileBackend::AddHash(const mw::Hash& hash)
 
 void mmr::FileBackend::Rewind(const LeafIndex& nextLeafIndex)
 {
-    m_pHashFile->Rewind(nextLeafIndex.GetPosition() * 32);
+    uint64_t pos = nextLeafIndex.GetPosition();
+    if (m_pPruneList) {
+        pos -= m_pPruneList->GetShift(nextLeafIndex);
+    }
+
+    m_pHashFile->Rewind(pos * 32);
 }
 
 void mmr::FileBackend::Compact(const uint32_t file_index, const boost::dynamic_bitset<uint64_t>& hashes_to_remove)
