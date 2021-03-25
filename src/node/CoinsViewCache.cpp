@@ -107,13 +107,13 @@ mw::Block::Ptr CoinsViewCache::BuildNextBlock(const uint64_t height, const std::
     );
 
     std::for_each(
-        pTransaction->GetInputs().cbegin(), pTransaction->GetInputs().cend(),
-        [this](const Input& input) { SpendUTXO(input.GetCommitment()); }
+        pTransaction->GetOutputs().cbegin(), pTransaction->GetOutputs().cend(),
+        [this, height](const Output& output) { AddUTXO(height, output); }
     );
 
     std::for_each(
-        pTransaction->GetOutputs().cbegin(), pTransaction->GetOutputs().cend(),
-        [this, height](const Output& output) { AddUTXO(height, output); }
+        pTransaction->GetInputs().cbegin(), pTransaction->GetInputs().cend(),
+        [this](const Input& input) { SpendUTXO(input.GetCommitment()); }
     );
 
     const uint64_t output_mmr_size = m_pOutputPMMR->GetNumLeaves();
@@ -175,7 +175,7 @@ void CoinsViewCache::AddUTXO(const uint64_t header_height, const Output& output)
 UTXO CoinsViewCache::SpendUTXO(const Commitment& commitment)
 {
     std::vector<UTXO::CPtr> utxos = GetUTXOs(commitment);
-    if (utxos.empty()) {
+    if (utxos.empty() || !m_pLeafSet->Contains(utxos.back()->GetLeafIndex())) {
         ThrowValidation(EConsensusError::UTXO_MISSING);
     }
 
@@ -203,6 +203,10 @@ void CoinsViewCache::WriteBatch(const std::unique_ptr<libmw::IDBBatch>&, const C
 
 void CoinsViewCache::Flush(const std::unique_ptr<libmw::IDBBatch>& pBatch)
 {
+    if (GetBestHeader() == nullptr) {
+        return;
+    }
+    
     m_pBase->WriteBatch(pBatch, *m_pUpdates, GetBestHeader());
 
     MMRInfo mmr_info;
@@ -214,7 +218,6 @@ void CoinsViewCache::Flush(const std::unique_ptr<libmw::IDBBatch>& pBatch)
         }
 
         ++mmr_info.index;
-        mmr_info.pruned = GetBestHeader()->GetHash();
     }
 
     m_pLeafSet->Flush(mmr_info.index);

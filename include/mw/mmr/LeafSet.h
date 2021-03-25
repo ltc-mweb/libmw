@@ -83,7 +83,6 @@ public:
 	LeafSetCache(const ILeafSet::Ptr& pBacked)
 		: m_pBacked(pBacked), ILeafSet(pBacked->GetNextLeafIdx()) { }
 
-	//uint64_t GetSize() const final;
 	uint8_t GetByte(const uint64_t byteIdx) const final;
 	void SetByte(const uint64_t byteIdx, const uint8_t value) final;
 

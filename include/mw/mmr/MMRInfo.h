@@ -9,9 +9,12 @@
 struct MMRInfo : public Traits::ISerializable
 {
     MMRInfo()
-        : index(0), pruned(mw::Hash()), compact_index(0), compacted(boost::none) { }
-    MMRInfo(uint32_t index_in, mw::Hash pruned_in, uint32_t compact_index_in, boost::optional<mw::Hash> compacted_in)
-        : index(index_in), pruned(std::move(pruned_in)), compact_index(compact_index_in), compacted(std::move(compacted_in)) { }
+        : version(0), index(0), pruned(mw::Hash()), compact_index(0), compacted(boost::none) { }
+    MMRInfo(uint8_t version, uint32_t index_in, mw::Hash pruned_in, uint32_t compact_index_in, boost::optional<mw::Hash> compacted_in)
+        : version(version), index(index_in), pruned(std::move(pruned_in)), compact_index(compact_index_in), compacted(std::move(compacted_in)) { }
+
+    // Version byte that allows for future modifications to the MMRInfo schema.
+    uint8_t version;
 
     // File number of the MMR files.
     uint32_t index;
@@ -29,6 +32,7 @@ struct MMRInfo : public Traits::ISerializable
     Serializer& Serialize(Serializer& serializer) const noexcept final
     {
         return serializer
+            .Append<uint8_t>(version)
             .Append<uint32_t>(index)
             .Append(pruned)
             .Append<uint32_t>(compact_index)
@@ -37,12 +41,14 @@ struct MMRInfo : public Traits::ISerializable
 
     static MMRInfo Deserialize(Deserializer& deserializer)
     {
+        uint8_t version = deserializer.Read<uint8_t>();
         uint32_t index = deserializer.Read<uint32_t>();
         mw::Hash pruned = deserializer.Read<mw::Hash>();
         uint32_t compact_index = deserializer.Read<uint32_t>();
         mw::Hash compacted = deserializer.Read<mw::Hash>();
 
         return MMRInfo{
+            version,
             index,
             pruned,
             compact_index,
