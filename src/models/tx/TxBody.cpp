@@ -66,6 +66,14 @@ int64_t TxBody::GetSupplyChange() const noexcept
     return coins_added;
 }
 
+uint64_t TxBody::GetLockHeight() const noexcept
+{
+    return std::accumulate(
+        m_kernels.cbegin(), m_kernels.cend(), (uint64_t)0,
+        [](const uint64_t lock_height, const auto& kernel) noexcept { return std::max(lock_height, kernel.GetLockHeight()); }
+    );
+}
+
 Serializer& TxBody::Serialize(Serializer& serializer) const noexcept
 {
     return serializer

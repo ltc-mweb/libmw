@@ -131,6 +131,13 @@ MWEXPORT std::set<libmw::Commitment> TxRef::GetOutputCommits() const noexcept
     return output_commits;
 }
 
+MWEXPORT uint64_t TxRef::GetLockHeight() const noexcept
+{
+    assert(pTransaction != nullptr);
+
+    return pTransaction->GetLockHeight();
+}
+
 MWEXPORT libmw::CoinsViewRef CoinsViewRef::CreateCache() const
 {
     if (pCoinsView == nullptr) {

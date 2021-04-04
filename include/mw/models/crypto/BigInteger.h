@@ -185,24 +185,6 @@ public:
         return BigInt<NUM_BYTES, ALLOC>(deserializer.ReadVector(NUM_BYTES));
     }
 
-#ifdef INCLUDE_TEST_MATH
-    // Not safe for use in production code
-    BigInt operator/(const int divisor) const
-    {
-        std::vector<uint8_t, ALLOC> quotient(NUM_BYTES);
-
-        int remainder = 0;
-        for (int i = 0; i < NUM_BYTES; i++)
-        {
-            remainder = remainder * 256 + m_bytes[i];
-            quotient[i] = (uint8_t)(remainder / divisor);
-            remainder -= quotient[i] * divisor;
-        }
-
-        return BigInt<NUM_BYTES, ALLOC>(std::move(quotient));
-    }
-#endif
-
 private:
     std::vector<uint8_t, ALLOC> m_bytes;
 };

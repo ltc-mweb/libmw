@@ -156,6 +156,7 @@ struct TxRef
     MWIMPORT std::set<KernelHash> GetKernelHashes() const noexcept;
     MWIMPORT std::set<libmw::Commitment> GetInputCommits() const noexcept;
     MWIMPORT std::set<libmw::Commitment> GetOutputCommits() const noexcept;
+    MWIMPORT uint64_t GetLockHeight() const noexcept;
 
     std::shared_ptr<const mw::Transaction> pTransaction;
 };

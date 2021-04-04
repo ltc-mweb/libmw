@@ -61,10 +61,11 @@ public:
             leaf_idx = leaf_idx.Next();
         }
 
-        mmr::Index last_node = mmr::LeafIndex::At(num_leaves).GetNodeIndex();
+        mmr::LeafIndex next_leaf = mmr::LeafIndex::At(num_leaves);
+        mmr::Index last_node = mmr::Index::At(next_leaf.GetPosition() - 1);
 
         uint64_t height = 1;
-        while ((std::pow(2, height + 1) - 2) <= last_node.GetPosition()) {
+        while ((std::pow(2, height + 1) - 2) <= next_leaf.GetPosition()) {
             SiblingIter iter(height, last_node);
             while (iter.Next()) {
                 mmr::Index right_child = iter.Get().GetRightChild();

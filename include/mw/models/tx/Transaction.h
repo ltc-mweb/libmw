@@ -97,6 +97,7 @@ public:
     const std::vector<Kernel>& GetKernels() const noexcept { return m_body.GetKernels(); }
     const std::vector<SignedMessage>& GetOwnerSigs() const noexcept { return m_body.GetOwnerSigs(); }
     uint64_t GetTotalFee() const noexcept { return m_body.GetTotalFee(); }
+    uint64_t GetLockHeight() const noexcept { return m_body.GetLockHeight(); }
 
     std::vector<Commitment> GetKernelCommits() const noexcept { return m_body.GetKernelCommits(); }
     std::vector<Commitment> GetInputCommits() const noexcept { return m_body.GetInputCommits(); }
