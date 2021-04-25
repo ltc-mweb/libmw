@@ -61,6 +61,13 @@ MWEXPORT std::vector<libmw::Commitment> BlockRef::GetOutputCommits() const noexc
     return output_commits;
 }
 
+MWEXPORT int64_t BlockRef::GetSupplyChange() const noexcept
+{
+    assert(pBlock != nullptr);
+
+    return pBlock->GetSupplyChange();
+}
+
 MWEXPORT std::vector<libmw::PegOut> TxRef::GetPegouts() const noexcept
 {
     std::vector<PegOut> pegouts;

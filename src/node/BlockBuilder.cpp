@@ -91,7 +91,13 @@ bool BlockBuilder::AddTransaction(const Transaction::CPtr& pTransaction, const s
 mw::Block::Ptr BlockBuilder::BuildBlock() const
 {
     mw::CoinsViewCache cache(m_pCoinsView);
-    return cache.BuildNextBlock(m_height, { m_pAggregated });
+
+    std::vector<mw::Transaction::CPtr> txs;
+    if (m_pAggregated != nullptr) {
+        txs.push_back(m_pAggregated);
+    }
+
+    return cache.BuildNextBlock(m_height, txs);
 }
 
 END_NAMESPACE

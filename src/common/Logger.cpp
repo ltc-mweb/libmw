@@ -25,15 +25,8 @@ namespace LoggerAPI
         if (log_level >= MIN_LOG_LEVEL) {
             std::string formatted = StringUtil::Format("{}({}) - {}", function, line, message);
 
-            size_t newlinePos = formatted.find("\n");
-            while (newlinePos != std::string::npos) {
-                if (formatted.size() > newlinePos + 2) {
-                    formatted.erase(newlinePos, 2);
-                } else {
-                    formatted.erase(newlinePos, 1);
-                }
-
-                newlinePos = formatted.find("\n");
+            if (formatted.back() != '\n') {
+                formatted += "\n";
             }
 
             LOGGER_CALLBACK(formatted);

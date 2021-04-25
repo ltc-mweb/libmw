@@ -58,12 +58,10 @@ uint64_t TxBody::GetTotalFee() const noexcept
 
 int64_t TxBody::GetSupplyChange() const noexcept
 {
-    int64_t coins_added = 0;
-    for (const Kernel& kernel : m_kernels) {
-        coins_added += kernel.GetSupplyChange();
-    }
-
-    return coins_added;
+    return std::accumulate(
+        m_kernels.cbegin(), m_kernels.cend(), (int64_t)0,
+        [](const int64_t supply_change, const auto& kernel) noexcept { return supply_change + kernel.GetSupplyChange(); }
+    );
 }
 
 uint64_t TxBody::GetLockHeight() const noexcept

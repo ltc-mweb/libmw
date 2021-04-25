@@ -57,6 +57,7 @@ public:
     std::vector<PegInCoin> GetPegIns() const noexcept { return m_body.GetPegIns(); }
     uint64_t GetPegInAmount() const noexcept { return m_body.GetPegInAmount(); }
     std::vector<PegOutCoin> GetPegOuts() const noexcept { return m_body.GetPegOuts(); }
+    int64_t GetSupplyChange() const noexcept { return m_body.GetSupplyChange(); }
 
     //
     // Serialization/Deserialization

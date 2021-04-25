@@ -132,6 +132,7 @@ struct BlockRef
     MWIMPORT std::set<KernelHash> GetKernelHashes() const noexcept;
     MWIMPORT std::vector<libmw::Commitment> GetInputCommits() const noexcept;
     MWIMPORT std::vector<libmw::Commitment> GetOutputCommits() const noexcept;
+    MWIMPORT int64_t GetSupplyChange() const noexcept;
 
     std::shared_ptr<mw::Block> pBlock;
 };
