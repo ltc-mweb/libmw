@@ -30,7 +30,7 @@ SecretKey Keychain::GetSpendKey(const uint32_t index) const
 bool Keychain::IsSpendPubKey(const PublicKey& spend_pubkey, uint32_t& index_out) const
 {
     // Ensure pubkey cache is fully populated
-    while (m_pubkeys.size() < m_addressIndexCounter) {
+    while (m_pubkeys.size() <= m_addressIndexCounter) {
         uint32_t pubkey_index = (uint32_t)m_pubkeys.size();
         PublicKey pubkey = PublicKey::From(GetSpendKey(pubkey_index));
 

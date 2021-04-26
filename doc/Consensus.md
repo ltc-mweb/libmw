@@ -71,9 +71,17 @@
   * `sum(input.receiver_pubkey) + sum(owner_pubkey) + (block.total_owner_offset*G) = sum(output.sender_pubkey)`
 ---
 
-#### Peg-In/Peg-Out Maturity
+#### Pegging-Out
 
-TBD
+* Kernels may include an optional pegout, containing the `amount` & a `scriptPubKey` (serialized `CScript`)
+  * The `scriptPubKey` shall be a valid `CScript` between 4 and 42 bytes, inclusive.
+  * Total MWEB supply shall be reduced by the exact `amount` (in addition to any supply reduction from the `fee`)
+  * Miners shall include an output in the block's `HogEx` transaction with the exact `amount` and `scriptPubKey`
+  * TBD: Maturity
+
+#### Pegging-In
+
+TODO: 
 
 ---
 
