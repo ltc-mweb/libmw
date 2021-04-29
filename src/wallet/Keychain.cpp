@@ -1,5 +1,8 @@
 #include <mw/wallet/Keychain.h>
 #include <mw/crypto/Hasher.h>
+#include <mw/common/Logger.h>
+
+#define RESTORE_WINDOW 100
 
 MW_NAMESPACE
 
@@ -17,7 +20,6 @@ StealthAddress Keychain::GetStealthAddress(const uint32_t index) const
 SecretKey Keychain::GetSpendKey(const uint32_t index) const
 {
     assert(index < ULONG_MAX);
-    m_addressIndexCounter = std::max(m_addressIndexCounter, index);
 
     SecretKey mi = Hasher(EHashTag::ADDRESS)
         .Append<uint32_t>(index)
@@ -30,7 +32,8 @@ SecretKey Keychain::GetSpendKey(const uint32_t index) const
 bool Keychain::IsSpendPubKey(const PublicKey& spend_pubkey, uint32_t& index_out) const
 {
     // Ensure pubkey cache is fully populated
-    while (m_pubkeys.size() <= m_addressIndexCounter) {
+    while (m_pubkeys.size() <= ((size_t)m_addressIndexCounter + RESTORE_WINDOW)) {
+        LOG_INFO_F("Size: {}, Counter: {}", m_pubkeys.size(), m_addressIndexCounter);
         uint32_t pubkey_index = (uint32_t)m_pubkeys.size();
         PublicKey pubkey = PublicKey::From(GetSpendKey(pubkey_index));
 
