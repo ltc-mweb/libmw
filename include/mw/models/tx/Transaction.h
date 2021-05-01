@@ -130,10 +130,11 @@ public:
     //
     // Traits
     //
-    std::string Format() const final { return GetHash().Format(); }
+    std::string Format() const final { return "Tx(" + GetHash().Format() + ")"; }
     mw::Hash GetHash() const noexcept final { return m_hash; }
 
     void Validate() const;
+    std::string Print() const noexcept;
 
 private:
     // The kernel "offset" k2 excess is k1G after splitting the key k = k1 + k2.

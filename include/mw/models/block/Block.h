@@ -79,7 +79,7 @@ public:
     // Traits
     //
     mw::Hash GetHash() const noexcept final { return m_pHeader->GetHash(); }
-    std::string Format() const final { return GetHash().ToHex(); }
+    std::string Format() const final { return "Block(" + GetHash().ToHex() + ")"; }
 
     //
     // Context-free validation of the block.

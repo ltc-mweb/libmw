@@ -145,6 +145,13 @@ MWEXPORT uint64_t TxRef::GetLockHeight() const noexcept
     return pTransaction->GetLockHeight();
 }
 
+MWEXPORT std::string TxRef::ToString() const noexcept
+{
+    assert(pTransaction != nullptr);
+
+    return pTransaction->Print();
+}
+
 MWEXPORT libmw::CoinsViewRef CoinsViewRef::CreateCache() const
 {
     if (pCoinsView == nullptr) {

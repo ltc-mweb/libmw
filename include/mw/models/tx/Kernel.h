@@ -83,7 +83,7 @@ public:
 
     int64_t GetSupplyChange() const noexcept
     {
-        return (m_pegin.value_or(0) - m_fee.value_or(0)) -
+        return ((int64_t)m_pegin.value_or(0) - m_fee.value_or(0)) -
             (int64_t)(m_pegout.has_value() ? m_pegout.value().GetAmount() : 0);
     }
 

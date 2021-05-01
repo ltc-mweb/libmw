@@ -159,6 +159,12 @@ struct TxRef
     MWIMPORT std::set<libmw::Commitment> GetOutputCommits() const noexcept;
     MWIMPORT uint64_t GetLockHeight() const noexcept;
 
+    /// <summary>
+    /// Prints the transaction details.
+    /// </summary>
+    /// <returns>The formatted transaction details.</returns>
+    MWIMPORT std::string ToString() const noexcept;
+
     std::shared_ptr<const mw::Transaction> pTransaction;
 };
 

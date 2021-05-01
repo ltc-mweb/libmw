@@ -140,12 +140,16 @@ private:
     template <class T>
     static std::string ConvertArg(const std::vector<T>& x)
     {
-        std::string str = "vec(";
+        std::string str;
         for (const T& value : x) {
-            str += ConvertArg(value) + ",";
+            if (str.empty()) {
+                str += ConvertArg(value);
+            } else {
+                str += "," + ConvertArg(value);
+            }
         }
 
-        return str + ")";
+        return "[" + str + "]";
     }
 
     static std::string ConvertArg(const std::shared_ptr<const Traits::IPrintable>& x)

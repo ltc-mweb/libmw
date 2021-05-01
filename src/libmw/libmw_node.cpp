@@ -13,6 +13,7 @@
 #include <mw/node/Snapshot.h>
 #include <mw/node/State.h>
 #include <mw/wallet/Wallet.h>
+#include <numeric>
 
 static mw::INode::Ptr NODE = nullptr;
 
@@ -70,7 +71,7 @@ MWEXPORT bool CheckBlock(
         NODE->ValidateBlock(block.pBlock, mweb_hash, pegins, pegouts);
         return true;
     } catch (const std::exception& e) {
-        LOG_ERROR_F("Validation error: {}", e.what());
+        LOG_ERROR_F("Failed to validate {}. Error: {}", *block.pBlock, e);
     }
 
     return false;
@@ -110,7 +111,7 @@ MWEXPORT bool CheckTransaction(const libmw::TxRef& transaction)
         transaction.pTransaction->Validate();
         return true;
     } catch (const std::exception& e) {
-        LOG_ERROR_F("Validation error: {}", e.what());
+        LOG_ERROR_F("Failed to validate {}. Error: {}", transaction.pTransaction->Print(), e);
     }
 
     return false;
@@ -135,7 +136,7 @@ MWEXPORT bool CheckTxInputs(const libmw::CoinsViewRef& view, const libmw::TxRef&
 
         return true;
     } catch (const std::exception& e) {
-        LOG_ERROR_F("Validation error: {}", e.what());
+        LOG_ERROR_F("Failed to validate: {}. Error: {}", transaction.pTransaction->Print(), e);
     }
 
     return false;

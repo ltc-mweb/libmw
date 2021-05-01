@@ -30,7 +30,7 @@ mw::Transaction::CPtr Transact::CreateTx(
 
     // Get input coins
     LOG_INFO_F(
-        "Creating Txs: Inputs({}), pegins({}), pegouts({}), recipients({}), fee({})",
+        "Creating Txs: Inputs({}), pegins({}), pegouts({}), recipient_total({}), fee({})",
         WalletUtil::TotalAmount(input_coins),
         pegin_amount.value_or(0),
         pegout_total,
