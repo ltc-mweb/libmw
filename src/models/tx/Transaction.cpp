@@ -30,7 +30,7 @@ std::string mw::Transaction::Print() const noexcept
     );
 
     return StringUtil::Format(
-        "{{{hash:{}, offset:{}, kernels:[{}], inputs:{}, outputs:{}}}}",
+        "tx(hash:{}, offset:{}, kernels:[{}], inputs:{}, outputs:{})",
         GetHash(),
         GetKernelOffset().ToHex(),
         kernels_str,
